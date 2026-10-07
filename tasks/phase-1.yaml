@@ -169,3 +169,18 @@
     - run: 'test -z "$(go list -f ''{{join .Imports "\n"}}'' ./internal/git ./internal/tempdir ./internal/prompt | grep itos-template/internal/ | grep -v /port$)"'
     - run: "test -z \"$(grep -rl alecthomas/kong --include='*.go' internal | grep -v -e '^internal/cli/' -e '^internal/newproject/' -e '^internal/check/')\""
     - run: go build ./...
+- id: T-10
+  type: build
+  title: "depguard refuses the mocking libraries (decision 19)"
+  why: >
+    Decision 19, the person's call, 2026-10-07: tests use our own fakes and stubs, never mocks,
+    which script and check calls. A lint holds it, so no mock can come in by a dependency:
+    depguard in .golangci.yml refuses github.com/golang/mock, go.uber.org/mock,
+    github.com/stretchr/testify/mock, github.com/vektra/mockery and
+    github.com/maxbrunsfeld/counterfeiter in every package, test files included, its message
+    naming decision 19. A hand-written expectation recorder is held by AGENTS.md, which no lint
+    can decide.
+  done_when:
+    - run: grep -q 'testify/mock' .golangci.yml
+    - run: grep -q 'go.uber.org/mock' .golangci.yml
+    - run: tools/bin/pinned golangci-lint run ./...

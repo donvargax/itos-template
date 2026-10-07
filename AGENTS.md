@@ -41,7 +41,8 @@ status by hand.
   gochecksumtype hold the arrows): commands carry domain objects, and the domain stays free of UI
   concerns, exit codes included. No other mapper: never a DTO or an options struct copying a
   type. An anti-corruption layer only where an outside model would leak in. Unit tests are for
-  the domain; the scenarios hold the rest (decision 18).
+  the domain, with our fakes and stubs, never mocks, asserting outcomes; the scenarios hold the
+  rest against the real git (decision 19).
 - **Decide the split before editing:** each commit type may touch only certain paths (the block
   below). Check a split with `itos commit check-paths --type <type> <path>…`; never relabel a
   commit to get past a rule.
