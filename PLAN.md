@@ -84,7 +84,7 @@ languages. itos-template keeps the update story and drops the template language.
 
 ## What it is built with
 
-Go, kong for commands and flags (a `--no-` pair for every switch, an environment variable per
+Go, kong for commands and flags (the rules in `docs/CLI.md`) (a `--no-` pair for every switch, an environment variable per
 flag), structured logs to stderr, godog acceptance tests against the binary, golangci-lint,
 govulncheck, GoReleaser. itos from the first commit: its hooks, its ledger and registry,
 scenarios as the specification, decision records.
