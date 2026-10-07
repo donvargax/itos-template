@@ -488,3 +488,13 @@ items:
       on every push, so a network failure never turns a push red (docs/CLI.md rule 36); nightly or
       before a release. Waits for a template to point at and a run to hold it.
     tags: [new, check, ci]
+  - id: T-12
+    title: Property-based tests of the domain with rapid, one case per push (decision 20)
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: task
+    why: >
+      The ledger's T-12 says why.
+    tags: [new, check]
