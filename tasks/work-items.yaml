@@ -301,3 +301,15 @@ items:
       left in a render; it is ours, built on the case-forms package of slice-1. The
       leaked-credential scan is a library or our own patterns, to weigh with the person by decision
       13 when specifying: gitleaks (wide rules, a heavy dependency) against a small set of our own.
+  - id: check-json
+    title: itos-template check --json prints the report as one object, for scripts
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [slice-2]
+    kind: idea
+    why: >
+      docs/CLI.md rules 10 and 27 give every command a --json output, and the contract with scripts
+      is the exit code and --json, never the plain output. slice-2 shipped check with its plain
+      report only, since no scenario described a --json one: a combination each, its checks with
+      their words, status and output, as new prints its result.
