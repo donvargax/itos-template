@@ -2,6 +2,7 @@ package answer
 
 import (
 	"errors"
+	"io"
 	"testing"
 
 	"github.com/donvargax/itos-template/internal/manifest"
@@ -91,5 +92,35 @@ func TestReadTakesADefaultOnlyWhenAskedTo(t *testing.T) {
 	var missingOwner *Missing
 	if len(problems) != 1 || !errors.As(problems[0], &missingOwner) || *missingOwner.Question.Default != "Nobody" {
 		t.Errorf("problems %v", problems)
+	}
+}
+
+// Resolve's one error, read as text, names every answer to fix, a line
+// each in the order they were given, the missing ones last: what a reader
+// of the error sees where no one classifies its kinds (internal/cli words
+// each kind its own way).
+func TestResolvesErrorReadsAsEveryProblemALineEach(t *testing.T) {
+	m := parse(t)
+	_, err := Resolve(m, Given{"nope", "who=x", "name=Blue", "name=red"}, false)
+	want := `the answer "nope" has no =
+no question who
+the answer to name, "Blue": ` + m.Questions[0].Check("Blue").Error() + `
+the answer to name twice
+no answer to owner`
+	if err == nil || err.Error() != want {
+		t.Errorf("Resolve's error reads\n%v\nnot\n%s", err, want)
+	}
+}
+
+// A question asked and not answered keeps why: its error names the
+// question and the reason, and the reason is still found by errors.Is.
+func TestNotAnsweredKeepsWhyTheQuestionWasNotAnswered(t *testing.T) {
+	m := parse(t)
+	err := error(&NotAnswered{Question: &m.Questions[1], Err: io.ErrUnexpectedEOF})
+	if !errors.Is(err, io.ErrUnexpectedEOF) {
+		t.Errorf("errors.Is(%v, io.ErrUnexpectedEOF) is false", err)
+	}
+	if want := "no answer to owner: unexpected EOF"; err.Error() != want {
+		t.Errorf("NotAnswered reads %q, not %q", err.Error(), want)
 	}
 }
