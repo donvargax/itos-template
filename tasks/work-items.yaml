@@ -313,3 +313,16 @@ items:
       is the exit code and --json, never the plain output. slice-2 shipped check with its plain
       report only, since no scenario described a --json one: a combination each, its checks with
       their words, status and output, as new prints its result.
+  - id: check-ci-branches
+    title: itos-template check renders a CI checkout without a fetch recipe
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [slice-2]
+    kind: idea
+    why: >
+      check clones the template, so in a CI checkout (one branch, perhaps a detached HEAD) a
+      template needs a fetch of every branch as a local branch and HEAD on its root first
+      (docs/manifest.md, Checking a template in its CI). check could read the remote-tracking
+      branches and the root from the origin when the template is the folder it runs in, and work
+      from a subfolder of it too, so a template CI step is one line.
