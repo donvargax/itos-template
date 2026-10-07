@@ -326,8 +326,6 @@ items:
     title: "itos 6.4.0: the pin and CI's itos action move from 6.0.0"
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      The ledger's T-6 says why.
