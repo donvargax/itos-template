@@ -15,5 +15,6 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0010: A made project records its render in .itos-template.yaml, each branch's commit included](0010-a-made-project-records-its-render-in-itos-template-yaml-each-branch-s-commit-included.md)
 - [ADR-0011: Missing answers are asked on a terminal, and refused without one unless --defaults](0011-missing-answers-are-asked-on-a-terminal-and-refused-without-one-unless-defaults.md)
 - [ADR-0012: new writes into a missing or empty folder and commits the render as its first commit](0012-new-writes-into-a-missing-or-empty-folder-and-commits-the-render-as-its-first-commit.md)
+- [ADR-0013: Look for a library before building what one likely already solves](0013-look-for-a-library-before-building-what-one-likely-already-solves.md)
 
 <!-- itos:decisions:end -->
