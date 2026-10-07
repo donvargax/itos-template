@@ -32,8 +32,8 @@ items:
   - id: T-4
     title: CI on every push to main, the itos plan and the platform jobs on Linux, macOS and Windows
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: task
     why: >
