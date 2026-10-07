@@ -99,6 +99,7 @@ items:
       docs/template-contents.md: semantic chore(deps) commits, a release-age cooldown, rebase
       auto-merge, actions pinned by digest. Waits on itos accepting the bot's commits (itos's
       p1-bot-dependency-prs) and its PR mode (p1-pr-mode); until then updates are made by hand.
+    tags: [ci]
   - id: devcontainer
     title: A devcontainer to run agents sandboxed, taken from itos once its T-108 lands
     phase: 1
