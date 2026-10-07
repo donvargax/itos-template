@@ -168,3 +168,14 @@ items:
       docs/CLI.md's rule 11 asks for both --version and version; T-3 built --version alone, as its
       scenario @ID-CLI-01 asked. docs/template-contents.md's CLI contract asks --version for the
       build's version and commit: the commit is Go's vcs.revision, or a stamp GoReleaser sets (T-5).
+  - id: usage-errors
+    title: Usage errors exit 2 naming what was wrong, held by scenarios
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [T-3]
+    kind: idea
+    why: >
+      docs/CLI.md's rules 12 and 20: an unknown command or flag, a flag with no value, exits 2 and
+      names it. T-3's skeleton maps kong's own usage code, 80, to 2 and prints itos-template: before
+      kong's message, with no scenario behind it yet; itos's @ID-CLI-01 to 06 are the model.
