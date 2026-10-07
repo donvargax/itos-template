@@ -186,6 +186,7 @@ items:
       Linux, in the plan. The .gitattributes T-4 added keeps them LF on Windows checkouts, which
       nothing yet proves: a step in each platform job running tools/bin/pinned golangci-lint version
       would.
+    tags: [ci, windows]
   - id: new-hooks
     title: "itos-template new and itos template hooks declare the hooks a stack's manifest names, for a stack with no hook tool of its own"
     phase: 1
