@@ -504,7 +504,7 @@ items:
     title: The manifest refuses a case-forms literal whose five forms are not five different strings
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: []
     kind: slice
     why: >
