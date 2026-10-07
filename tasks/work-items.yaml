@@ -421,7 +421,7 @@ items:
     title: Each domain package keeps at least 80% unit-test coverage
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: [T-12]
     kind: task
     why: >
