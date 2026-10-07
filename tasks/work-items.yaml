@@ -180,3 +180,15 @@ items:
       itos-template runs git itself (new-renders), it needs the same rule, honouring the ITOS_GIT
       itos sets for an extension: move it into an internal package both import, as itos's T-104 made
       its steps use internal/git.
+  - id: nightly
+    title: A nightly run of the whole scenario suite, once it outgrows the smoke set
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      T-4 left a nightly out: the whole suite is the smoke set's size, so every push runs all of it.
+      Once the scenarios grow, a push runs the smoke set and those it names, and a nightly.yml runs
+      the whole suite (itos's ci.nightly and nightly.yml), ci.watch naming it so itos status reads
+      it.
