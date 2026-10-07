@@ -315,6 +315,7 @@ items:
       left in a render; it is ours, built on the case-forms package of slice-1. The
       leaked-credential scan is a library or our own patterns, to weigh with the person by decision
       13 when specifying: gitleaks (wide rules, a heavy dependency) against a small set of our own.
+    tags: [check]
   - id: check-json
     title: itos-template check --json prints the report as one object, for scripts
     phase: 1
