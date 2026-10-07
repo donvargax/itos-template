@@ -184,3 +184,57 @@
     - run: grep -q 'testify/mock' .golangci.yml
     - run: grep -q 'go.uber.org/mock' .golangci.yml
     - run: tools/bin/pinned golangci-lint run ./...
+- id: T-11
+  type: build
+  title: "A Go file is at most 600 lines of code, revive's file-length-limit"
+  why: >
+    Decision 17 keeps a slice in one file until it grows large or complex; a limit says when. The
+    person's call, 2026-10-07, once T-9 reshaped the code: 600 lines, comments and blank lines not
+    counted, set by revive's file-length-limit in the pinned golangci-lint, tests included. The
+    largest file then, internal/manifest/manifest.go, is 584 lines with them counted, so nothing
+    splits now; it is the first that will. A file over the limit splits by what it holds, in the
+    domain's words, never by line count alone.
+  done_when:
+    - run: grep -q file-length-limit .golangci.yml
+    - run: tools/bin/pinned golangci-lint run ./...
+- id: T-12
+  type: test
+  title: "Property-based tests of the domain with rapid, one case per push (decision 20)"
+  why: >
+    Decision 20, the person's call, 2026-10-07. pgregory.net/rapid joins go.mod for tests only.
+    Properties are unit tests of the domain (decision 19) and live in the domain packages' tests
+    only; depguard refuses rapid anywhere else. The properties: a literal's five case forms are
+    five different strings and an answer's forms round-trip to it (caseform); the same template,
+    choice and answers render the same bytes, line endings are never changed and a binary file is
+    copied byte for byte (render, template, against porttest's fakes); every derived combination
+    has its needs chosen and none is unsupported, and Parse never panics on any bytes (manifest);
+    a Record written and read back is the same Record (project); a default is always an answer
+    its question takes (answer). Generators build valid domain values (a manifest, a tree of files,
+    answers) so a property states something about the domain, never about random noise. Every
+    push runs them with RAPID_CHECKS=1: the CI plan's go test step and the platform jobs set it,
+    so they stay as fast as unit tests and each push tries a new case; a failure prints its seed
+    and writes the file that replays it, which is never committed. The nightly run's high count
+    and rapid.MakeFuzz on the parsers belong to the idea nightly.
+  done_when:
+    - run: grep -q pgregory.net/rapid go.mod
+    - run: grep -q 'RAPID_CHECKS=1' itos.yaml
+    - run: grep -q 'RAPID_CHECKS' .github/workflows/ci.yml
+    - run: "test -z \"$(grep -rl pgregory.net/rapid --include='*.go' internal cmd features | grep -v -e '^internal/answer/' -e '^internal/caseform/' -e '^internal/manifest/' -e '^internal/project/' -e '^internal/render/' -e '^internal/template/')\""
+    - run: RAPID_CHECKS=1 go test ./internal/...
+- id: T-13
+  type: ci
+  title: "Each domain package keeps at least 80% unit-test coverage"
+  why: >
+    Decision 19 has the domain unit-tested in full; a floor holds it. The person's call,
+    2026-10-07, with the numbers after T-9 (manifest 92%, caseform 96%, template 89%, render 88%,
+    project 82%, answer 79%): 80% of statements in each domain package, measured by go test
+    -coverprofile with RAPID_CHECKS=1, so a property's one case counts as a unit test's does. A
+    script in tools/bin reads the domain packages from depguard's domain rule in .golangci.yml,
+    the one list of them, so a new domain package is measured without being named twice; the CI
+    plan runs it after the unit tests, naming each package under the floor and its figure. answer
+    is lifted above it first, by tests of its behaviour, never by tests written only to touch
+    lines. After T-12, so its properties count.
+  done_when:
+    - run: test -x tools/bin/domain-coverage
+    - run: grep -q domain-coverage itos.yaml
+    - run: tools/bin/domain-coverage
