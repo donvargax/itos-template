@@ -366,11 +366,9 @@ items:
     title: "Work items carry tags: the command they change, or a concern across commands"
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      The ledger's T-7 says why.
   - id: T-8
     title: The code in vertical slices over a shared domain, with no mappers (decision 16)
     phase: 1
