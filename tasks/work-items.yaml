@@ -212,3 +212,20 @@ items:
       manifest names (in practice the Go stack's pre-commit), never itos's own, which itos hook
       install declares, and a stack with its own hook tool (vite-plus) names none. Settle in its scenarios what it does
       when the record new left is missing.
+  - id: new-setup
+    title: "A template's setup steps: the manifest lists them per branch, new runs them once trusted, and itos template setup runs them in a clone"
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [new-renders]
+    kind: idea
+    why: >
+      Decision 7, superseding 5 and 6: the generator knows no itos and no stack's hook tool. The
+      manifest lists setup steps per branch (the root of a template using itos lists itos hook
+      install; stack/go its git config lines for tools/hooks/pre-commit; vite-plus none, its package
+      install setting its hooks up). new runs the chosen branches' steps after rendering, and a
+      setup command (itos template setup, the same code) runs them in a clone new did not make.
+      Steps are a template's code, so as copier's --trust: shown and asked on a terminal, or run
+      under --trust, never silently. Settle in its scenarios: the steps' shape in the manifest,
+      their order across root, stack and features, what a refused or failed step leaves, and where
+      new records what the clone command reads.
