@@ -121,7 +121,7 @@ Feature: check renders every combination a template allows and runs its checks
   # slice-3 (the idea scenario-gaps): a check naming a program nothing can
   # start fails its combination as any failed check does, its output saying
   # it cannot run.
-  @ID-CHECK-09 @slice-3 @wip
+  @ID-CHECK-09 @slice-3
   Scenario: a check whose program cannot be started fails its combination, saying it cannot run it
     Given the template "acme" whose feature "web" of the stack "go" has the check "itos-template-no-such-program"
     When itos-template runs with "check {template} --answer name=blue-fox --defaults"

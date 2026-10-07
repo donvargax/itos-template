@@ -215,7 +215,7 @@ Feature: new makes a project from a template
 
   # git merges two branches that each changed one file: a three-way merge,
   # which needs both changes kept.
-  @ID-NEW-20 @slice-3 @wip
+  @ID-NEW-20 @slice-3
   Scenario: new merges two features that change different lines of one file, keeping both
     Given the template "tangle"
     When itos-template runs with "new {template} made --stack go --feature a --feature b --answer name=blue-fox"
@@ -223,7 +223,7 @@ Feature: new makes a project from a template
     And the file "made/notes.txt" contains "ONE"
     And the file "made/notes.txt" contains "THREE"
 
-  @ID-NEW-21 @slice-3 @wip
+  @ID-NEW-21 @slice-3
   Scenario: new refuses features whose branches conflict with exit 1, naming the branch and the file, and writes nothing
     Given the template "tangle"
     When itos-template runs with "new {template} made --stack go --feature a --feature c --answer name=blue-fox --json"
@@ -236,7 +236,7 @@ Feature: new makes a project from a template
   # On every system, windows too, whose file system has no execute bit: the
   # fixture records run.sh as executable in git whatever the checkout's file
   # system says.
-  @ID-NEW-22 @slice-3 @wip
+  @ID-NEW-22 @slice-3
   Scenario: the project's first commit records a file the template holds as executable as executable
     Given the template "tangle"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox"
@@ -244,14 +244,14 @@ Feature: new makes a project from a template
     And the first commit of "made" records "run.sh" as executable
     And the first commit of "made" records "notes.txt" as not executable
 
-  @ID-NEW-23 @slice-3 @wip
+  @ID-NEW-23 @slice-3
   Scenario: the project's first commit is by whoever git says the person is
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
     Then it exits with code 0
     And the first commit of "made" is by "itos-template features"
 
-  @ID-NEW-24 @slice-3 @wip
+  @ID-NEW-24 @slice-3
   Scenario: new refuses a template holding a submodule with exit 1, naming it
     Given the template "acme" whose branch "stack/go" holds a submodule at "vendor/lib"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults --json"
@@ -262,7 +262,7 @@ Feature: new makes a project from a template
 
   # Each refusal of what the command line asks for, its exit code and its
   # rule; nothing is written.
-  @ID-NEW-25 @slice-3 @wip
+  @ID-NEW-25 @slice-3
   Scenario Outline: new refuses what the command line gets wrong with its code and its rule
     Given the template "acme"
     When itos-template runs with "new {template} made <arguments> --json"
@@ -286,7 +286,7 @@ Feature: new makes a project from a template
 
   # Without a terminal every missing answer is a problem of its own: --json
   # lists each, as stderr gives each its line.
-  @ID-NEW-26 @slice-3 @wip
+  @ID-NEW-26 @slice-3
   Scenario: --json lists every missing answer as a problem of its own
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go --json"
@@ -294,7 +294,7 @@ Feature: new makes a project from a template
     And its JSON output names the problems "answer-missing" and "answer-missing"
 
   # What a template gets wrong, each its code and rule.
-  @ID-NEW-27 @slice-3 @wip
+  @ID-NEW-27 @slice-3
   Scenario Outline: new refuses a template that is not one it can render with its code and its rule
     Given the template "acme" <defect>
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults --json"
@@ -311,7 +311,7 @@ Feature: new makes a project from a template
       | whose branch "stack/go" holds the file ".itos-template.yaml"     | 1    | template-defect         | .itos-template.yaml |
       | whose branch "stack/go" holds "acme-widget.md" and "blue-fox.md" | 2    | answer-name             | blue-fox.md         |
 
-  @ID-NEW-28 @slice-3 @wip
+  @ID-NEW-28 @slice-3
   Scenario: new refuses a template with no commit with exit 2, saying it has no manifest to read
     Given an empty git repository "bare-template"
     When itos-template runs with "new bare-template made --stack go --answer name=blue-fox --defaults --json"
@@ -319,7 +319,7 @@ Feature: new makes a project from a template
     And its JSON output names the problem "manifest-missing"
     And the path "made" does not exist
 
-  @ID-NEW-29 @slice-3 @wip
+  @ID-NEW-29 @slice-3
   Scenario: new refuses a folder that is a file with exit 1, naming it, and leaves it as it was
     Given the template "acme"
     And a file "made"
@@ -329,7 +329,7 @@ Feature: new makes a project from a template
     And its error output says "made"
     And the file "made" exists
 
-  @ID-NEW-30 @slice-3 @wip
+  @ID-NEW-30 @slice-3
   Scenario: new refuses to run without git with exit 3, saying to install it
     Given the template "acme"
     When itos-template runs with no git on the PATH with "new {template} made --stack go --answer name=blue-fox --defaults --json"
@@ -340,7 +340,7 @@ Feature: new makes a project from a template
   # git guesses an identity from the machine where it can, which differs by
   # system; "git knowing no one" sets user.useConfigOnly, so git refuses to
   # guess everywhere.
-  @ID-NEW-31 @slice-3 @wip
+  @ID-NEW-31 @slice-3
   Scenario: new refuses to commit when git knows no one with exit 3, saying how to tell it
     Given the template "acme"
     When itos-template runs with git knowing no one with "new {template} made --stack go --answer name=blue-fox --defaults --json"

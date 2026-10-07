@@ -11,10 +11,15 @@ import (
 	"github.com/donvargax/itos-template/internal/template/port"
 )
 
-// Decision 18 leaves infra to the scenarios, and they hold the files a
-// project is made of; none yet reads a file's execute bit, a symbolic
-// link, or a write that fails half way, so those stay here until the idea
-// scenario-gaps gives them scenarios.
+// Decision 19 leaves infra to the scenarios, and slice-3 gave them what
+// Look tells (a missing, an empty and a full folder, and a file:
+// ID-NEW-01, ID-NEW-09, ID-NEW-10 and ID-NEW-29). What stays, no scenario
+// reaches: what Clear removes after a write that fails half way, which no
+// scenario can make fail; and a symbolic link, which waits for the idea
+// template-special-files. A written file's execute bit and a CRLF line
+// ending written as it is a scenario could read but none reads yet:
+// ID-NEW-22 reads the mode the commit records, not the file's (the idea
+// outside-test-gaps).
 
 func TestWriteWritesEachFileWithItsMode(t *testing.T) {
 	dir := filepath.Join(t.TempDir(), "made")
@@ -56,22 +61,12 @@ func TestWriteMakesASymbolicLinkOrSaysWhichItCouldNot(t *testing.T) {
 	}
 }
 
-func TestLookAndClear(t *testing.T) {
+// Clear runs only after a write fails half way, which no scenario can make
+// happen.
+func TestClearRemovesWhatAFailedWriteLeft(t *testing.T) {
 	dir := t.TempDir()
-	if got, err := (Disk{}).Look(filepath.Join(dir, "made")); got != port.Missing || err != nil {
-		t.Errorf("a missing folder is %v, %v", got, err)
-	}
-	if got, err := (Disk{}).Look(dir); got != port.Empty || err != nil {
-		t.Errorf("an empty folder is %v, %v", got, err)
-	}
 	if err := (Disk{}).Write(dir, []port.File{{Path: "a/b.txt", Mode: 0o644}}); err != nil {
 		t.Fatal(err)
-	}
-	if got, err := (Disk{}).Look(dir); got != port.Full || err != nil {
-		t.Errorf("a full folder is %v, %v", got, err)
-	}
-	if got, err := (Disk{}).Look(filepath.Join(dir, "a", "b.txt")); got != port.NotFolder || err != nil {
-		t.Errorf("a file is %v, %v", got, err)
 	}
 	Disk{}.Clear(dir, false)
 	if got, _ := (Disk{}).Look(dir); got != port.Empty {
