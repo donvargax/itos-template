@@ -233,7 +233,11 @@
     the one list of them, so a new domain package is measured without being named twice; the CI
     plan runs it after the unit tests, naming each package under the floor and its figure. answer
     is lifted above it first, by tests of its behaviour, never by tests written only to touch
-    lines. After T-12, so its properties count.
+    lines. After T-12, so its properties count. Their one random case per push can reach a branch
+    one push and miss it the next, so a package near the floor may fail with no change: the person
+    wants that failure seen, since it names a branch no example test pins, and fixed by writing
+    that test; never by a fixed RAPID_SEED or by leaving properties out of the count, which would
+    hide it.
   done_when:
     - run: test -x tools/bin/domain-coverage
     - run: grep -q domain-coverage itos.yaml
