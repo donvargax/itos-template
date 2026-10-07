@@ -67,7 +67,7 @@ func As(err error) *Failure {
 // first, then each problem a line on stderr, and returns its exit code.
 func (f *Failure) Report(stdout, stderr io.Writer, withJSON bool) int {
 	if withJSON {
-		WriteJSON(stdout, stderr, struct {
+		writeJSON(stdout, stderr, struct {
 			Schema   int       `json:"schema"`
 			OK       bool      `json:"ok"`
 			Problems []Problem `json:"problems"`
@@ -79,9 +79,9 @@ func (f *Failure) Report(stdout, stderr io.Writer, withJSON bool) int {
 	return f.Code
 }
 
-// WriteJSON writes v on stdout as one line of JSON, as --json prints it;
+// writeJSON writes v on stdout as one line of JSON, as --json prints it;
 // a failure to is a line on stderr.
-func WriteJSON(stdout, stderr io.Writer, v any) {
+func writeJSON(stdout, stderr io.Writer, v any) {
 	enc := json.NewEncoder(stdout)
 	enc.SetEscapeHTML(false)
 	if err := enc.Encode(v); err != nil {

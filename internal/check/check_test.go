@@ -90,9 +90,9 @@ questions:
 func TestRunChecksEveryCombinationTheAnswersInPlace(t *testing.T) {
 	tpl := newTemplate(t, manifestText(`      - ["`+gitPath()+`", ls-files, --error-unmatch, extra.txt]`))
 	var report strings.Builder
-	code, err := Run(Options{Template: tpl, Answers: []string{"name=blue-fox"}}, &report)
+	code, err := (&Command{Template: tpl, Answer: []string{"name=blue-fox"}}).check(&report)
 	if err != nil || code != 0 {
-		t.Fatalf("Run = %d, %v\n%s", code, err, report.String())
+		t.Fatalf("check = %d, %v\n%s", code, err, report.String())
 	}
 	g := Words([]string{gitPath()})
 	want := "sh: passed\n" +
@@ -112,9 +112,9 @@ func TestRunStopsACombinationAtItsFirstFailedCheckAndChecksTheRest(t *testing.T)
 	tpl := newTemplate(t, manifestText(`      - [itos-template-no-such-program, x]
       - [also-not-run]`))
 	var report strings.Builder
-	code, err := Run(Options{Template: tpl, Answers: []string{"name=blue-fox"}}, &report)
+	code, err := (&Command{Template: tpl, Answer: []string{"name=blue-fox"}}).check(&report)
 	if err != nil || code != problem.CodeRefused {
-		t.Fatalf("Run = %d, %v\n%s", code, err, report.String())
+		t.Fatalf("check = %d, %v\n%s", code, err, report.String())
 	}
 	text := report.String()
 	for _, want := range []string{
@@ -133,9 +133,9 @@ func TestRunStopsACombinationAtItsFirstFailedCheckAndChecksTheRest(t *testing.T)
 func TestRunRefusesMissingAnswersBeforeReportingAnything(t *testing.T) {
 	tpl := newTemplate(t, manifestText(`      - [x]`))
 	var report strings.Builder
-	_, err := Run(Options{Template: tpl}, &report)
+	_, err := (&Command{Template: tpl}).check(&report)
 	if f, ok := err.(*problem.Failure); !ok || f.Code != problem.CodeUsage {
-		t.Fatalf("Run = %v", err)
+		t.Fatalf("check = %v", err)
 	}
 	if report.Len() != 0 {
 		t.Errorf("a report was written:\n%s", report.String())

@@ -6,10 +6,15 @@
 // commands are the fields of cli, each flag with its environment variable and
 // each switch with its --no- pair. The main output goes to stdout; logs,
 // structured, and errors go to stderr.
+//
+// main only assembles: each command is a slice (decision 16), its kong
+// struct, its use case and its output in a package of its own (newproject,
+// check), and main parses the command line, runs the one it names and exits
+// with the code the slice returns. A usage error, which kong finds before
+// any slice runs, is the one failure main reports itself.
 package main
 
 import (
-	"fmt"
 	"io"
 	"log/slog"
 	"os"
@@ -17,16 +22,11 @@ import (
 
 	"github.com/alecthomas/kong"
 
+	"github.com/donvargax/itos-template/internal/check"
+	"github.com/donvargax/itos-template/internal/newproject"
 	"github.com/donvargax/itos-template/internal/problem"
 	"github.com/donvargax/itos-template/internal/prompt"
 	"github.com/donvargax/itos-template/internal/version"
-)
-
-// Exit codes (docs/CLI.md, "Exit codes").
-const (
-	exitOK       = 0
-	exitUsage    = problem.CodeUsage
-	exitInternal = problem.CodeInternal
 )
 
 // cli is the command line: its flags and commands.
@@ -35,8 +35,8 @@ type cli struct {
 	// and no environment variable.
 	Version kong.VersionFlag `help:"Print the version and exit."`
 
-	New   newCmd   `cmd:"" help:"Make a project from a template."`
-	Check checkCmd `cmd:"" help:"Render every combination a template allows and run its checks."`
+	New   newproject.Command `cmd:"" help:"Make a project from a template."`
+	Check check.Command      `cmd:"" help:"Render every combination a template allows and run its checks."`
 }
 
 func main() {
@@ -57,32 +57,26 @@ func run(args []string, in io.Reader, stdout, stderr io.Writer, terminal bool) i
 		kong.Vars{"version": "itos-template " + version.Version()},
 	)
 	if err != nil {
-		fail(stderr, err)
-		return exitInternal
+		return problem.Internal(err).Report(stdout, stderr, false)
 	}
 	ctx, err := parser.Parse(args)
 	if err != nil {
 		// kong's own code for a usage error is 80; docs/CLI.md's is 2. With
 		// --json, the failure's object too (rule 29).
-		if wantsJSON(args) {
-			printJSON(stdout, stderr, failure([]problem.Problem{{Rule: "usage", Message: err.Error()}}))
-		}
-		fail(stderr, err)
-		return exitUsage
+		return problem.New(problem.CodeUsage, "usage", "%v", err).Report(stdout, stderr, wantsJSON(args))
 	}
 	if command := strings.Fields(ctx.Command()); len(command) > 0 {
 		switch command[0] {
 		case "new":
-			return c.New.run(in, stdout, stderr, terminal)
+			return c.New.Run(in, stdout, stderr, terminal)
 		case "check":
-			return c.Check.run(stdout, stderr)
+			return c.Check.Run(stdout, stderr)
 		}
 	}
 	if err := ctx.PrintUsage(false); err != nil {
-		fail(stderr, err)
-		return exitInternal
+		return problem.Internal(err).Report(stdout, stderr, false)
 	}
-	return exitOK
+	return 0
 }
 
 // wantsJSON is whether args ask for --json before any --, as a command line
@@ -100,13 +94,6 @@ func wantsJSON(args []string) bool {
 		}
 	}
 	return json
-}
-
-// fail writes err on stderr as a line for people, itos-template: first
-// (docs/CLI.md, rule 32). A stderr that cannot be written leaves nowhere else
-// to say so.
-func fail(stderr io.Writer, err error) {
-	_, _ = fmt.Fprintf(stderr, "itos-template: %v\n", err)
 }
 
 // logger writes structured logs to w: JSON when w is not a terminal, text

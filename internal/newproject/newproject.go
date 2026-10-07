@@ -1,4 +1,8 @@
-// Package newproject makes a project from a template: itos-template new.
+// Package newproject is the slice of itos-template new (decision 16): its
+// command as kong reads it, the slice's input with no copy of its flags, the
+// project made from it, and its output. It imports no other slice; what it
+// shares with check is the domain's (template, answer, project, problem).
+// The package is not named new, which Go predeclares.
 //
 // Every check runs before anything is written to the project's folder, so a
 // refusal leaves no folder behind (decision 12): the folder, then the
@@ -8,13 +12,15 @@
 // (.itos-template.yaml, decision 10) and committed as the project's first
 // commit; a failure while writing removes what was written.
 //
-// A failure is a *problem.Failure: its exit code (docs/CLI.md) and every
-// problem, each with its rule ID for --json.
+// A failure is a *problem.Failure, its exit code chosen where it is made;
+// Run, the slice's edge, only reports it.
 package newproject
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"slices"
 	"strings"
@@ -27,33 +33,84 @@ import (
 	"github.com/donvargax/itos-template/internal/template"
 )
 
-// Options are what new was asked to make.
-type Options struct {
-	Template string   // anything git clone takes
-	Folder   string   // the project's folder, missing or empty
-	Stack    string   // the stack's name, or empty to ask
-	Features []string // each a feature's name in the stack, or its branch
-	Answers  []string // each name=answer
-	Defaults bool     // take a missing answer's default
-	Asker    prompt.Asker
+// Command is itos-template new: its flags, the slice's input as kong reads
+// it (decision 4), and the project made from them.
+type Command struct {
+	Template string   `arg:"" help:"The template: anything git clone takes, a path or a URL."`
+	Folder   string   `arg:"" help:"The project's folder: one that does not exist, or an empty one."`
+	Stack    string   `help:"The stack to render, by the name the template's manifest gives it. Asked on a terminal when not given." placeholder:"STACK"`
+	Feature  []string `help:"A feature to merge onto the stack, by its name (cli) or its branch (go/cli); once for each. The features a feature needs are never added unasked." placeholder:"FEATURE" sep:"none"`
+	Answer   []string `help:"An answer to one of the template's questions, as name=answer; once for each. An answer not given is asked on a terminal." placeholder:"NAME=ANSWER" sep:"none"`
+	Defaults bool     `help:"Take a missing answer's default instead of asking or refusing." negatable:"" env:"ITOS_TEMPLATE_DEFAULTS"`
+	JSON     bool     `name:"json" help:"Print the result as one JSON object on stdout." negatable:"" env:"ITOS_TEMPLATE_JSON"`
 }
 
-// Make makes the project o asks for.
-func Make(o Options) (*project.Project, error) {
-	created, err := checkFolder(o.Folder)
+// Help is new's detail in its --help: its JSON and its exit codes
+// (docs/CLI.md, rules 10 and 14).
+func (c *Command) Help() string {
+	return `Renders the template's stack branch merged with the chosen features' branches, replaces each literal its manifest (itos-template.yaml) lists by its answer, in file contents and names and in every case form, and commits the render, with its record (.itos-template.yaml), as the new git repository's first commit. Nothing is written to the folder until every check has passed.
+
+--json prints {"schema":1,"ok":true,"folder","template","stack","features":[…],"answers":{…},"commits":{"<branch>":"<sha>"},"commit":"<sha>"}, or {"schema":1,"ok":false,"problems":[{"rule","message"}]}.
+
+Exit codes: 0 made; 1 refused: the folder has files in it, a feature of another stack, a feature whose needed feature is not chosen, a combination the manifest lists as unsupported, branches that do not merge cleanly; 2 a usage or manifest error: an unknown stack or feature, an answer missing (without a terminal) or not one its question takes; 3 git cannot reach the template, or cannot run; 70 an internal error.
+
+Examples:
+  itos-template new ../acme made --stack go --feature cli --answer name=blue-fox
+  itos-template new https://github.com/you/template.git made --stack go --defaults
+
+Report issues at https://github.com/donvargax/itos-template/issues.`
+}
+
+// Run makes the project and returns new's exit code: what it made on
+// stdout, a line or with --json its object, or each problem on stderr. It
+// asks on in for what is missing only when terminal says stdin and stdout
+// are one.
+func (c *Command) Run(in io.Reader, stdout, stderr io.Writer, terminal bool) int {
+	var asker prompt.Asker
+	if terminal {
+		asker = prompt.NewLines(in, stderr)
+	}
+	p, err := c.makeProject(asker)
+	if err != nil {
+		return problem.As(err).Report(stdout, stderr, c.JSON)
+	}
+	if c.JSON {
+		enc := json.NewEncoder(stdout)
+		enc.SetEscapeHTML(false)
+		if err := enc.Encode(struct {
+			Schema int  `json:"schema"`
+			OK     bool `json:"ok"`
+			*project.Project
+		}{1, true, p}); err != nil {
+			problem.Line(stderr, err.Error())
+		}
+		return 0
+	}
+	features := "no features"
+	if len(p.Features) > 0 {
+		features = "the features " + strings.Join(p.Features, ", ")
+	}
+	_, _ = fmt.Fprintf(stdout, "Made %s from %s: the stack %s, %s.\n", p.Folder, p.Template, p.Stack, features)
+	return 0
+}
+
+// makeProject makes the project c asks for, asking asker, when there is
+// one, for what c leaves out.
+func (c *Command) makeProject(asker prompt.Asker) (*project.Project, error) {
+	created, err := checkFolder(c.Folder)
 	if err != nil {
 		return nil, err
 	}
-	t, err := template.Open(o.Template)
+	t, err := template.Open(c.Template)
 	if err != nil {
 		return nil, err
 	}
 	defer t.Close()
-	s, err := choose(t.Manifest, o)
+	s, err := c.choose(t.Manifest, asker)
 	if err != nil {
 		return nil, err
 	}
-	return t.Render(manifest.Combination{Stack: s.stack, Features: s.features}, s.answers, o.Folder, created, nil)
+	return t.Render(manifest.Combination{Stack: s.stack, Features: s.features}, s.answers, c.Folder, created, nil)
 }
 
 // checkFolder refuses a folder with files in it, or a path that is a file,
@@ -86,12 +143,12 @@ type selection struct {
 	answers  map[string]string
 }
 
-// choose checks the stack, the features and the answers o names against the
+// choose checks the stack, the features and the answers c names against the
 // manifest, asking on a terminal for what is missing. Usage problems (a name
 // the manifest does not list, an answer missing or malformed) are reported
 // together, exit 2; then a combination the template refuses, exit 1; only
 // then is anything asked, so nobody answers questions for a refusal.
-func choose(m *manifest.Manifest, o Options) (*selection, error) {
+func (c *Command) choose(m *manifest.Manifest, asker prompt.Asker) (*selection, error) {
 	usage := &problem.Failure{Code: problem.CodeUsage}
 	refused := &problem.Failure{Code: problem.CodeRefused}
 	add := func(f *problem.Failure, rule, format string, args ...any) {
@@ -99,10 +156,10 @@ func choose(m *manifest.Manifest, o Options) (*selection, error) {
 	}
 	s := &selection{}
 
-	stackName := o.Stack
-	if stackName == "" && o.Asker != nil && len(m.Stacks) > 0 {
+	stackName := c.Stack
+	if stackName == "" && asker != nil && len(m.Stacks) > 0 {
 		var err error
-		stackName, err = o.Asker.Ask(prompt.Question{
+		stackName, err = asker.Ask(prompt.Question{
 			Text: fmt.Sprintf("Which stack (%s)?", strings.Join(m.StackNames(), ", ")),
 			Check: func(a string) error {
 				if _, ok := m.Stack(a); !ok {
@@ -126,7 +183,7 @@ func choose(m *manifest.Manifest, o Options) (*selection, error) {
 	}
 
 	var chosen []manifest.Feature
-	for _, name := range o.Features {
+	for _, name := range c.Feature {
 		found := m.FeaturesNamed(name, stackName)
 		switch {
 		case len(found) == 0:
@@ -146,20 +203,20 @@ func choose(m *manifest.Manifest, o Options) (*selection, error) {
 	s.features = m.Ordered(chosen)
 	for _, f := range s.features {
 		for _, need := range f.Needs {
-			if !slices.ContainsFunc(s.features, func(c manifest.Feature) bool { return c.Name == need }) {
+			if !slices.ContainsFunc(s.features, func(other manifest.Feature) bool { return other.Name == need }) {
 				add(refused, "feature-needs", "the feature %s needs the feature %s: choose it too, with --feature %s", f.Name, need, need)
 			}
 		}
 	}
-	if c := (manifest.Combination{Stack: stack, Features: s.features}); stackOK && len(refused.Problems) == 0 {
-		if _, ok := m.IsUnsupported(c); ok {
-			add(refused, "combination-unsupported", "the template does not support %s: its manifest lists that combination as unsupported", c.Name())
+	if combination := (manifest.Combination{Stack: stack, Features: s.features}); stackOK && len(refused.Problems) == 0 {
+		if _, ok := m.IsUnsupported(combination); ok {
+			add(refused, "combination-unsupported", "the template does not support %s: its manifest lists that combination as unsupported", combination.Name())
 		}
 	}
 
 	var ask []*manifest.Question
 	var problems []problem.Problem
-	s.answers, ask, problems = answer.Read(m, o.Answers, o.Defaults, o.Asker != nil)
+	s.answers, ask, problems = answer.Read(m, c.Answer, c.Defaults, asker != nil)
 	usage.Problems = append(usage.Problems, problems...)
 	if len(usage.Problems) > 0 {
 		return nil, usage
@@ -168,7 +225,7 @@ func choose(m *manifest.Manifest, o Options) (*selection, error) {
 		return nil, refused
 	}
 	for _, q := range ask {
-		answer, err := o.Asker.Ask(prompt.Question{
+		given, err := asker.Ask(prompt.Question{
 			Text:       q.Question,
 			Default:    deref(q.Default),
 			HasDefault: q.Default != nil,
@@ -177,7 +234,7 @@ func choose(m *manifest.Manifest, o Options) (*selection, error) {
 		if err != nil {
 			return nil, problem.New(problem.CodeUsage, "answer-missing", "no answer to %s (%s): %v", q.Name, q.Question, err)
 		}
-		s.answers[q.Name] = answer
+		s.answers[q.Name] = given
 	}
 	return s, nil
 }

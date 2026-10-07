@@ -118,7 +118,7 @@ func TestMakeAsksOnATerminalForWhatTheCommandLineLeftOut(t *testing.T) {
 	tpl := newTemplate(t)
 	folder := filepath.Join(t.TempDir(), "made")
 	asker := &answers{given: []string{"sh", "blue-fox", ""}}
-	result, err := Make(Options{Template: tpl, Folder: folder, Asker: asker})
+	result, err := (&Command{Template: tpl, Folder: folder}).makeProject(asker)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -139,7 +139,7 @@ func TestMakeAsksOnATerminalForWhatTheCommandLineLeftOut(t *testing.T) {
 func TestMakeCommitsAnExecutableAsExecutable(t *testing.T) {
 	tpl := newTemplate(t)
 	folder := filepath.Join(t.TempDir(), "made")
-	_, err := Make(Options{Template: tpl, Folder: folder, Stack: "sh", Features: []string{"extra"}, Answers: []string{"name=blue-fox"}, Defaults: true})
+	_, err := (&Command{Template: tpl, Folder: folder, Stack: "sh", Feature: []string{"extra"}, Answer: []string{"name=blue-fox"}, Defaults: true}).makeProject(nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -160,10 +160,10 @@ func TestMakeCommitsAnExecutableAsExecutable(t *testing.T) {
 func TestMakeRefusesWithoutWritingWhenTheInputEnds(t *testing.T) {
 	tpl := newTemplate(t)
 	folder := filepath.Join(t.TempDir(), "made")
-	_, err := Make(Options{Template: tpl, Folder: folder, Stack: "sh", Asker: &answers{}})
+	_, err := (&Command{Template: tpl, Folder: folder, Stack: "sh"}).makeProject(&answers{})
 	var f *problem.Failure
 	if !errors.As(err, &f) || f.Code != problem.CodeUsage || f.Problems[0].Rule != "answer-missing" {
-		t.Fatalf("Make = %v", err)
+		t.Fatalf("makeProject = %v", err)
 	}
 	if _, err := os.Stat(folder); !errors.Is(err, os.ErrNotExist) {
 		t.Errorf("the folder was made: %v", err)
@@ -177,10 +177,10 @@ func TestMakeRefusesATemplateWithNoManifest(t *testing.T) {
 	writeFile(t, dir, "README.md", "x\n")
 	run(t, dir, "add", "-A")
 	run(t, dir, "commit", "-q", "-m", "main")
-	_, err := Make(Options{Template: dir, Folder: filepath.Join(t.TempDir(), "made"), Stack: "sh"})
+	_, err := (&Command{Template: dir, Folder: filepath.Join(t.TempDir(), "made"), Stack: "sh"}).makeProject(nil)
 	var f *problem.Failure
 	if !errors.As(err, &f) || f.Code != problem.CodeUsage || f.Problems[0].Rule != "manifest-missing" {
-		t.Fatalf("Make = %v", err)
+		t.Fatalf("makeProject = %v", err)
 	}
 }
 
@@ -194,10 +194,10 @@ func TestMakeRefusesAnAnswerThatMakesTwoFilesOne(t *testing.T) {
 	run(t, tpl, "merge", "-q", "--no-edit", "main")
 	run(t, tpl, "checkout", "-q", "main")
 	folder := filepath.Join(t.TempDir(), "made")
-	_, err := Make(Options{Template: tpl, Folder: folder, Stack: "sh", Answers: []string{"name=blue-fox"}, Defaults: true})
+	_, err := (&Command{Template: tpl, Folder: folder, Stack: "sh", Answer: []string{"name=blue-fox"}, Defaults: true}).makeProject(nil)
 	var f *problem.Failure
 	if !errors.As(err, &f) || f.Code != problem.CodeUsage || f.Problems[0].Rule != "answer-name" {
-		t.Fatalf("Make = %v", err)
+		t.Fatalf("makeProject = %v", err)
 	}
 	if _, err := os.Stat(folder); !errors.Is(err, os.ErrNotExist) {
 		t.Errorf("the folder was made: %v", err)
@@ -215,15 +215,15 @@ func TestMakeRefusesACombinationTheManifestListsAsUnsupported(t *testing.T) {
 	tpl := newTemplate(t)
 	withManifest(t, tpl, strings.Replace(manifestText, "version: 1\n", "version: 2\nunsupported:\n  - stack: sh\n    features: [extra]\n", 1))
 	folder := filepath.Join(t.TempDir(), "made")
-	_, err := Make(Options{Template: tpl, Folder: folder, Stack: "sh", Features: []string{"extra"}, Answers: []string{"name=blue-fox"}, Defaults: true})
+	_, err := (&Command{Template: tpl, Folder: folder, Stack: "sh", Feature: []string{"extra"}, Answer: []string{"name=blue-fox"}, Defaults: true}).makeProject(nil)
 	var f *problem.Failure
 	if !errors.As(err, &f) || f.Code != problem.CodeRefused || f.Problems[0].Rule != "combination-unsupported" || !strings.Contains(f.Problems[0].Message, "sh + extra") {
-		t.Fatalf("Make = %v", err)
+		t.Fatalf("makeProject = %v", err)
 	}
 	if _, err := os.Stat(folder); !errors.Is(err, os.ErrNotExist) {
 		t.Errorf("the folder was made: %v", err)
 	}
-	if _, err := Make(Options{Template: tpl, Folder: folder, Stack: "sh", Answers: []string{"name=blue-fox"}, Defaults: true}); err != nil {
+	if _, err := (&Command{Template: tpl, Folder: folder, Stack: "sh", Answer: []string{"name=blue-fox"}, Defaults: true}).makeProject(nil); err != nil {
 		t.Errorf("the stack alone, which is supported: %v", err)
 	}
 }

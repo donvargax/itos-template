@@ -1,7 +1,9 @@
-// Package check proves a template: itos-template check. It renders every
-// combination the template's manifest allows, each as new renders it (the
-// same code, package template's Render) in a temporary folder of its own,
-// runs that render's checks in it and removes it.
+// Package check is the slice of itos-template check (decision 16): its
+// command as kong reads it, the slice's input with no copy of its flags,
+// and the proof of a template. It renders every combination the template's
+// manifest allows, each as new renders it (the same code, package
+// template's Render) in a temporary folder of its own, runs that render's
+// checks in it and removes it. It imports no other slice.
 //
 // A check is a list of words run with no shell (os/exec), so it means the
 // same on every system; each word has the literals replaced by the answers
@@ -33,11 +35,38 @@ import (
 	"github.com/donvargax/itos-template/internal/template"
 )
 
-// Options are what check was asked to check.
-type Options struct {
-	Template string   // anything git clone takes
-	Answers  []string // each name=answer
-	Defaults bool     // take a missing answer's default
+// Command is itos-template check: its flags, the slice's input as kong
+// reads it (decision 4). It never asks: it is a template's CI step.
+type Command struct {
+	Template string   `arg:"" optional:"" help:"The template: anything git clone takes, a path or a URL. The folder check runs in when not given."`
+	Answer   []string `help:"An answer to one of the template's questions, as name=answer; once for each. check never asks: every answer is given, or taken with --defaults." placeholder:"NAME=ANSWER" sep:"none"`
+	Defaults bool     `help:"Take a missing answer's default." negatable:"" env:"ITOS_TEMPLATE_DEFAULTS"`
+}
+
+// Help is check's detail in its --help: its report and its exit codes
+// (docs/CLI.md, rules 10 and 14).
+func (c *Command) Help() string {
+	return `Renders every combination the template's manifest (itos-template.yaml) allows, each stack alone and each stack with every set of its features whose needs are chosen too, less those it lists as unsupported; each as new renders it, from the template's branch heads, in a temporary folder removed after its checks. In each render it runs the checks the manifest names, the root's, then the stack's, then the features' in the manifest's order, with no shell, the answers in place of the literals in their words. A combination's checks stop at the first that fails; every combination is checked whatever failed before it.
+
+The report, on stdout, gives each combination a line, "go + cli: passed" or "go + cli: failed", then a line for each check as it ran, indented two spaces: "passed: <words>", "failed: <words>" followed by its output, each line of it indented four spaces after a "|", or "skipped: <words>" after a failure; a render that failed shows "not rendered" and why. An empty line and the count of the combinations that passed end it. docs/manifest.md describes it whole.
+
+Exit codes: 0 every combination rendered and every check passed; 1 a check or a render failed; 2 a usage or manifest error: an answer missing or not one its question takes, a manifest refused; 3 git cannot reach the template, or cannot run, or a render could not be written; 70 an internal error.
+
+Examples:
+  itos-template check --answer name=blue-fox --defaults
+  itos-template check https://github.com/you/template.git --answer name=blue-fox --answer module=example.com/blue/fox
+
+Report issues at https://github.com/donvargax/itos-template/issues.`
+}
+
+// Run checks the template, its report on stdout, and returns check's exit
+// code; a failure before any combination is rendered is reported on stderr.
+func (c *Command) Run(stdout, stderr io.Writer) int {
+	code, err := c.check(stdout)
+	if err != nil {
+		return problem.As(err).Report(stdout, stderr, false)
+	}
+	return code
 }
 
 // identity is who each render's first commit is by: a render no one keeps,
@@ -47,17 +76,22 @@ var identity = []string{
 	"GIT_COMMITTER_NAME=itos-template check", "GIT_COMMITTER_EMAIL=itos-template@localhost",
 }
 
-// Run checks the template o names, writing the report to report, and
-// returns check's exit code. A failure before any combination is rendered
-// (the template unreachable, its manifest refused, an answer missing) is a
-// *problem.Failure, nothing reported.
-func Run(o Options, report io.Writer) (int, error) {
-	src, err := template.Open(o.Template)
+// check checks the template c names, the folder it runs in when none,
+// writing the report to report, and returns check's exit code. A failure
+// before any combination is rendered (the template unreachable, its
+// manifest refused, an answer missing) is a *problem.Failure, nothing
+// reported.
+func (c *Command) check(report io.Writer) (int, error) {
+	name := c.Template
+	if name == "" {
+		name = "."
+	}
+	src, err := template.Open(name)
 	if err != nil {
 		return 0, err
 	}
 	defer src.Close()
-	answers, err := answer.Resolve(src.Manifest, o.Answers, o.Defaults)
+	answers, err := answer.Resolve(src.Manifest, c.Answer, c.Defaults)
 	if err != nil {
 		return 0, err
 	}
@@ -66,8 +100,8 @@ func Run(o Options, report io.Writer) (int, error) {
 	worst := 0 // the exit code: 0, else 1, else 3 or 70 for a render the environment or a defect of ours stopped
 	passed := 0
 	combinations := src.Manifest.Combinations()
-	for _, c := range combinations {
-		result := checkCombination(src, c, answers, replacer)
+	for _, combination := range combinations {
+		result := checkCombination(src, combination, answers, replacer)
 		if result.passed() {
 			passed++
 		} else {
