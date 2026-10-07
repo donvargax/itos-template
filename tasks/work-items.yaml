@@ -377,14 +377,15 @@ items:
     depends_on: []
     kind: task
     tags: [new, check]
-  - id: file-length-limit
-    title: A limit on a Go file's length, revive's file-length-limit in golangci-lint
+  - id: T-11
+    title: A Go file is at most 600 lines of code, revive's file-length-limit
     phase: 1
     owner: donvargax
     status: todo
     depends_on: [T-9]
-    kind: idea
+    kind: task
     why: >
+      Was file-length-limit.
       Decision 16 keeps a slice in one file until it grows large or complex; a limit says when.
       After T-8, so the number comes from the reshaped code, and so the person can see whether
       slices want a file per layer before one is set. revive, bundled in the pinned golangci-lint
