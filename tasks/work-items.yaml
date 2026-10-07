@@ -71,3 +71,15 @@ items:
       BREAKING-CHANGE footer; nothing done by hand, a tag never moved. itos's previous-release check
       (the last release's scenarios against the new binary) comes once there is a release to compare
       with: an idea, not this task.
+  - id: new-renders
+    title: "itos-template new renders a project: the manifest, a stack merged with the chosen features, literals substituted with their case forms, what was rendered recorded"
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: [T-3]
+    kind: idea
+    why: >
+      The first useful slice (PLAN.md, order of work 2; decisions 1 and 2). Settle in its scenarios:
+      the manifest's format and place in the template repository, how a template is named (a path or
+      a git URL), the record a made project keeps (tag, stack, features, answers) and where, asking
+      on a terminal for answers not given, refusing a feature whose stack or dependency is missing.
