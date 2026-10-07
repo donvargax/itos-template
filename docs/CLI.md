@@ -121,9 +121,11 @@ by construction; check each when a flag is added.
 
 ### Errors and exit codes
 
-31. Get the exit code from the kind of the error where it is made, never from a default; an error
-    no code classified exits 70. Read the kind of a failure of a program you run (git) from what it
-    says, never pass its own code through. (CLIG `#the-basics`.)
+31. Get the exit code from the kind of the error, in the UI alone (decision 17): the domain's and
+    infra's errors are sealed sets, each kind given its code in one switch that a lint refuses to
+    leave one out of, never a default; only an error no switch classified, a bug, exits 70. Read
+    the kind of a failure of a program you run (git) from what it says, never pass its own code
+    through. (CLIG `#the-basics`.)
 32. Start each error line with `itos-template:`. Write it for people: say what happened and what
     to do next. Do not show a raw command line as the message. (GNU-ERR; CLIG `#errors`.)
 33. Let the help and the code agree on each exit code; a scenario checks each one the help names.

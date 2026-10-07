@@ -133,3 +133,39 @@
     - run: "! grep -rn '^type record struct' internal"
     - run: "! go list -deps ./internal/check | grep -q 'itos-template/internal/newproject$'"
     - run: go build ./...
+- id: T-9
+  type: refactor
+  title: "Thin UI and application layers over a domain that does the work, through ports (decision 17)"
+  why: >
+    Decisions 17 and 18, the person's calls, 2026-10-07; their records hold the shape, and the
+    person approved a sketch of it in the coordinating session. Each slice (newproject, check) is
+    one directory, one file until it grows: its kong struct and Run, the UI, assembling a CQRS
+    command or query of domain objects from the flags, the one copy left; and that command and its
+    handler, the application, which only wires infra to the domain. The shared domain (manifest,
+    answer, project, caseform, render, template, as they stand or renamed in the domain's words)
+    does the work and reaches git, files, programs and the terminal only through interfaces in
+    port subpackages (template/port and the like), whose signatures use those packages' own plain
+    types or the standard library's. Infra (git, tempdir, prompt) implements the ports, each
+    asserted with var _ port.X = (*Y)(nil), and imports no package of ours but a port package;
+    turning git's output and errors into the ports' terms is its anti-corruption layer, kept
+    there. Domain errors become sealed sets of plain domain types, //sumtype:decl, carrying no
+    exit code, rule ID or UI wording; infra's errors a sealed set of its own. internal/problem
+    goes: its exit codes, its stderr lines and its --json failure object move to internal/cli, the
+    UI shared by the slices, whose one switch per sealed set turns errors into exit codes, every
+    variant classified and gochecksumtype refusing a switch that leaves one out; only an error no
+    switch classified, a bug, exits 70 (docs/CLI.md rule 31). depguard holds the arrows: the
+    domain and port packages import no os, os/exec, net, kong, infra, slice or cli package; infra
+    imports only port packages of ours; a slice imports no other slice; kong only cmd, cli and the
+    slices. Tests follow decision 18: the domain unit-tested in full against fakes of its ports;
+    a test of a slice, cli or infra kept only where a scenario cannot reach (asking on a terminal,
+    removing a folder on Windows), its comment saying so; nothing a test held is lost, it moves to
+    the domain or the scenarios hold it. Nothing a user sees changes: every scenario passes
+    unchanged, the help, the output, the exit codes and --json byte for byte.
+  done_when:
+    - run: grep -q gochecksumtype .golangci.yml
+    - run: grep -rq 'sumtype:decl' internal
+    - run: "! test -d internal/problem"
+    - run: test -d internal/cli
+    - run: 'test -z "$(go list -f ''{{join .Imports "\n"}}'' ./internal/git ./internal/tempdir ./internal/prompt | grep itos-template/internal/ | grep -v /port$)"'
+    - run: "test -z \"$(grep -rl alecthomas/kong --include='*.go' internal | grep -v -e '^internal/cli/' -e '^internal/newproject/' -e '^internal/check/')\""
+    - run: go build ./...

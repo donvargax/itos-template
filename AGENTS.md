@@ -37,9 +37,11 @@ status by hand.
   with the coordinator (decision 13), made in the spec. Meeting one the spec did not settle,
   stop and propose the candidates, weighed by activity, complexity, change and value; never
   choose alone.
-- **Vertical slices, no mappers** (decision 16): a command is one file, flags to I/O, over the
-  shared domain. Never copy flags into an options struct or a domain type into a DTO; the user
-  sees the domain as it is. An anti-corruption layer only where an outside model would leak in.
+- **Vertical slices, a thin UI and app, the work in the domain** (decision 17; depguard and
+  gochecksumtype hold the arrows): commands carry domain objects, and the domain stays free of UI
+  concerns, exit codes included. No other mapper: never a DTO or an options struct copying a
+  type. An anti-corruption layer only where an outside model would leak in. Unit tests are for
+  the domain; the scenarios hold the rest (decision 18).
 - **Decide the split before editing:** each commit type may touch only certain paths (the block
   below). Check a split with `itos commit check-paths --type <type> <path>…`; never relabel a
   commit to get past a rule.
