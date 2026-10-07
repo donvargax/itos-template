@@ -23,5 +23,6 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0020: The domain gets property-based tests with rapid: one case per push, many nightly](0020-the-domain-gets-property-based-tests-with-rapid-one-case-per-push-many-nightly.md)
 - [ADR-0021: A template's own checks scan its renders for credentials; check scans for leftover literals](0021-a-template-s-own-checks-scan-its-renders-for-credentials-check-scans-for-leftover-literals.md)
 - [ADR-0022: Configuration is JSON data written as YAML, read strictly, its conventions shown](0022-configuration-is-json-data-written-as-yaml-read-strictly-its-conventions-shown.md)
+- [ADR-0023: A release cuts a patch when the binary's linked modules or its Go toolchain changed](0023-a-release-cuts-a-patch-when-the-binary-s-linked-modules-or-its-go-toolchain-changed.md)
 
 <!-- itos:decisions:end -->
