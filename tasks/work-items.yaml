@@ -289,3 +289,16 @@ items:
       committed file, against PLAN.md's no-credentials principle (decision 9 has git's own
       credential helpers supply them). Settle in its scenarios whether new resolves a path against
       its working folder, and refuses or strips a URL's credentials.
+  - id: template-special-files
+    title: new renders a template's symbolic links on Windows and its submodules
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [slice-1]
+    kind: idea
+    why: >
+      slice-1 renders symbolic links by making them, which Windows refuses without the right to (new
+      then exits 3 and writes nothing), and refuses a template holding a submodule (exit 1); no
+      scenario holds either. Settle in its scenarios what a render does with each on every system:
+      git's own core.symlinks behaviour (a file holding the target) and a submodule's commit
+      recorded as a gitlink are the candidates.
