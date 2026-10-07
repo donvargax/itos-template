@@ -15,7 +15,7 @@ items:
     title: License itos-template under the AGPL-3.0, as itos is
     phase: 1
     owner: null
-    status: todo
+    status: doing
     depends_on: []
     kind: task
     why: >
