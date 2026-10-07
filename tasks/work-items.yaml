@@ -313,7 +313,7 @@ items:
     title: itos-template check fails a render that keeps a literal, and warns when no check scans for credentials
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: [slice-2]
     kind: slice
     why: >
