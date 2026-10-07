@@ -497,7 +497,7 @@ items:
     phase: 1
     owner: donvargax
     status: doing
-    depends_on: [bug-1]
+    depends_on: [bug-1, bug-2]
     kind: task
     why: >
       The ledger's T-12 says why.
