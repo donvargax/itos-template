@@ -157,3 +157,14 @@ items:
     why: >
       itos's T-071: a feat may not change an old scenario, a fix names each it changes. Needs a
       first release.
+  - id: version-command
+    title: itos-template version, and the build's commit beside its version
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [T-3]
+    kind: idea
+    why: >
+      docs/CLI.md's rule 11 asks for both --version and version; T-3 built --version alone, as its
+      scenario @ID-CLI-01 asked. docs/template-contents.md's CLI contract asks --version for the
+      build's version and commit: the commit is Go's vcs.revision, or a stamp GoReleaser sets (T-5).
