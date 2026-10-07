@@ -361,6 +361,7 @@ items:
       A reminder for when a template CI gets slow: derived combinations double with each feature
       that needs no other (q-14's record). A flag naming one combination, and a way to list them,
       lets CI run them as a matrix of jobs.
+    tags: [check, ci]
   - id: T-7
     title: "Work items carry tags: the command they change, or a concern across commands"
     phase: 1
