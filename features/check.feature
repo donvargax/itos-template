@@ -129,3 +129,63 @@ Feature: check renders every combination a template allows and runs its checks
     And its report says "go + cli + web" failed at "itos-template-no-such-program"
     And its report says "cannot run itos-template-no-such-program"
     And its report says "go + cli" passed
+
+  # slice-4 (template-scans; decision 21): check scans every render for the
+  # template's literals left in a form no answer replaces, and warns when no
+  # check of the template scans the renders for credentials.
+  #
+  # A leftover is a literal's words, in order and in any case, joined by
+  # nothing, a space, ".", "-", "_" or "/", found in a text file's contents
+  # or in a path of a render after its answers replaced the five case forms:
+  # "Acme Widget" in a heading, "acmewidget" in a host name. The person's
+  # call, 2026-10-07. Each leftover fails its combination, the report naming
+  # the path, the line and the text found, so the author either writes that
+  # spot in one of the five forms or names it otherwise. A literal without
+  # case forms is looked for as written. Binary files are not read, as no
+  # answer replaces anything in them.
+  #
+  # The credential scan stays the template's own (decision 21): a check is
+  # marked as one with scans: [credentials], in manifest version 3's long
+  # form of a check, {run: [words…], scans: [what it scans]}, beside the list
+  # of words, which stays. The person's call, 2026-10-07: itos-template knows
+  # what a check is for, never which tools exist; docs/manifest.md suggests
+  # gitleaks. scans takes credentials alone for now; any other value is
+  # refused. The warning goes to the error output, never fails the run, and
+  # names no tool.
+  @ID-CHECK-10 @slice-4 @wip
+  Scenario: a literal left in a form no answer replaces fails its combination, naming where
+    Given the template "acme" whose branch "stack/go" holds the file "docs/title.md" with the line "# Acme Widget"
+    When itos-template runs with "check {template} --answer name=blue-fox --defaults"
+    Then it exits with code 1
+    And its report says "go" failed with the leftover "Acme Widget" at "docs/title.md:1"
+    And its report says "python" passed
+
+  @ID-CHECK-11 @slice-4 @wip
+  Scenario: a literal left in a path fails its combination, naming the path
+    Given the template "acme" whose branch "stack/go" holds the file "docs/acme.widget.md" with the line "notes"
+    When itos-template runs with "check {template} --answer name=blue-fox --defaults"
+    Then it exits with code 1
+    And its report says "go" failed with the leftover "acme.widget" at "docs/acme.widget.md"
+
+  @ID-CHECK-12 @slice-4 @wip
+  Scenario: check warns when no check is marked as scanning for credentials, and still passes
+    Given the template "acme"
+    When itos-template runs with "check {template} --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And its error output says "warning"
+    And its error output says "scans: [credentials]"
+
+  @ID-CHECK-13 @slice-4 @wip
+  Scenario: a check marked as scanning for credentials runs as any check, and check gives no warning
+    Given the template "acme" whose root has, after its own, the check "git ls-files" marked as scanning "credentials"
+    When itos-template runs with "check {template} --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And its report shows the checks of "go" in order: "git ls-files --error-unmatch README.md", "git ls-files", "git ls-files --error-unmatch cmd/blue-fox/main.go"
+    And its error output does not say "warning"
+
+  @ID-CHECK-14 @slice-4 @wip
+  Scenario: check refuses a check marked as scanning something the format does not know with exit 2
+    Given the template "acme" whose root has, after its own, the check "git ls-files" marked as scanning "licences"
+    When itos-template runs with "check {template} --answer name=blue-fox --defaults"
+    Then it exits with code 2
+    And its error output says "licences"
