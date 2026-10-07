@@ -68,3 +68,4 @@ questions:
     item: "slice-2"
     question: "How does the manifest write a check command? Recommended: a list of words run with no shell, the same on Linux, macOS and Windows, a template wanting a shell writing sh -c itself. Or: a shell line run by sh -c (cmd on Windows), easier to write but meaning different things per platform."
     answer: "A list of words run with no shell. The user's call, 2026-10-07."
+    decision: 15

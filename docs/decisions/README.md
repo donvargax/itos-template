@@ -17,5 +17,6 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0012: new writes into a missing or empty folder and commits the render as its first commit](0012-new-writes-into-a-missing-or-empty-folder-and-commits-the-render-as-its-first-commit.md)
 - [ADR-0013: Look for a library before building what one likely already solves](0013-look-for-a-library-before-building-what-one-likely-already-solves.md)
 - [ADR-0014: check renders every combination the manifest allows, less those it lists as unsupported](0014-check-renders-every-combination-the-manifest-allows-less-those-it-lists-as-unsupported.md)
+- [ADR-0015: A template's checks are lists of words run with no shell](0015-a-template-s-checks-are-lists-of-words-run-with-no-shell.md)
 
 <!-- itos:decisions:end -->
