@@ -20,4 +20,7 @@
 #     scenarios:
 #       - id: "@ID-CLI-01"
 #         why: what it exercises, and why it was chosen
-[]
+- file: cli.feature
+  scenarios:
+    - id: "@ID-CLI-01"
+      why: --version, the one call every build answers, the binary built, stamped and run in one step

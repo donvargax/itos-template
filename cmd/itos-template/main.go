@@ -15,6 +15,8 @@ import (
 	"os"
 
 	"github.com/alecthomas/kong"
+
+	"github.com/donvargax/itos-template/internal/version"
 )
 
 // Exit codes (docs/CLI.md, "Exit codes").
@@ -25,7 +27,11 @@ const (
 )
 
 // cli is the command line: its flags and commands.
-type cli struct{}
+type cli struct {
+	// An action, not a switch: it prints and exits, so it has no --no- pair
+	// and no environment variable.
+	Version kong.VersionFlag `help:"Print the version and exit."`
+}
 
 func main() {
 	os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
@@ -40,6 +46,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 		kong.Name("itos-template"),
 		kong.Description("Make projects from a template that is a real project, and keep them up to date with it."),
 		kong.Writers(stdout, stderr),
+		// docs/CLI.md, rule 11: the first line is itos-template <version>.
+		kong.Vars{"version": "itos-template " + version.Version()},
 	)
 	if err != nil {
 		fail(stderr, err)

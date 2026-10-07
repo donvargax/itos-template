@@ -5,7 +5,7 @@ Feature: The command line
   release's build is stamped with the release's, so a scenario can tell
   the stamp from the dev version of a build without one.
 
-  @ID-CLI-01 @T-3 @wip
+  @ID-CLI-01 @T-3
   Scenario: --version prints the version stamped at build
     When itos-template runs with "--version"
     Then it exits with code 0
