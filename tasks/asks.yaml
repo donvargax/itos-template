@@ -100,3 +100,4 @@ questions:
     decision: 22
   - id: q-23
     question: "Does a dependency update cut a release? Recommended: a patch when, since the last release, the modules the binary links or the Go toolchain it is built with changed; never for a test-only module, a tool of go.mod's tool block, a go.sum-only change, an unlinked indirect module or a workflow's action, which leave the binary as it was. Or: a patch for any build commit touching go.mod or go.sum (simpler, but a tool's update releases an identical binary); or no release until the next feat or fix (a security fix waits)."
+    answer: "A patch when the binary's linked modules or its Go toolchain changed, nothing otherwise. The toolchain counts because the binary links the standard library, whose patch releases carry security fixes. The user's call, 2026-10-07."
