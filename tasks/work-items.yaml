@@ -496,11 +496,9 @@ items:
     title: Property-based tests of the domain with rapid, one case per push (decision 20)
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: [bug-1, bug-2]
     kind: task
-    why: >
-      The ledger's T-12 says why.
     tags: [new, check]
   - id: bug-1
     title: The manifest refuses a case-forms literal whose five forms are not five different strings
