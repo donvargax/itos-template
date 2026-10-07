@@ -706,3 +706,16 @@ items:
       and here a manifest naming its root and sync into main. Until then: two repositories, adopt
       and update.
     tags: [new, update, sync]
+  - id: itos-cc-gates
+    title: Mutation testing and CRAP from itos-cc, advisory and then a gate
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      docs/template-contents.md, Code quality: mutation testing of changed code, complexity and
+      duplication from itos-cc, a template's projects carrying it from day one. The owner's call,
+      2026-10-07: itos supports itos-cc first (donvargax/itos-cc#8 among it); raise it again once
+      about five items are left in the queue.
+    tags: [ci]
