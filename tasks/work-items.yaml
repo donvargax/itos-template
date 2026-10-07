@@ -373,7 +373,7 @@ items:
     title: The code in vertical slices over a shared domain, with no mappers (decision 16)
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: []
     kind: task
     why: >
