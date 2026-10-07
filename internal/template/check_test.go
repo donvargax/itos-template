@@ -87,6 +87,20 @@ func TestCheckRendersEveryCombinationAndRunsItsChecksTheAnswersInPlace(t *testin
 	}
 }
 
+// check renders each combination as new does, so each render's first
+// commit carries the manifest's message too.
+func TestCheckCommitsEachRenderWithTheManifestsFirstCommit(t *testing.T) {
+	_, _, g := checked(t, open(t, withManifest(acme(), strings.Replace(manifestText, "version: 2\n", firstCommit, 1))), nil)
+	if len(g.Commits) != 5 {
+		t.Errorf("%d renders were committed", len(g.Commits))
+	}
+	for folder, c := range g.Commits {
+		if !strings.HasPrefix(c.Message, "chore: start blue-fox\n") || !strings.HasSuffix(c.Message, "\nTask: T-1\n") {
+			t.Errorf("the render in %s is committed with %q", folder, c.Message)
+		}
+	}
+}
+
 // A CI that sets no git identity can check a template.
 func TestCheckRendersWhenGitKnowsNoOne(t *testing.T) {
 	results, _, _ := checked(t, open(t, acme()), func(_ *porttest.Disk, g *porttest.Git, _ *porttest.Folders) { g.Who = nil })

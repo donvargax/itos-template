@@ -3,15 +3,16 @@
 // its stacks, its features, the questions whose answers replace its
 // literals, the paths only the template keeps, from version 2 the checks
 // check runs in each render and the combinations the template cannot
-// support, and from version 3 a check's long form, saying what it scans the
-// render for. docs/manifest.md is its format, for template authors.
+// support, from version 3 a check's long form, saying what it scans the
+// render for, and from version 4 the message of a made project's first
+// commit. docs/manifest.md is its format, for template authors.
 //
 // A stack's branch is stack/<stack> and a feature's <stack>/<feature>, so the
 // manifest names branches by convention alone. Unknown keys are refused, so
 // a typo never passes for an option, and the keys later items add come with
 // a version that names them: version 1 refuses checks and unsupported, so a
-// manifest written for version 2 is never misread as one with no checks, and
-// version 2 refuses a check's long form.
+// manifest written for version 2 is never misread as one with no checks,
+// version 2 refuses a check's long form, and version 3 first_commit.
 package manifest
 
 import (
@@ -34,7 +35,7 @@ const File = "itos-template.yaml"
 
 // Version is the newest manifest version this itos-template reads; it
 // reads every one from 1.
-const Version = 3
+const Version = 4
 
 // Manifest is a template's itos-template.yaml.
 type Manifest struct {
@@ -45,6 +46,10 @@ type Manifest struct {
 	TemplateOnly []string      `yaml:"template_only"`
 	Checks       []Check       `yaml:"checks"`      // the root's, version 2
 	Unsupported  []Unsupported `yaml:"unsupported"` // version 2
+	// FirstCommit is the whole message of a made project's first commit,
+	// its header, then a body and footers, the literals in it replaced by
+	// the answers; nil leaves the message new gives. Version 4.
+	FirstCommit *string `yaml:"first_commit"`
 }
 
 // Check is a command check runs in a render: its words, the program first,
@@ -212,6 +217,7 @@ func (m *Manifest) check() []string {
 		}
 	}
 	m.checkChecks(add)
+	m.checkFirstCommit(add)
 	if len(m.Stacks) == 0 {
 		add("it lists no stack")
 	}
@@ -393,6 +399,25 @@ func (m *Manifest) checkChecks(add func(string, ...any)) {
 	}
 	for _, f := range m.Features {
 		each("the feature "+f.Branch()+"'s", f.Checks)
+	}
+}
+
+// checkFirstCommit refuses first_commit before version 4, and a message
+// git would not commit as it is written: one whose first line, the
+// header, is empty or blank, which git would drop, taking the next line
+// for the header, and one holding a NUL, which no commit message can.
+func (m *Manifest) checkFirstCommit(add func(string, ...any)) {
+	if m.FirstCommit == nil {
+		return
+	}
+	if m.Version < 4 {
+		add("first_commit is a key of version 4: write version: 4")
+	}
+	if header, _, _ := strings.Cut(*m.FirstCommit, "\n"); strings.TrimSpace(header) == "" {
+		add("first_commit has no header: its first line is the first commit's header, as chore: start the project")
+	}
+	if strings.ContainsRune(*m.FirstCommit, 0) {
+		add("first_commit holds a NUL, which no commit message can")
 	}
 }
 

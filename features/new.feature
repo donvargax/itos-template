@@ -445,7 +445,7 @@ Feature: new makes a project from a template
   # itos's rules alone. A message with no header line refuses the manifest.
   # Without first_commit the message stays today's, so a template written
   # for an earlier version renders as it did.
-  @ID-NEW-37 @slice-6 @wip
+  @ID-NEW-37 @slice-6
   Scenario: the manifest's first commit message, its literals replaced, is the made project's first commit's
     Given the template "acme" whose manifest gives the first commit the message "chore: start acme-widget" with the footer "Task: T-1"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
@@ -455,14 +455,14 @@ Feature: new makes a project from a template
 
   # The message today's slice-1 gives; it holds before slice-6, and stays so
   # a template without first_commit keeps rendering as it did.
-  @ID-NEW-38 @slice-6 @wip
+  @ID-NEW-38 @slice-6
   Scenario: without a first commit message in the manifest the made project's first commit keeps its message
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
     Then it exits with code 0
     And the first commit of "made" has the header "chore: make the project from its template"
 
-  @ID-NEW-39 @slice-6 @wip
+  @ID-NEW-39 @slice-6
   Scenario: new refuses a manifest whose first commit message has no header with exit 2
     Given the template "acme" whose manifest gives the first commit the message "" with the footer "Task: T-1"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"

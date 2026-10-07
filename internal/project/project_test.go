@@ -77,7 +77,7 @@ var record = Record{Template: "../acme", Stack: "go", Features: []string{"cli"},
 
 func TestWriteCommitsTheFilesAndTheRecordAsTheFirstCommit(t *testing.T) {
 	w, d, g := fakes()
-	p, err := w.Write(Folder{Path: "made", New: true}, files, record, nil)
+	p, err := w.Write(Folder{Path: "made", New: true}, files, record, "", nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -109,7 +109,7 @@ func TestWriteSaysNoFeaturesWhenThereAreNone(t *testing.T) {
 	w, _, g := fakes()
 	r := record
 	r.Features = []string{}
-	if _, err := w.Write(Folder{Path: "made", New: true}, files, r, nil); err != nil {
+	if _, err := w.Write(Folder{Path: "made", New: true}, files, r, "", nil); err != nil {
 		t.Fatal(err)
 	}
 	if !strings.Contains(g.Commits["made"].Message, "the stack go, no features.") {
@@ -117,11 +117,25 @@ func TestWriteSaysNoFeaturesWhenThereAreNone(t *testing.T) {
 	}
 }
 
+// A template that holds its projects to commit rules gives the first
+// commit's message itself, so the project's rules pass it; Write commits
+// it as it is given.
+func TestWriteCommitsWithTheMessageGiven(t *testing.T) {
+	w, _, g := fakes()
+	message := "chore: start blue-fox\n\nTask: T-1\n"
+	if _, err := w.Write(Folder{Path: "made", New: true}, files, record, message, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := g.Commits["made"].Message; got != message {
+		t.Errorf("the commit message is %q", got)
+	}
+}
+
 func TestWriteCommitsAsTheIdentityGivenWhenGitKnowsNoOne(t *testing.T) {
 	w, _, g := fakes()
 	g.Who = nil
 	by := port.Identity{Name: "check", Email: "check@localhost"}
-	if _, err := w.Write(Folder{Path: "tmp"}, files, record, &by); err != nil {
+	if _, err := w.Write(Folder{Path: "tmp"}, files, record, "", &by); err != nil {
 		t.Fatal(err)
 	}
 	if g.Commits["tmp"].By != by {
@@ -132,7 +146,7 @@ func TestWriteCommitsAsTheIdentityGivenWhenGitKnowsNoOne(t *testing.T) {
 func TestWriteRefusesBeforeWritingWhenGitKnowsNoOne(t *testing.T) {
 	w, d, g := fakes()
 	g.Who = nil
-	if _, err := w.Write(Folder{Path: "made", New: true}, files, record, nil); !errors.Is(err, porttest.ErrNoIdentity) {
+	if _, err := w.Write(Folder{Path: "made", New: true}, files, record, "", nil); !errors.Is(err, porttest.ErrNoIdentity) {
 		t.Fatalf("Write = %v", err)
 	}
 	if _, ok := d.Folders["made"]; ok {
@@ -149,7 +163,7 @@ func TestWriteRemovesWhatItWroteWhenItFails(t *testing.T) {
 			d.Folders["made"] = map[string]port.File{}
 		}
 		d.Full = "bin/blue-fox"
-		if _, err := w.Write(Folder{Path: "made", New: made}, files, record, nil); !errors.Is(err, porttest.ErrFull) {
+		if _, err := w.Write(Folder{Path: "made", New: made}, files, record, "", nil); !errors.Is(err, porttest.ErrFull) {
 			t.Fatalf("Write = %v", err)
 		}
 		if files, ok := d.Folders["made"]; ok == made || len(files) != 0 {
@@ -161,7 +175,7 @@ func TestWriteRemovesWhatItWroteWhenItFails(t *testing.T) {
 func TestWriteRemovesWhatItWroteWhenGitRefusesTheCommit(t *testing.T) {
 	w, d, g := fakes()
 	g.Refuse = errors.New("a hook said no")
-	_, err := w.Write(Folder{Path: "made", New: true}, files, record, nil)
+	_, err := w.Write(Folder{Path: "made", New: true}, files, record, "", nil)
 	var refused *CommitRefused
 	if !errors.As(err, &refused) || refused.Err != g.Refuse {
 		t.Fatalf("Write = %v", err)

@@ -107,9 +107,11 @@ func (w Writer) Look(path string) (Folder, error) {
 // Write writes files and record into the folder, missing or empty, and
 // commits it all as a new git repository's first commit, by by when it is
 // given, else by whoever git's config names, which git must know before
-// anything is written. A failure removes what was written; a commit git
-// refuses is a *CommitRefused.
-func (w Writer) Write(into Folder, files []port.File, record Record, by *port.Identity) (*Project, error) {
+// anything is written. The commit's message is message, the template's
+// (its manifest's first_commit, rendered), or new's own when it is "",
+// saying what the project was made from. A failure removes what was
+// written; a commit git refuses is a *CommitRefused.
+func (w Writer) Write(into Folder, files []port.File, record Record, message string, by *port.Identity) (*Project, error) {
 	if by == nil {
 		if err := w.Git.Identity(); err != nil {
 			return nil, err
@@ -132,7 +134,10 @@ func (w Writer) Write(into Folder, files []port.File, record Record, by *port.Id
 		w.Disk.Clear(into.Path, into.New)
 		return nil, err
 	}
-	p.Commit, err = w.Git.Commit(into.Path, p.commitMessage(), executables, by)
+	if message == "" {
+		message = p.commitMessage()
+	}
+	p.Commit, err = w.Git.Commit(into.Path, message, executables, by)
 	if err != nil {
 		w.Disk.Clear(into.Path, into.New)
 		var refused *port.Refused

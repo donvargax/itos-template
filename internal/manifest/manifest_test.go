@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"reflect"
 	"slices"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -112,7 +113,13 @@ func TestReplacementsPutTheLongestLiteralFirst(t *testing.T) {
 func TestParseRefuses(t *testing.T) {
 	cases := map[string]string{
 		"an unknown key":                "version: 1\nstacks: [{name: go}]\nsetup: []\n",
-		"a later version":               "version: 4\nstacks: [{name: go}]\n",
+		"a later version":               "version: 5\nstacks: [{name: go}]\n",
+		"first_commit in version 3":     "version: 3\nstacks: [{name: go}]\nfirst_commit: 'chore: start'\n",
+		"first_commit empty":            "version: 4\nstacks: [{name: go}]\nfirst_commit: ''\n",
+		"first_commit with no header":   "version: 4\nstacks: [{name: go}]\nfirst_commit: \"\\n\\nTask: T-1\\n\"\n",
+		"first_commit, a blank header":  "version: 4\nstacks: [{name: go}]\nfirst_commit: \" \\r\\n\\nTask: T-1\"\n",
+		"first_commit, a NUL":           "version: 4\nstacks: [{name: go}]\nfirst_commit: \"chore: start\\0\"\n",
+		"first_commit not a string":     "version: 4\nstacks: [{name: go}]\nfirst_commit: [chore]\n",
 		"a long check in version 2":     "version: 2\nstacks: [{name: go}]\nchecks: [{run: [gitleaks], scans: [credentials]}]\n",
 		"a scan not known":              "version: 3\nstacks: [{name: go}]\nchecks: [{run: [x], scans: [licences]}]\n",
 		"a long check, a key not known": "version: 3\nstacks: [{name: go}]\nchecks: [{run: [x], with: [y]}]\n",
@@ -394,5 +401,44 @@ func TestParseSaysALongCheckIsOfVersion3(t *testing.T) {
 	want := []string{"the stack go's check 1 is in the long form, {run, scans}, of version 3: write version: 3"}
 	if !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, want) {
 		t.Errorf("Parse = %v", err)
+	}
+}
+
+// Version 4 adds first_commit, the whole message of a made project's first
+// commit, read as it is written, its line endings and footers kept; a
+// manifest without it gives none, and new keeps its own.
+func TestParseReadsTheFirstCommitsMessageFromVersion4(t *testing.T) {
+	m, err := Parse([]byte("version: 4\nstacks: [{name: go}]\nfirst_commit: |\n  chore: start acme-widget\n\n  Task: T-1\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if m.FirstCommit == nil || *m.FirstCommit != "chore: start acme-widget\n\nTask: T-1\n" {
+		t.Errorf("first_commit is %v", m.FirstCommit)
+	}
+	if acme(t).FirstCommit != nil {
+		t.Error("acme, which gives no first_commit, gives one")
+	}
+}
+
+func TestParseSaysFirstCommitIsOfVersion4(t *testing.T) {
+	_, err := Parse([]byte("version: 3\nstacks: [{name: go}]\nfirst_commit: 'chore: start'\n"))
+	var invalid *Invalid
+	want := []string{"first_commit is a key of version 4: write version: 4"}
+	if !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, want) {
+		t.Errorf("Parse = %v", err)
+	}
+}
+
+// git drops a message's empty first lines and would take the next for the
+// header, so a message whose first line is empty or blank is refused, the
+// manifest's problem named by its key.
+func TestParseSaysAFirstCommitWithNoHeaderHasNone(t *testing.T) {
+	for _, message := range []string{"", "\n", "\n\nTask: T-1\n", " \t\r\nchore: start\n"} {
+		_, err := Parse([]byte("version: 4\nstacks: [{name: go}]\nfirst_commit: " + strconv.Quote(message) + "\n"))
+		var invalid *Invalid
+		want := []string{"first_commit has no header: its first line is the first commit's header, as chore: start the project"}
+		if !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, want) {
+			t.Errorf("%q: Parse = %v", message, err)
+		}
 	}
 }

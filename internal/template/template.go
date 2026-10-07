@@ -73,7 +73,9 @@ func Open(name string, repo port.Repository) (*Template, error) {
 
 // Render renders the combination c with answers, each one its question
 // takes, into the folder into, missing or empty, as a git repository whose
-// first commit is the render and its record, written by w. Every check runs
+// first commit is the render and its record, written by w, its message the
+// manifest's first_commit with the literals replaced, when it gives one, as a
+// text file's contents are. Every check runs
 // before into is touched, and a failure while writing leaves it as it was.
 // The commit is by by when it is given, an identity for a render no one
 // keeps; without it the commit is the person's and git must know who they
@@ -110,12 +112,17 @@ func (t *Template) render(c manifest.Combination, answers answer.Set, into proje
 		}
 		return nil, nil, err
 	}
-	files, err := render.Plan(tree, func(p string) bool { return !m.IsTemplateOnly(p) }, render.NewReplacer(m.Replacements(answers)))
+	replacer := render.NewReplacer(m.Replacements(answers))
+	files, err := render.Plan(tree, func(p string) bool { return !m.IsTemplateOnly(p) }, replacer)
 	if err != nil {
 		return nil, nil, err
 	}
 	if slices.ContainsFunc(files, func(f port.File) bool { return f.Path == project.RecordFile }) {
 		return nil, nil, &HoldsRecord{File: project.RecordFile}
+	}
+	var message string
+	if m.FirstCommit != nil {
+		message = replacer.Text(*m.FirstCommit)
 	}
 	features := []string{}
 	for _, f := range c.Features {
@@ -127,6 +134,6 @@ func (t *Template) render(c manifest.Combination, answers answer.Set, into proje
 		Features: features,
 		Answers:  answers,
 		Commits:  commits,
-	}, by)
+	}, message, by)
 	return p, files, err
 }

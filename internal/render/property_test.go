@@ -235,3 +235,42 @@ func TestAnySpellingOfALiteralIsFoundWhereItIs(t *testing.T) {
 		}
 	})
 }
+
+// The first commit's message a manifest gives, made of the literal's five
+// forms among other text, a header and lines after it each with any line
+// ending, renders with every literal replaced, so the scan finds none of
+// it, and with each line ending where the message had it: what a template's
+// commit rules read is the message as written, the answers in place.
+func TestAFirstCommitsMessageKeepsNoLiteralAndItsLineEndings(t *testing.T) {
+	rapid.Check(t, func(t *rapid.T) {
+		literal, answer := scanLiteral.Draw(t, "literal"), scanAnswer.Draw(t, "answer")
+		var pairs []string
+		for i, form := range literal.Forms() {
+			pairs = append(pairs, form, answer.Forms()[i])
+		}
+		piece := rapid.OneOf(rapid.SampledFrom(literal.Forms()), filler)
+		var b strings.Builder
+		for range rapid.IntRange(1, 6).Draw(t, "lines") {
+			for range rapid.IntRange(1, 3).Draw(t, "pieces") {
+				b.WriteString(piece.Draw(t, "piece"))
+			}
+			b.WriteString(rapid.SampledFrom(lineEndings).Draw(t, "line ending"))
+		}
+		message := b.String()
+		got := NewReplacer(pairs).Text(message)
+		file := port.File{Path: "message", Mode: 0o644, Data: []byte(got)}
+		if left := NewScan([]caseform.Words{literal}, nil).Leftovers([]port.File{file}); len(left) != 0 {
+			t.Fatalf("%q renders as %q, keeping %v", message, got, left)
+		}
+		var want, endings []string
+		for _, line := range lines(message) {
+			want = append(want, ending(line))
+		}
+		for _, line := range lines(got) {
+			endings = append(endings, ending(line))
+		}
+		if !slices.Equal(endings, want) {
+			t.Fatalf("%q renders as %q, its line endings %q, not %q", message, got, endings, want)
+		}
+	})
+}

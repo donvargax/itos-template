@@ -48,7 +48,8 @@ func (r *Replacer) Contents(data []byte) []byte {
 }
 
 // Text is s with every literal replaced, as in a text file's contents: what
-// check makes of a check's words, and new of a link's target.
+// check makes of a check's words, and new of a link's target and of the
+// first commit's message the manifest gives.
 func (r *Replacer) Text(s string) string { return r.r.Replace(s) }
 
 // Path is the template's path p (with /) with every literal replaced in each

@@ -52,13 +52,14 @@ template_only:
 
 | Key             | What it holds                                                                               |
 | --------------- | ------------------------------------------------------------------------------------------- |
-| `version`       | `3`, this page's format: `2` lacks a check's long form, `1` checks too. Required.           |
+| `version`       | `4`, this page's format; each earlier version lacks the keys a later one adds. Required.    |
 | `stacks`        | The stacks, at least one, each a `name` and its `checks`, if any.                           |
 | `features`      | The features: each a `name`, its `stack`, the features it `needs` and its `checks`, if any. |
 | `questions`     | The literals the answers replace, and the questions asked for them.                         |
 | `template_only` | Paths only the template keeps, left out of every render.                                    |
 | `checks`        | The root's checks, run in every render first. Version 2.                                    |
 | `unsupported`   | The combinations the template cannot support, each its `stack` and `features`. Version 2.   |
+| `first_commit`  | The made project's first commit message, a string. Version 4. Optional.                     |
 
 The manifest is JSON data written as YAML, and read strictly (`docs/CONFIG.md`, rule 1): a tool
 may write JSON into `itos-template.yaml` and it reads the same, while what JSON cannot say is
@@ -72,7 +73,9 @@ A key the format does not list is refused, so a misspelt key never passes for an
 adds `checks` (on the top, on a stack and on a feature) and `unsupported`; a manifest of version 1
 is read as it always was, a template with no checks, and refuses those keys, so a manifest written
 for version 2 is never misread as one without them. Version 3 adds a check's long form, which says
-what the check scans a render for ([Checks](#checks)); version 2 refuses it.
+what the check scans a render for ([Checks](#checks)); version 2 refuses it. Version 4 adds
+`first_commit`, the message of a made project's first commit ([The first
+commit](#the-first-commit)); version 3 refuses it.
 
 ### Branches
 
@@ -202,6 +205,49 @@ answers may not make two files one name, a file the folder of another, or a name
 (`..`, a `/` within it). A render refuses such answers before writing anything, naming every
 clash, in the order of the names the answers make.
 
+### The first commit
+
+`new` commits the render as the made project's first commit. Without `first_commit` its message
+is itos-template's own:
+
+```text
+chore: make the project from its template
+
+Made by itos-template new from ../acme: the stack go, the features cli. .itos-template.yaml records the render.
+```
+
+A template that holds its projects to commit rules (itos, or any commit lint) judges that commit
+too: on the made project's first push its CI has no green run to start from, so it judges the
+whole history, and a rule the message breaks (a chore needing a `Task:` footer, say) fails it.
+The template knows its own rules, so from version 4 its manifest gives the message, and the first
+commit passes them. A template held to itos makes it a chore with a `Task:` footer, as its rules
+ask of a chore, naming a task its ledger ships as done, the project's start (`T-1` here): the task
+is in the made project's ledger, as the footer needs, and done, it leaves the project nothing to
+finish:
+
+```yaml
+version: 4
+first_commit: |
+  chore: start acme-widget
+
+  Made from the acme template by itos-template new; .itos-template.yaml
+  records the render.
+
+  Task: T-1
+```
+
+`first_commit` is the whole message, a string: its first line the header, then, if any, a blank
+line, a body and footers, as `git commit` takes them. A block scalar (`|`) keeps its lines as
+they are written. The literals in it are replaced by the answers as a text file's contents are,
+case forms included, within lines (the message above makes `chore: start blue-fox`). A message
+whose first line is empty or blank is refused, naming `first_commit`: git would drop that line and
+take the next for the header, a footer as likely as not. So is one holding a NUL, which no commit
+message can. git commits the message as it commits any given with `-m`: lines' trailing
+whitespace and the blank lines at its ends removed, runs of blank lines made one.
+
+`check` renders each combination through the same code, so each render's first commit carries the
+message too.
+
 ### Paths only the template keeps
 
 Each `template_only` entry is a path relative to the template's top, written with `/`: a file, or
@@ -216,7 +262,8 @@ and removes the folder. The
 template is anything git clone takes, the folder `check` runs in when none is named. `check` never
 asks: every answer comes from `--answer`, or with `--defaults` from its question's default, and a
 missing one is refused, exit 2, each named, before anything is rendered. Each render's first commit
-is made as `itos-template check`, so a CI that sets no git identity can run it.
+is made as `itos-template check`, so a CI that sets no git identity can run it, with the message
+`new` gives it ([The first commit](#the-first-commit)).
 
 A **leftover** is a literal a render kept in a form no answer replaced: a case-forms literal's words,
 in order and in any case, joined by nothing, a space, `.`, `-`, `_` or `/` (`Acme Widget` in a

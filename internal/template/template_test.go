@@ -4,6 +4,7 @@ import (
 	"errors"
 	"maps"
 	"slices"
+	"strings"
 	"testing"
 	"testing/fstest"
 
@@ -141,7 +142,7 @@ func TestOpenRefusesATemplateWithNoManifestToRead(t *testing.T) {
 }
 
 func TestOpenRefusesAManifestNamingEveryProblemAndTheRootBranch(t *testing.T) {
-	_, err := Open("../acme", withManifest(acme(), "version: 4\nstacks: []\n"))
+	_, err := Open("../acme", withManifest(acme(), "version: 5\nstacks: []\n"))
 	var invalid *ManifestInvalid
 	if !errors.As(err, &invalid) || invalid.Root != "main" || len(invalid.Problems) != 2 {
 		t.Fatalf("Open = %v", err)
@@ -199,6 +200,33 @@ func TestRenderCommitsAsTheIdentityGiven(t *testing.T) {
 	}
 	if p.Features == nil || len(p.Features) != 0 || len(p.Commits) != 2 {
 		t.Errorf("the project is %+v", p)
+	}
+}
+
+// firstCommit is the manifest's first_commit, of version 4: the whole
+// message, literals in its header, body and footer, its body's lines ending
+// in CRLF.
+const firstCommit = "version: 4\nfirst_commit: \"chore: start acme-widget\\n\\nMade for Acme Corp, ACME_WIDGET.\\r\\n\\nTask: T-1\\n\"\n"
+
+// A template whose rules judge its projects' first commit gives the
+// message, its literals replaced as a text file's contents are, line
+// endings kept; without one the commit keeps project's own.
+func TestRenderCommitsTheManifestsFirstCommitItsLiteralsReplaced(t *testing.T) {
+	tpl := open(t, withManifest(acme(), strings.Replace(manifestText, "version: 2\n", firstCommit, 1)))
+	w, _, g := writer()
+	if _, err := tpl.Render(combination(t, tpl, "sh"), answers, project.Folder{Path: "made", New: true}, nil, w); err != nil {
+		t.Fatal(err)
+	}
+	want := "chore: start blue-fox\n\nMade for Blue Corp, BLUE_FOX.\r\n\nTask: T-1\n"
+	if got := g.Commits["made"].Message; got != want {
+		t.Errorf("the first commit's message is %q, not %q", got, want)
+	}
+	tpl = open(t, acme())
+	if _, err := tpl.Render(combination(t, tpl, "sh"), answers, project.Folder{Path: "other", New: true}, nil, w); err != nil {
+		t.Fatal(err)
+	}
+	if got := g.Commits["other"].Message; !strings.HasPrefix(got, "chore: make the project from its template\n") {
+		t.Errorf("without first_commit the first commit's message is %q", got)
 	}
 }
 

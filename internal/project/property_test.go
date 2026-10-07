@@ -44,7 +44,7 @@ func TestARecordWrittenAndReadBackIsTheSameRecord(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		r := records.Draw(t, "record")
 		w, d, _ := fakes()
-		if _, err := w.Write(Folder{Path: "made", New: true}, files, r, nil); err != nil {
+		if _, err := w.Write(Folder{Path: "made", New: true}, files, r, "", nil); err != nil {
 			t.Fatal(err)
 		}
 		var read Record
