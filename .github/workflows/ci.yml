@@ -31,7 +31,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Every action pinned to a commit, as itos pins them: actions/checkout v4.4.0,
-      # actions/setup-go v7.0.0, and itos's own action at v6.4.0, the release itos.yaml pins.
+      # actions/setup-go v7.0.0, actions/setup-node v7.0.0, and itos's own action at v6.4.0, the
+      # release itos.yaml pins.
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
           fetch-depth: 0 # the commit re-check and the scope read the pushed range
@@ -41,6 +42,12 @@ jobs:
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
+      # Node for T-14's checks, which run Renovate through npx. npx takes the newest Renovate whose
+      # engines the Node on the PATH meets, and the runner's own Node 22 got Renovate 42, too old
+      # for the config (commitTrailers, the renovate-config manager): Renovate 44 asks for Node 24.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
       # The global itos, the launcher, on the PATH; itos.yaml's pin chooses the itos that runs.
       # Pinned by commit, so the version is named, as the action reads a version from its ref only.
       - uses: donvargax/itos@e64df756d607dd2312753890cdf32da29c2a9b32 # v6.4.0
