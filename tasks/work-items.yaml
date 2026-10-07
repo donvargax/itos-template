@@ -471,11 +471,9 @@ items:
     title: depguard refuses the mocking libraries (decision 19)
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      The ledger's T-10 says why.
   - id: live-template-scenarios
     title: The scenarios run against a real published template over the network, nightly or before a release
     phase: 1
