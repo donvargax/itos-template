@@ -565,3 +565,14 @@ items:
       docs/CONFIG.md rule 15 (decision 22): convention over configuration made visible, so a reader
       sees every default the file leaves out.
     tags: [new, check, cli]
+  - id: config-schema
+    title: A JSON Schema of the manifest and of the record, versioned with each format
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      docs/CONFIG.md rule 16 (decision 22): an editor checks and completes a file, and a tool or
+      configuration language that writes one has its contract.
+    tags: [new, check]
