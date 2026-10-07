@@ -5,7 +5,20 @@ linters:
   default: standard # errcheck, govet, ineffassign, staticcheck, unused
   enable:
     - depguard
+    - gochecksumtype
   settings:
+    # The domain's and infra's errors are sealed sets (//sumtype:decl), and
+    # internal/cli gives each kind its exit code in one switch per set
+    # (decision 17, docs/CLI.md rule 31): a switch that leaves a kind out is
+    # refused, and a default case does not count as naming them.
+    gochecksumtype:
+      default-signifies-exhaustive: false
+    # The arrows between the layers (decision 17): the domain and its ports
+    # reach the outside only through infra implementing the ports; infra
+    # imports nothing of ours but the ports; a slice imports no other slice
+    # (decision 16); kong stays in the UI. Each list names every package of
+    # its layer, so a new one (a slice, a domain package, an infra) is
+    # added where it belongs.
     depguard:
       rules:
         # Each command is a slice, and a slice imports no other (decision 16):
@@ -21,6 +34,78 @@ linters:
               desc: "a slice imports no other slice (decision 16): move what they share into the domain"
             - pkg: github.com/donvargax/itos-template/internal/newproject$
               desc: "a slice imports no other slice (decision 16): move what they share into the domain"
+        # The domain and its ports, their tests too: no infra, slice, UI or
+        # kong. Its tests run it against porttest's fakes (decision 18).
+        domain:
+          files:
+            - "**/internal/answer/**"
+            - "**/internal/caseform/**"
+            - "**/internal/manifest/**"
+            - "**/internal/project/**"
+            - "**/internal/render/**"
+            - "**/internal/template/**"
+          deny:
+            - pkg: github.com/donvargax/itos-template/internal/git$
+              desc: "the domain reaches git through a port (decision 17): use internal/template/port"
+            - pkg: github.com/donvargax/itos-template/internal/disk$
+              desc: "the domain reaches the file system through a port (decision 17): use internal/template/port"
+            - pkg: github.com/donvargax/itos-template/internal/program$
+              desc: "the domain runs programs through a port (decision 17): use internal/template/port"
+            - pkg: github.com/donvargax/itos-template/internal/tempdir$
+              desc: "the domain reaches temporary folders through a port (decision 17): use internal/template/port"
+            - pkg: github.com/donvargax/itos-template/internal/prompt$
+              desc: "the domain asks through a port (decision 17): use internal/template/port"
+            - pkg: github.com/donvargax/itos-template/internal/check$
+              desc: "the domain imports no slice (decision 17)"
+            - pkg: github.com/donvargax/itos-template/internal/newproject$
+              desc: "the domain imports no slice (decision 17)"
+            - pkg: github.com/donvargax/itos-template/internal/cli$
+              desc: "the domain imports no UI (decision 17): internal/cli turns its errors into exit codes and lines"
+            - pkg: github.com/alecthomas/kong
+              desc: "kong stays in the UI (decision 17)"
+        # The domain's own code does no I/O: no os (os/exec with it) and no
+        # net. Its tests may read a fixture.
+        domain-io:
+          files:
+            - "**/internal/answer/**"
+            - "**/internal/caseform/**"
+            - "**/internal/manifest/**"
+            - "**/internal/project/**"
+            - "**/internal/render/**"
+            - "**/internal/template/**"
+            - "!$test"
+          deny:
+            - pkg: os
+              desc: "the domain does no I/O (decision 17): reach the outside through a port of internal/template/port"
+            - pkg: net
+              desc: "the domain does no I/O (decision 17): reach the outside through a port of internal/template/port"
+        # Infra implements the ports and imports nothing of ours but them:
+        # turning the outside's terms into the ports' is its anti-corruption
+        # layer, kept there.
+        infra:
+          list-mode: lax
+          files:
+            - "**/internal/disk/**"
+            - "**/internal/git/**"
+            - "**/internal/program/**"
+            - "**/internal/prompt/**"
+            - "**/internal/tempdir/**"
+          allow:
+            - github.com/donvargax/itos-template/internal/template/port$
+          deny:
+            - pkg: github.com/donvargax/itos-template
+              desc: "infra imports nothing of ours but the ports it implements (decision 17)"
+        # kong is the UI's: cmd, internal/cli and the slices.
+        kong:
+          files:
+            - $all
+            - "!**/cmd/**"
+            - "!**/internal/cli/**"
+            - "!**/internal/check/**"
+            - "!**/internal/newproject/**"
+          deny:
+            - pkg: github.com/alecthomas/kong
+              desc: "kong stays in the UI (decision 17): cmd, internal/cli and the slices"
 formatters:
   enable:
     - gofmt
