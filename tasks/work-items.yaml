@@ -531,3 +531,16 @@ items:
     depends_on: []
     kind: slice
     tags: [new, check]
+  - id: strict-yaml
+    title: "The manifest and the record are read strictly: no tags, documents, anchors, aliases, merge keys or duplicate keys"
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      docs/CONFIG.md rule 1 (decision 22): a file is JSON data written as YAML, and a manifest comes
+      from any template git can clone, so a tag that builds objects or an alias that expands without
+      bound is refused, as is anything JSON cannot say. Best before or with slice-4, whose manifest
+      version 3 is the format's first change since the rules.
+    tags: [new, check]
