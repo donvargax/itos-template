@@ -22,7 +22,8 @@ teaches, in the guide's lesson format.
   activity, complexity, likely change and value, and put the choice in the spec (decision 13).
   A library deferred until it brings value is watched: before specifying an item that would use
   it, raise it with the person again (charmbracelet/huh, for anything asking on a terminal:
-  `new-picker`).
+  `new-picker`). go-git is watched on a condition: it merges only by fast-forward (v5.19.3,
+  v6.0.0-beta.1), so the git command line stays; raise it again if it gains a three-way merge.
 - Windows is a platform job: what touches files, modes, line endings or paths needs a Windows
   thought (itos learned it: `go:embed` with CRLF checkouts, Unix file modes in tests).
 
