@@ -287,6 +287,7 @@ items:
       committed file, against PLAN.md's no-credentials principle (decision 9 has git's own
       credential helpers supply them). Settle in its scenarios whether new resolves a path against
       its working folder, and refuses or strips a URL's credentials.
+    tags: [new]
   - id: template-special-files
     title: new renders a template's symbolic links on Windows and its submodules
     phase: 1
