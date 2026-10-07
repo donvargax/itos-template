@@ -26,11 +26,60 @@ commits:
       required_for: [refactor, perf, test, build, ci, chore, style, revert]
       validate_for: all # a task named must be in the ledger
       read_at: commit # judged against the ledger the commit carries
+    # The scenarios a feat or a fix turns green, by ID (itos commit --scenarios ID-CLI-01): live
+    # ones, never @wip, judged against the feature files the commit carries.
+    Scenarios:
+      source: { tests: scenario }
+      strip_prefix: "@"
+      required_for: [feat, fix]
+      validate_for: [feat, fix]
+      must_be_live: true
+      read_at: commit
+    # The work registry item a commit belongs to, for the commits no task ties to it: a slice's
+    # steps committed red first in a test commit, a spec in a docs commit, a chore it needs. Taken
+    # in place of Task for those types, since a slice has no task (itos commit --item <id>).
+    Item:
+      source: registry
+      validate_for: all
+      read_at: commit # judged against the registry the commit carries
+      in_place_of: { Task: [test, docs, chore] }
+    # What a user of itos-template must change for the commit, or none (itos commit --upgrading
+    # none): feat and fix are what a user can feel, and the release notes quote it (T-5). No since:
+    # no commit before this rule is a feat or a fix, so verify finds none it would refuse.
+    Upgrading:
+      source: text
+      required_for: [feat, fix]
   # No since: the repository had no commit, so every commit is judged.
   # Which paths each type may touch. docs needs no Task footer, so it may
   # touch only Markdown, docs/ and itos's data in tasks/; the rest, anything.
   scopes:
     docs: { only: ["**/*.md", "docs/**", "tasks/**"] }
+
+# The scenarios, features/*.feature, run by godog through go test against the binary built from
+# this tree (features/README.md). -scenarios= is a regular expression over the scenarios' tags,
+# which the harness turns into godog's tag filter, as godog's own takes only exact tags.
+tests:
+  scenario:
+    adapter: gherkin
+    root: features
+    id: "ID-[A-Z]+-\\d+"
+    tag_prefix: "@"
+    wip_tag: "@wip"
+    run:
+      whole: "go test ./features -count=1"
+      select: "go test ./features -count=1 -scenarios={pattern}"
+      ids_pattern: "^@(?:{ids})$"
+      join: { each: "(?:{p})", sep: "|" }
+    recognize: # a task check read back as a selection, so CI runs it in the one run
+      - { command: "go test ./features -count=1", as: whole }
+      - { command: "go test ./features -count=1 -scenarios={pattern}", as: pattern }
+      - { command: "itos tests smoke run scenario", as: smoke }
+    smoke:
+      { file: features/smoke.yaml, every_file: true, add_hint: "add one to features/smoke.yaml" }
+    range_checks:
+      # Outside feat and fix, live scenarios only move, unchanged: itos's own rule, judged by the
+      # commit-msg hook and verify, so no commit but a feat or a fix weakens one.
+      - { name: scenario-moves, builtin: moves, except_types: [feat, fix] }
 
 hooks:
   bin: itos # the hooks call the global itos, which runs the release pinned
