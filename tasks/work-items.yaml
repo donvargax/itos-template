@@ -371,3 +371,13 @@ items:
     kind: task
     why: >
       The ledger's T-7 says why.
+  - id: T-8
+    title: The code in vertical slices over a shared domain, with no mappers (decision 16)
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: task
+    why: >
+      The ledger's T-8 says why.
+    tags: [new, check]
