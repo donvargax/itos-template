@@ -179,3 +179,16 @@ items:
       docs/CLI.md's rules 12 and 20: an unknown command or flag, a flag with no value, exits 2 and
       names it. T-3's skeleton maps kong's own usage code, 80, to 2 and prints itos-template: before
       kong's message, with no scenario behind it yet; itos's @ID-CLI-01 to 06 are the model.
+  - id: shared-real-git
+    title: One rule for the real git, shared by itos-template and its steps
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [new-renders]
+    kind: idea
+    why: >
+      T-3's harness finds the real git past an itos linked as git with a copy of itos's internal/git
+      rule (features/git_test.go), since a module cannot import another's internal package. Once
+      itos-template runs git itself (new-renders), it needs the same rule, honouring the ITOS_GIT
+      itos sets for an extension: move it into an internal package both import, as itos's T-104 made
+      its steps use internal/git.
