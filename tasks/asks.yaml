@@ -1,0 +1,4 @@
+# The questions to the person the work is for, written by itos decision (itos help decision).
+questions:
+  - id: q-1
+    question: "How does a template hold the parts a project fills in, given that Jinja2 and Go templates make the template something that neither builds nor tests?"
