@@ -53,6 +53,14 @@ items:
       the manifest's format and place in the template repository, how a template is named (a path or
       a git URL), the record a made project keeps (tag, stack, features, answers) and where, asking
       on a terminal for answers not given, refusing a feature whose stack or dependency is missing.
+
+      Libraries, weighed with the user (decision 13, 2026-10-06): the git command for cloning,
+      merging and the first commit (go-git has no full 3-way merge); go.yaml.in/yaml/v3 for the
+      manifest and the record, as itos; case forms our own small package, from the words the
+      manifest gives each literal, so a library's acronym rules can never change a render (decision
+      3 needs renders byte for byte); golang.org/x/term to tell a terminal and a plain line prompt
+      behind a small interface (huh waits for new-picker); strings.Replacer for the literals, a file
+      with a NUL in its first 8 KB left alone, as git tells binary files.
   - id: template-check
     title: itos-template check renders every combination a template allows and runs its checks, scanning for leftover literals and leaked credentials
     phase: 1
