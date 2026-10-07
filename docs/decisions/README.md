@@ -12,5 +12,6 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0007: The template drives a made project's setup: steps in the manifest, run once trusted](0007-the-template-drives-a-made-project-s-setup-steps-in-the-manifest-run-once-trusted.md)
 - [ADR-0008: One manifest, itos-template.yaml, on the root branch and merged down into every branch](0008-one-manifest-itos-template-yaml-on-the-root-branch-and-merged-down-into-every-branch.md)
 - [ADR-0009: A template is anything git clone takes, fetched by git](0009-a-template-is-anything-git-clone-takes-fetched-by-git.md)
+- [ADR-0010: A made project records its render in .itos-template.yaml, each branch's commit included](0010-a-made-project-records-its-render-in-itos-template-yaml-each-branch-s-commit-included.md)
 
 <!-- itos:decisions:end -->
