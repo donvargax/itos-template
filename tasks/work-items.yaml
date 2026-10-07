@@ -440,14 +440,15 @@ items:
       Decision 18 has the domain unit-tested in full. A coverage floor on the domain packages, read
       from go test -coverprofile in the CI plan, holds it. After T-9, so the number comes from the
       reshaped code.
-  - id: scenario-gaps
+  - id: slice-3
     title: Scenarios for what only a test outside the domain holds after T-9
     phase: 1
     owner: null
     status: todo
     depends_on: []
-    kind: idea
+    kind: slice
     why: >
+      Was scenario-gaps.
       Decision 18 leaves the UI, the application and infra to the scenarios, and T-9 kept a test
       outside the domain only where no scenario holds it yet: --json's rule IDs and every kind's
       code and sentence (internal/cli's test); a merge of two features changing one file, a
