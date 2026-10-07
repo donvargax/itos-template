@@ -384,7 +384,7 @@ items:
     title: A Go file is at most 600 lines of code, revive's file-length-limit
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: [T-9]
     kind: task
     why: >
