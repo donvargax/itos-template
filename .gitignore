@@ -5,3 +5,7 @@
 
 # The pinned tools tools/bin/pinned fetches.
 /.tools/
+
+# rapid's fail files, written beside a property that failed to replay it: a
+# failure is reported, never committed (decision 20).
+**/testdata/rapid/

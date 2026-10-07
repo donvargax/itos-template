@@ -123,6 +123,22 @@ linters:
               desc: "never mocks (decision 19): a fake or a stub of the port, in its porttest"
             - pkg: github.com/maxbrunsfeld/counterfeiter
               desc: "never mocks (decision 19): a fake or a stub of the port, in its porttest"
+        # Properties are unit tests of the domain (decision 20): rapid comes
+        # in only in the domain packages' own tests, never in their code, in
+        # porttest, or anywhere else. Each domain package is listed, as under
+        # domain above.
+        rapid:
+          files:
+            - $all
+            - "!**/internal/answer/*_test.go"
+            - "!**/internal/caseform/*_test.go"
+            - "!**/internal/manifest/*_test.go"
+            - "!**/internal/project/*_test.go"
+            - "!**/internal/render/*_test.go"
+            - "!**/internal/template/*_test.go"
+          deny:
+            - pkg: pgregory.net/rapid
+              desc: "properties are unit tests of the domain (decision 20): rapid only in the domain packages' _test.go files"
         # kong is the UI's: cmd, internal/cli and the slices.
         kong:
           files:
