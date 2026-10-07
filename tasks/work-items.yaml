@@ -10,4 +10,14 @@
 #     depends_on: []
 phases:
   1: donvargax # the ledger's phase 1: a handle, or null
-items: []
+items:
+  - id: T-2
+    title: License itos-template under the AGPL-3.0, as itos is
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: task
+    why: >
+      The user's call (2026-10-06): the AGPL-3.0, the license itos itself carries, before any code
+      lands.

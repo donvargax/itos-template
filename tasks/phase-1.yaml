@@ -16,3 +16,11 @@
     itos commit --task T-1.
   done_when:
     - run: itos config check
+- id: T-2
+  type: chore
+  title: License itos-template under the AGPL-3.0, as itos is
+  why: >
+    The user's call (2026-10-06): the AGPL-3.0, the license itos itself carries, before any code
+    lands.
+  done_when:
+    - run: grep -q 'GNU AFFERO GENERAL PUBLIC LICENSE' LICENSE
