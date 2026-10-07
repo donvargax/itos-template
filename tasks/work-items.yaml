@@ -124,3 +124,14 @@ items:
       PLAN.md, order of work 6; decision 4: the generator is the proof that a template made to
       docs/template-contents.md works. Which repository holds the template (its own, beside this
       one) is settled then.
+  - id: renovate
+    title: Renovate keeps the dependencies current, merging an update only when CI is green on its head
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: [T-4]
+    kind: idea
+    why: >
+      docs/template-contents.md: semantic chore(deps) commits, a release-age cooldown, rebase
+      auto-merge, actions pinned by digest. Waits on itos accepting the bot's commits (itos's
+      p1-bot-dependency-prs) and its PR mode (p1-pr-mode); until then updates are made by hand.
