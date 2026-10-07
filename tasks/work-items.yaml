@@ -476,3 +476,16 @@ items:
     kind: task
     why: >
       The ledger's T-10 says why.
+  - id: live-template-scenarios
+    title: The scenarios run against a real published template over the network, nightly or before a release
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: [first-template, nightly]
+    kind: idea
+    why: >
+      The third wiring of the same scenarios, as a live environment is to a web app: the fixture
+      acme built in a temporary folder swapped for the first real template cloned from GitHub. Not
+      on every push, so a network failure never turns a push red (docs/CLI.md rule 36); nightly or
+      before a release. Waits for a template to point at and a run to hold it.
+    tags: [new, check, ci]
