@@ -110,6 +110,7 @@ items:
     why: >
       docs/template-contents.md lists it for every project; itos's T-108 builds and proves one (sudo
       removed, the egress allowlist, the git shim first). Copy it once that lands, not before.
+    tags: [ci]
   - id: previous-release
     title: CI runs the last release scenarios against a new binary, as itos does
     phase: 1
