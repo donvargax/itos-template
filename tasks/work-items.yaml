@@ -527,7 +527,7 @@ items:
     title: A render's refusal of a file named as a folder names every clash, in path order, the same on every run
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: []
     kind: slice
     why: >
