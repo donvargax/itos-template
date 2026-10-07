@@ -23,3 +23,4 @@ questions:
   - id: q-6
     item: "new-hooks"
     question: "new sets up the hooks of the project it makes, but a later clone of that project (another person, a new machine) was never made by new: how does it get its hooks? Recommended: one itos-template command any clone runs (itos template hooks, say), declaring itos's hooks and the stack's from what new recorded, the same code new runs. Or: the README's lines by hand, CI holding the checks for a clone that skips them."
+    answer: "One itos-template command any clone runs, itos template hooks, declaring itos's hooks and the stack's from what new recorded, the same code new runs; simple to add and to maintain. The README's lines by hand are not the way. The user's call, 2026-10-06."
