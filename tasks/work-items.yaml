@@ -194,3 +194,15 @@ items:
       Linux, in the plan. The .gitattributes T-4 added keeps them LF on Windows checkouts, which
       nothing yet proves: a step in each platform job running tools/bin/pinned golangci-lint version
       would.
+  - id: new-hooks
+    title: "itos-template new declares the made project's hooks: itos's and its stack's pre-commit"
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [new-renders]
+    kind: idea
+    why: >
+      Decision 5: a project's pre-commit hook is its stack's, in the stack's own tool, and new sets
+      the hooks up when it makes the project, so no project carries a setup tool of its own. Settle
+      in its scenarios: how the manifest names a stack's hook declaration, and what new does when
+      itos is not on the PATH.
