@@ -601,3 +601,18 @@ items:
       knows no one. Scenarios for these let those tests, or their parts, go (decision 19).
     refs: [slice-3]
     tags: [new]
+  - id: manifest-decode-examples
+    title: Pin manifest.Decode's empty file and its non-YAML file with example tests
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Found by T-13's coverage floor: over 12 runs of manifest's tests with RAPID_CHECKS=1, a
+      property's one random case reached Decode's branch for an empty file ('it is empty', decode.go
+      line 36) once and its branch for a file yaml.v3 cannot parse (line 38) nine times; no example
+      test reaches either, so manifest's figure moves between 92.9% and 92.3% with no change. Far
+      above the floor now, but the branches are behaviour an author meets (an empty or broken
+      itos-template.yaml): example tests should pin what each says, so the figure stops depending on
+      the case drawn.
