@@ -84,6 +84,11 @@ tests:
 hooks:
   bin: itos # the hooks call the global itos, which runs the release pinned
 
+# The tags a work item may carry, so itos work list --tag shows one part of the work (T-7): the
+# command an item changes, then the concerns that cut across commands.
+work:
+  tags: [new, check, update, sync, cli, ci, windows]
+
 # What CI runs on a push (.github/workflows/ci.yml): itos ci run over the range from the last green
 # run, these steps in cost order, then the checks of the tasks the range names. Harvested from
 # itos's (github.com/donvargax/itos, itos.yaml's ci). The platform jobs, every test on Linux, macOS
