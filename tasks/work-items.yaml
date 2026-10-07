@@ -272,6 +272,7 @@ items:
       history: a chore needing a Task footer fails it. Settle in its scenarios whether the manifest
       gives the first commit's message, or the template's itos.yaml starts its rules after it
       (commits.since).
+    tags: [new]
   - id: new-template-name
     title: "What the record keeps of how a template was named: a relative path, a URL with credentials"
     phase: 1
