@@ -39,3 +39,20 @@ items:
       Scenarios footer feat and fix need, features/smoke.yaml), and the first live scenario,
       --version, lands in a feat naming it. golangci-lint and govulncheck pinned, run by the
       pre-commit hook.
+  - id: T-4
+    title: CI on every push to main, the itos plan and the platform jobs on Linux, macOS and Windows
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: task
+    why: >
+      Bootstrap, second (PLAN.md). Harvested from itos
+      (/home/yorch/tmp/llms-safe/gamedev/svg-art/itos/.github/workflows/ci.yml and itos.yaml's ci
+      section): the range from the last green run, itos verify over it, the plan in itos.yaml
+      (gofmt, go vet, golangci-lint, govulncheck, the unit tests, the smoke scenarios and those the
+      push names), and platform jobs running every test on the three systems, since what touches
+      paths and line endings breaks on Windows first. Needs the GitHub repository
+      donvargax/itos-template to exist. Byte caps on AGENTS.md and docs/ORCHESTRATING.md from the
+      start (itos learned late that always-read docs grow: its T-110), checked in the plan and on
+      docs-only pushes.

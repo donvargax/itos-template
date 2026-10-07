@@ -41,3 +41,18 @@
     - run: go build ./... && go vet ./...
     - run: go test ./features -count=1
     - run: grep -q 'scenario' itos.yaml
+- id: T-4
+  type: ci
+  title: CI on every push to main, the itos plan and the platform jobs on Linux, macOS and Windows
+  why: >
+    Bootstrap, second (PLAN.md). Harvested from itos
+    (/home/yorch/tmp/llms-safe/gamedev/svg-art/itos/.github/workflows/ci.yml and itos.yaml's ci
+    section): the range from the last green run, itos verify over it, the plan in itos.yaml (gofmt,
+    go vet, golangci-lint, govulncheck, the unit tests, the smoke scenarios and those the push
+    names), and platform jobs running every test on the three systems, since what touches paths and
+    line endings breaks on Windows first. Needs the GitHub repository donvargax/itos-template to
+    exist. Byte caps on AGENTS.md and docs/ORCHESTRATING.md from the start (itos learned late that
+    always-read docs grow: its T-110), checked in the plan and on docs-only pushes.
+  done_when:
+    - run: test -f .github/workflows/ci.yml && grep -q windows-latest .github/workflows/ci.yml
+    - run: grep -q 'ci:' itos.yaml
