@@ -41,3 +41,8 @@ Each lesson names its exit and its two dates; at most ten.
   done: T-9's first push, its build commit not yet made, turned main red (run 37668940941) until
   its second. Briefs say to push a task's commits together once its checks pass. Exit: CI judges
   a task's checks as the hook does.
+- **The coordinator's pushes go with `itos push --no-wait`** (2026-10-07). Its docs, ledger and
+  registry commits never block the conversation on CI; the person found minutes lost to waits on
+  GitHub's API. Implementing agents push their own code and wait on their own run; the
+  coordinator checks main's run in the background only when its push could turn it red. Exit:
+  itos push stops waiting for a docs-only range itself.
