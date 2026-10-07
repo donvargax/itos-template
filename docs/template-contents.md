@@ -85,7 +85,7 @@ marked, applies to every project the template makes:
   and validated at start. Python: pydantic-settings' CLI with uv.
 - **A CLI contract:** exit codes documented and stable; the main output on stdout, logs and
   errors on stderr; `--json` printing one object, failures included; `--version` with the build's
-  version and commit. this repository's `docs/CLI.md` is the starting point.
+  version and commit. This repository's `docs/CLI.md` is the starting point.
 - **Structured logs** (JSON when not on a terminal), quiet by default.
 - **Acceptance tests run the built binary** (godog for Go), on Linux, macOS and Windows in CI.
 - **Releases cut by CI** from Conventional Commits: GoReleaser builds, checksums and attests;

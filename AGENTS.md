@@ -1,7 +1,8 @@
 # Working rules
 
 Read `PLAN.md` first: what itos-template is, its model and the order of work. The decisions behind
-it are records in `docs/decisions/`; what a made project contains is `docs/template-contents.md`.
+it are records in `docs/decisions/`; what a made project contains is `docs/template-contents.md`; the
+command line follows `docs/CLI.md`.
 
 This repository is held to its rules by itos (`itos.yaml`, the block at the end of this file): the
 hooks and CI enforce every rule a command can decide, on every commit, whoever made it. This file
