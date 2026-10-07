@@ -628,3 +628,19 @@ items:
       features/testdata/** goes into ignorePaths, which replaces the presets' list and so repeats
       it, is the owner's call.
     tags: [ci]
+  - id: template-contents-renovate
+    title: docs/template-contents.md's Renovate line says what T-14 proved
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      docs/template-contents.md, written before T-14, gives a made project Renovate with semantic
+      chore(deps) commits and rebase auto-merge on a pull request's green checks. T-14 (2026-10-07)
+      settled it here otherwise: the owner's presets pinned by tag, build commits for the Go modules
+      and ci commits for the actions, each with a body and a Task footer itos verify accepts, branch
+      automerge with no pull request unless CI goes red, and ci.yml on renovate/**. first-template
+      carries the setup proven here, so the document says which one a made project gets before it
+      does.
+    tags: [new]
