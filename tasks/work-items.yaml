@@ -257,6 +257,7 @@ items:
       reproduce a render. new-renders renders the branches' heads; this item settles the tagging (a
       tag per branch under one version, say stack/go/v1.2.0, or one tag on a commit reaching every
       branch), then new's --ref and its default, and the record's release field.
+    tags: [new, update]
   - id: new-first-commit-rules
     title: A made project's first commit passes the template's own commit rules
     phase: 1
