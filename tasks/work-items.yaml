@@ -12,7 +12,6 @@ phases:
   1: donvargax # the ledger's phase 1: a handle, or null
 queue:
   - first-template
-  - slice-3
   - T-13
 items:
   - id: T-2
