@@ -93,3 +93,15 @@
     - run: grep -q 'version. "6.4.0"' itos.yaml
     - run: "grep -q 'donvargax/itos@e64df756d607dd2312753890cdf32da29c2a9b32 # v6.4.0' .github/workflows/ci.yml"
     - run: "grep -q 'donvargax/itos@e64df756d607dd2312753890cdf32da29c2a9b32 # v6.4.0' .github/workflows/release.yml"
+- id: T-7
+  type: chore
+  title: "Work items carry tags: the command they change, or a concern across commands"
+  why: >
+    The person's call, 2026-10-07, once itos 6.4.0 (T-6) could: itos.yaml's work.tags declares
+    new, check, update and sync, the command an item changes, and cli, ci and windows, the
+    concerns that cut across commands, so itos work list --tag shows one part of the work. Each
+    open item gets one or two; an undeclared tag is refused by work add, work edit and work check.
+  done_when:
+    - run: "grep -q 'tags: \\[new, check, update, sync, cli, ci, windows\\]' itos.yaml"
+    - run: itos work check
+    - run: "itos work list --tag check | grep -q template-scans"
