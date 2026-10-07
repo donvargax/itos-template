@@ -42,3 +42,6 @@ questions:
   - id: q-11
     item: "new-renders"
     question: "What does new do when an answer is not given with --answer? Recommended: on a terminal it asks, showing the default, and checks the answer against the question's pattern, asking again on a mismatch; without a terminal it refuses with exit 2 before writing anything, naming every missing answer at once, unless --defaults takes each missing one's default (a question with no default still refused). Or: without a terminal, take the defaults silently (convenient in scripts, but a project made with values nobody chose); or never ask, every answer by flag (simplest to test, but unfriendly for a person)."
+  - id: q-12
+    item: "new-renders"
+    question: "Where does new write the project? Recommended: into a folder that does not exist or is empty, which it makes a git repository with the render as its first commit, so update has a base to merge onto from day one; a folder with files in it is refused, exit 1, naming it. Or: render into any folder and leave committing to the person (copier's way; works over an existing project, but update then has no known base); or render without git and let setup steps init it (decision 7; leaves the most to each template)."
