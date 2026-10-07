@@ -395,7 +395,7 @@ Feature: new makes a project from a template
   # .itos-template.yaml, is read by the same reader once a command reads it
   # (update, adopt). Each variant is a file of features/testdata, acme's
   # manifest with the one change its row names.
-  @ID-NEW-34 @slice-5 @wip
+  @ID-NEW-34 @slice-5
   Scenario Outline: new refuses a manifest using what JSON cannot say with exit 2, naming it
     Given the template "acme" whose manifest is acme's <change>
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
@@ -411,10 +411,11 @@ Feature: new makes a project from a template
       | with a merge key, <<, bringing the stack go's keys into python's         | <<       |
       | followed by a second document, after a line ---                          | document |
 
-  # yaml.v3 already refuses a key given twice, so this holds before slice-5;
-  # it stays a scenario so the strict reader keeps the rule, and is the one
-  # of the slice that shows no red first.
-  @ID-NEW-36 @slice-5 @wip
+  # yaml.v3 already refuses a key given twice, and reads a manifest written
+  # as JSON, so ID-NEW-36 and ID-NEW-35 hold before slice-5; they stay
+  # scenarios so the strict reader keeps them, and are the two of the slice
+  # that show no red first.
+  @ID-NEW-36 @slice-5
   Scenario: new refuses a manifest giving a key twice with exit 2, naming it
     Given the template "acme" whose manifest is acme's with the key stacks given twice
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
@@ -422,7 +423,7 @@ Feature: new makes a project from a template
     And its error output says "stacks"
     And the path "made" does not exist
 
-  @ID-NEW-35 @slice-5 @wip
+  @ID-NEW-35 @slice-5
   Scenario: new reads a manifest written as JSON as the same manifest
     Given the template "acme" whose manifest is acme's written as JSON
     When itos-template runs with "new {template} made --stack go --feature cli --answer name=blue-fox --defaults"

@@ -13,10 +13,7 @@
 package manifest
 
 import (
-	"bytes"
-	"errors"
 	"fmt"
-	"io"
 	"path"
 	"regexp"
 	"slices"
@@ -131,17 +128,12 @@ type Invalid struct{ Problems []string }
 
 func (e *Invalid) Error() string { return strings.Join(e.Problems, "; ") }
 
-// Parse reads and checks a manifest. A manifest that cannot be used is an
-// *Invalid.
+// Parse reads a manifest strictly (Decode) and checks it. A manifest that
+// cannot be used is an *Invalid.
 func Parse(data []byte) (*Manifest, error) {
-	dec := yaml.NewDecoder(bytes.NewReader(data))
-	dec.KnownFields(true)
 	var m Manifest
-	if err := dec.Decode(&m); err != nil {
-		if errors.Is(err, io.EOF) {
-			return nil, &Invalid{[]string{"it is empty"}}
-		}
-		return nil, &Invalid{[]string{err.Error()}}
+	if problems := Decode(data, &m); len(problems) > 0 {
+		return nil, &Invalid{problems}
 	}
 	if problems := m.check(); len(problems) > 0 {
 		return nil, &Invalid{problems}

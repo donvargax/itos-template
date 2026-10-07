@@ -1,6 +1,8 @@
 package manifest
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"slices"
 	"strings"
@@ -220,6 +222,47 @@ func TestParseNeverPanics(t *testing.T) {
 			t.Fatal("Parse returned no manifest and no error")
 		case err != nil && (m != nil || !errors.As(err, &invalid)):
 			t.Fatalf("Parse refused with %T, not an *Invalid: %v", err, err)
+		}
+	})
+}
+
+// jsonOf is the manifest data, YAML, written as JSON, as a tool writing JSON
+// into itos-template.yaml writes it: compact or indented.
+func jsonOf(t *rapid.T, data []byte) []byte {
+	var v any
+	if err := yaml.Unmarshal(data, &v); err != nil {
+		t.Fatal(err)
+	}
+	var out []byte
+	var err error
+	if rapid.Bool().Draw(t, "indented") {
+		out, err = json.MarshalIndent(v, "", "  ")
+	} else {
+		out, err = json.Marshal(v)
+	}
+	if err != nil {
+		t.Fatal(err)
+	}
+	return out
+}
+
+// A manifest is JSON data written as YAML, so written as JSON it reads as
+// the same manifest (docs/CONFIG.md, "JSON is the data model, YAML its
+// syntax"): a tool may write JSON into itos-template.yaml.
+func TestAManifestWrittenAsJSONIsTheSameManifest(t *testing.T) {
+	rapid.Check(t, func(t *rapid.T) {
+		data := yamlOf(t, manifests.Draw(t, "manifest"))
+		fromYAML, err := Parse(data)
+		if err != nil {
+			t.Fatalf("a valid manifest refused: %v", err)
+		}
+		js := jsonOf(t, data)
+		fromJSON, err := Parse(js)
+		if err != nil {
+			t.Fatalf("the manifest written as JSON refused: %v\n%s", err, js)
+		}
+		if a, b := yamlOf(t, fromYAML), yamlOf(t, fromJSON); !bytes.Equal(a, b) {
+			t.Fatalf("written as JSON, the manifest reads\n%s\nnot\n%s", b, a)
 		}
 	})
 }

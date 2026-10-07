@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"reflect"
 	"slices"
 	"strings"
 	"testing"
@@ -258,5 +259,77 @@ func TestACheckIsWrittenQuotingAWordOnlyWhenItMustBe(t *testing.T) {
 	want := `sh -c "go test ./..." "" "a\"b" "tab\there" "it's" "back\\slash" "bell\a" plain/path.go`
 	if got != want {
 		t.Errorf("the check is written\n%s, not\n%s", got, want)
+	}
+}
+
+// Decode refuses what JSON's data model cannot say, each problem naming
+// what it found and its line (docs/CONFIG.md rule 1).
+func TestDecodeRefusesWhatJSONCannotSay(t *testing.T) {
+	cases := map[string]struct {
+		file string
+		want []string
+	}{
+		"a custom tag": {"a: !foo x\n", []string{
+			"line 1: the tag !foo: JSON has no tags, so write the value without it"}},
+		"a core tag written out": {"a: 1\nb: !!str 2\n", []string{
+			"line 2: the tag !!str: JSON has no tags, so write the value without it"}},
+		"an anchor and an alias": {"a: &shared [1]\nb: *shared\n", []string{
+			"line 1: the anchor &shared: JSON has no anchors or aliases, so write the value out where it is used",
+			"line 2: the alias *shared: JSON has no anchors or aliases, so write the value out where it is used"}},
+		"a merge key": {"a: {x: 1}\nb:\n  <<: {x: 1}\n  y: 2\n", []string{
+			"line 3: the merge key <<: JSON has no merge keys, so write the keys out in the mapping"}},
+		"a second document": {"a: 1\n---\nb: 2\n", []string{
+			"line 2: a second document follows the first: a file is one document, so remove the --- and what follows it"}},
+		"an empty second document": {"a: 1\n---\n", []string{
+			"line 2: a second document follows the first: a file is one document, so remove the --- and what follows it"}},
+		"keys that are not strings": {"1: a\ntrue: b\n~: c\n? [k]\n: d\n", []string{
+			"line 1: the key 1 is not a string: JSON's keys are strings, so quote it",
+			"line 2: the key true is not a string: JSON's keys are strings, so quote it",
+			"line 3: the key ~ is not a string: JSON's keys are strings, so quote it",
+			"line 4: a key is a list or a mapping: JSON's keys are strings"}},
+		"a key given twice": {"a: 1\nb:\n  a: 2\na: 3\n", []string{
+			"line 4: the key a is given twice, first at line 1: give it once"}},
+		"a key given twice, quoted once": {"a: 1\n'a': 2\n", []string{
+			"line 2: the key a is given twice, first at line 1: give it once"}},
+		"every problem at once, in the file's order": {"a: &x !foo 1\nb: *x\n---\n", []string{
+			"line 1: the tag !foo: JSON has no tags, so write the value without it",
+			"line 1: the anchor &x: JSON has no anchors or aliases, so write the value out where it is used",
+			"line 2: the alias *x: JSON has no anchors or aliases, so write the value out where it is used",
+			"line 3: a second document follows the first: a file is one document, so remove the --- and what follows it"}},
+	}
+	for name, c := range cases {
+		var v any
+		if got := Decode([]byte(c.file), &v); !slices.Equal(got, c.want) {
+			t.Errorf("%s: Decode names\n%s\nnot\n%s", name, strings.Join(got, "\n"), strings.Join(c.want, "\n"))
+		}
+	}
+}
+
+// What is only spelling reads as the data it spells: quotes, comments,
+// flow style, a quoted "<<", which is a key like any other, and the
+// non-specific tag !, which yaml.v3 reads as if it were not there.
+func TestDecodeTakesWhatIsOnlySpelling(t *testing.T) {
+	var got, want any
+	if problems := Decode([]byte("a: ! x\nb: {'<<': [x, \"y\"]}\n# a comment\n"), &got); problems != nil {
+		t.Fatalf("Decode refuses: %q", problems)
+	}
+	if problems := Decode([]byte(`{"a": "x", "b": {"<<": ["x", "y"]}}`), &want); problems != nil {
+		t.Fatalf("Decode refuses JSON: %q", problems)
+	}
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("Decode reads %#v, not %#v", got, want)
+	}
+}
+
+// The manifest is read by Decode: what JSON cannot say is a manifest
+// problem, and so is a key the manifest does not have.
+func TestParseReadsStrictly(t *testing.T) {
+	_, err := Parse([]byte("version: 2\nstacks: [{name: !foo go}]\n"))
+	var invalid *Invalid
+	if !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, []string{"line 2: the tag !foo: JSON has no tags, so write the value without it"}) {
+		t.Errorf("Parse = %v", err)
+	}
+	if _, err := Parse([]byte("version: 2\nstacks: [{name: go}]\nsetup: []\n")); !errors.As(err, &invalid) || !strings.Contains(err.Error(), "setup") {
+		t.Errorf("Parse takes an unknown key: %v", err)
 	}
 }

@@ -60,6 +60,14 @@ template_only:
 | `checks`        | The root's checks, run in every render first. Version 2.                                    |
 | `unsupported`   | The combinations the template cannot support, each its `stack` and `features`. Version 2.   |
 
+The manifest is JSON data written as YAML, and read strictly (`docs/CONFIG.md`, rule 1): a tool
+may write JSON into `itos-template.yaml` and it reads the same, while what JSON cannot say is
+refused, every problem named with its line. That is a tag (`!foo`, or a core one written out, as
+`!!str`), an anchor, an alias, a merge key (`<<`), a second document after a `---`, a key that is
+not a string and a key given twice. The non-specific tag `!` is the one tag taken, read as if it
+were not there: it marks a plain value as no other tag's, building no object and expanding nothing,
+and the reader takes what is only spelling, as quotes, comments and flow style are.
+
 A key the format does not list is refused, so a misspelt key never passes for an option. Version 2
 adds `checks` (on the top, on a stack and on a feature) and `unsupported`; a manifest of version 1
 is read as it always was, a template with no checks, and refuses those keys, so a manifest written

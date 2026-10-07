@@ -49,7 +49,10 @@ the rules for flags, environment variables and where configuration is read from.
    laughs", CVE-2019-11253); and a template's manifest comes from anything git clone takes
    (decision 9), so a file is untrusted. Repetition anchors would remove is met by the format's
    structure first (a root's checks run on every render), then by a configuration language on the
-   author's side (PERSON; YAML; JSON). Not yet: the idea strict-yaml.
+   author's side (PERSON; YAML; JSON). The rule refuses what JSON's data model cannot say, not every
+   YAML spelling, so what never reaches the data is taken (quotes, comments, block or flow style),
+   and so is the non-specific tag `!`, the one tag allowed: it marks a plain value as no other
+   tag's, building no object and expanding nothing, and is read as if it were not there.
 2. Refuse a key the format does not list, so a misspelt key never passes for an option (K8S;
    PERSON).
 3. Name every problem at once, each by the path of its key from the top (`stacks[1].checks[0]`),
