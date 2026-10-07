@@ -405,3 +405,16 @@ items:
       is missing. The message should name the command running, or neither; a fix, so a scenario
       under check.feature holds it.
     tags: [check, cli]
+  - id: test-fixtures
+    title: One shared set of git test fixtures for the unit tests
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Found in T-8: the unit tests of template, newproject and check each carry their own run,
+      writeFile and a template made of git branches, copied when the shared code moved out of
+      newproject. One test helper package (internal/testtemplate, say) would build the fixture once,
+      as update and sync add tests that need the same template.
+    tags: [new, check]
