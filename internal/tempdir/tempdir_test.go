@@ -8,6 +8,10 @@ import (
 	"testing"
 )
 
+// Removing a folder as windows refuses to is held here: the scenarios run
+// on windows, but none can make a folder windows will not remove at once,
+// nor see a temporary folder left behind (decision 18).
+
 // A folder holding read-only files and folders, as git leaves its objects,
 // is removed whole.
 func TestRemoveRemovesReadOnlyFiles(t *testing.T) {

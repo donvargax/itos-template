@@ -1,24 +1,44 @@
-// Package tempdir removes the temporary folders itos-template makes: a
-// template's bare clone, and each render check makes and checks.
+// Package tempdir is the infra that makes and removes the temporary folders
+// itos-template works in (decision 17): a template's bare clone, and each
+// render check makes and checks (Renders, check's port.Folders). It
+// imports no package of ours but the ports it implements.
 //
 // os.RemoveAll can fail on windows where it succeeds elsewhere: git writes
 // its object and pack files read-only, a file is not removed while a
 // program still has it open, and a check's own programs (a build's server,
 // an antivirus scanning what a build wrote) can hold one for a moment after
 // they exit. Remove makes every file writable and tries again, a few times,
-// before it gives up.
+// before it gives up. A folder left behind is only a temporary one, so
+// Discard and Renders log a failure to remove one, never return it.
 package tempdir
 
 import (
+	"fmt"
 	"io/fs"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/donvargax/itos-template/internal/template/port"
 )
 
-// Make makes a new temporary folder, its name starting with prefix.
+// Unmakeable is a temporary folder that cannot be made: the one failure of
+// this package internal/cli gives an exit code.
+type Unmakeable struct{ Err error }
+
+func (e *Unmakeable) Error() string { return fmt.Sprintf("making a temporary folder: %v", e.Err) }
+
+func (e *Unmakeable) Unwrap() error { return e.Err }
+
+// Make makes a new temporary folder, its name starting with prefix. A
+// failure is an *Unmakeable.
 func Make(prefix string) (string, error) {
-	return os.MkdirTemp("", prefix)
+	dir, err := os.MkdirTemp("", prefix)
+	if err != nil {
+		return "", &Unmakeable{Err: err}
+	}
+	return dir, nil
 }
 
 // Remove removes dir and everything in it: a dir that does not exist is
@@ -32,6 +52,29 @@ func Remove(dir string) error {
 		err = os.RemoveAll(dir)
 	}
 	return err
+}
+
+// Discard removes dir as Remove does, logging a failure.
+func Discard(dir string) {
+	if err := Remove(dir); err != nil {
+		slog.Warn("cannot remove a temporary folder", "folder", dir, "error", err)
+	}
+}
+
+// Renders are the temporary folders check renders each combination in:
+// check's port.Folders.
+type Renders struct{}
+
+var _ port.Folders = Renders{}
+
+// Make makes a render's folder.
+func (Renders) Make() (string, error) { return Make("itos-template-check-") }
+
+// Remove removes a render's folder as Remove does, logging a failure.
+func (Renders) Remove(dir string) {
+	if err := Remove(dir); err != nil {
+		slog.Warn("cannot remove a render's temporary folder", "folder", dir, "error", err)
+	}
 }
 
 // writable makes every file and folder under dir writable by its owner,
