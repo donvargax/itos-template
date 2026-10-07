@@ -17,7 +17,7 @@ import (
 
 	"github.com/alecthomas/kong"
 
-	"github.com/donvargax/itos-template/internal/newproject"
+	"github.com/donvargax/itos-template/internal/problem"
 	"github.com/donvargax/itos-template/internal/prompt"
 	"github.com/donvargax/itos-template/internal/version"
 )
@@ -25,8 +25,8 @@ import (
 // Exit codes (docs/CLI.md, "Exit codes").
 const (
 	exitOK       = 0
-	exitUsage    = newproject.CodeUsage
-	exitInternal = newproject.CodeInternal
+	exitUsage    = problem.CodeUsage
+	exitInternal = problem.CodeInternal
 )
 
 // cli is the command line: its flags and commands.
@@ -65,7 +65,7 @@ func run(args []string, in io.Reader, stdout, stderr io.Writer, terminal bool) i
 		// kong's own code for a usage error is 80; docs/CLI.md's is 2. With
 		// --json, the failure's object too (rule 29).
 		if wantsJSON(args) {
-			printJSON(stdout, stderr, failure([]newproject.Problem{{Rule: "usage", Message: err.Error()}}))
+			printJSON(stdout, stderr, failure([]problem.Problem{{Rule: "usage", Message: err.Error()}}))
 		}
 		fail(stderr, err)
 		return exitUsage

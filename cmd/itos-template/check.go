@@ -5,7 +5,7 @@ import (
 	"io"
 
 	"github.com/donvargax/itos-template/internal/check"
-	"github.com/donvargax/itos-template/internal/newproject"
+	"github.com/donvargax/itos-template/internal/problem"
 )
 
 // checkCmd is itos-template check: every combination a template's manifest
@@ -40,9 +40,9 @@ func (c *checkCmd) run(stdout, stderr io.Writer) int {
 	}
 	code, err := check.Run(check.Options{Template: template, Answers: c.Answer, Defaults: c.Defaults}, stdout)
 	if err != nil {
-		var f *newproject.Failure
+		var f *problem.Failure
 		if !errors.As(err, &f) {
-			f = &newproject.Failure{Code: exitInternal, Problems: []newproject.Problem{{Rule: "internal", Message: err.Error()}}}
+			f = &problem.Failure{Code: exitInternal, Problems: []problem.Problem{{Rule: "internal", Message: err.Error()}}}
 		}
 		for _, p := range f.Problems {
 			fail(stderr, errors.New(p.Message))

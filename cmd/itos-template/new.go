@@ -8,6 +8,8 @@ import (
 	"strings"
 
 	"github.com/donvargax/itos-template/internal/newproject"
+	"github.com/donvargax/itos-template/internal/problem"
+	"github.com/donvargax/itos-template/internal/project"
 	"github.com/donvargax/itos-template/internal/prompt"
 )
 
@@ -53,9 +55,9 @@ func (c *newCmd) run(in io.Reader, stdout, stderr io.Writer, terminal bool) int 
 	}
 	result, err := newproject.Make(opts)
 	if err != nil {
-		var f *newproject.Failure
+		var f *problem.Failure
 		if !errors.As(err, &f) {
-			f = &newproject.Failure{Code: exitInternal, Problems: []newproject.Problem{{Rule: "internal", Message: err.Error()}}}
+			f = &problem.Failure{Code: exitInternal, Problems: []problem.Problem{{Rule: "internal", Message: err.Error()}}}
 		}
 		if c.JSON {
 			printJSON(stdout, stderr, failure(f.Problems))
@@ -69,7 +71,7 @@ func (c *newCmd) run(in io.Reader, stdout, stderr io.Writer, terminal bool) int 
 		printJSON(stdout, stderr, struct {
 			Schema int  `json:"schema"`
 			OK     bool `json:"ok"`
-			*newproject.Result
+			*project.Project
 		}{1, true, result})
 		return exitOK
 	}
@@ -82,11 +84,11 @@ func (c *newCmd) run(in io.Reader, stdout, stderr io.Writer, terminal bool) int 
 }
 
 // failure is the --json object of a failure (docs/CLI.md, rule 29).
-func failure(problems []newproject.Problem) any {
+func failure(problems []problem.Problem) any {
 	return struct {
-		Schema   int                  `json:"schema"`
-		OK       bool                 `json:"ok"`
-		Problems []newproject.Problem `json:"problems"`
+		Schema   int               `json:"schema"`
+		OK       bool              `json:"ok"`
+		Problems []problem.Problem `json:"problems"`
 	}{1, false, problems}
 }
 

@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/donvargax/itos-template/internal/git"
-	"github.com/donvargax/itos-template/internal/newproject"
+	"github.com/donvargax/itos-template/internal/problem"
 )
 
 func run(t *testing.T, dir string, args ...string) {
@@ -28,11 +28,11 @@ func writeFile(t *testing.T, dir, p, data string) {
 	}
 }
 
-// template makes a template whose manifest is text: main with the manifest
+// newTemplate makes a template whose manifest is text: main with the manifest
 // and README, stack/sh adding bin/acme-widget, sh/extra adding extra.txt.
 // No git identity is set but the template's own commits', as in a CI that
 // configures none.
-func template(t *testing.T, text string) string {
+func newTemplate(t *testing.T, text string) string {
 	t.Helper()
 	t.Setenv("GIT_CONFIG_GLOBAL", os.DevNull)
 	t.Setenv("GIT_CONFIG_NOSYSTEM", "1")
@@ -88,7 +88,7 @@ questions:
 }
 
 func TestRunChecksEveryCombinationTheAnswersInPlace(t *testing.T) {
-	tpl := template(t, manifestText(`      - ["`+gitPath()+`", ls-files, --error-unmatch, extra.txt]`))
+	tpl := newTemplate(t, manifestText(`      - ["`+gitPath()+`", ls-files, --error-unmatch, extra.txt]`))
 	var report strings.Builder
 	code, err := Run(Options{Template: tpl, Answers: []string{"name=blue-fox"}}, &report)
 	if err != nil || code != 0 {
@@ -109,11 +109,11 @@ func TestRunChecksEveryCombinationTheAnswersInPlace(t *testing.T) {
 }
 
 func TestRunStopsACombinationAtItsFirstFailedCheckAndChecksTheRest(t *testing.T) {
-	tpl := template(t, manifestText(`      - [itos-template-no-such-program, x]
+	tpl := newTemplate(t, manifestText(`      - [itos-template-no-such-program, x]
       - [also-not-run]`))
 	var report strings.Builder
 	code, err := Run(Options{Template: tpl, Answers: []string{"name=blue-fox"}}, &report)
-	if err != nil || code != newproject.CodeRefused {
+	if err != nil || code != problem.CodeRefused {
 		t.Fatalf("Run = %d, %v\n%s", code, err, report.String())
 	}
 	text := report.String()
@@ -131,10 +131,10 @@ func TestRunStopsACombinationAtItsFirstFailedCheckAndChecksTheRest(t *testing.T)
 }
 
 func TestRunRefusesMissingAnswersBeforeReportingAnything(t *testing.T) {
-	tpl := template(t, manifestText(`      - [x]`))
+	tpl := newTemplate(t, manifestText(`      - [x]`))
 	var report strings.Builder
 	_, err := Run(Options{Template: tpl}, &report)
-	if f, ok := err.(*newproject.Failure); !ok || f.Code != newproject.CodeUsage {
+	if f, ok := err.(*problem.Failure); !ok || f.Code != problem.CodeUsage {
 		t.Fatalf("Run = %v", err)
 	}
 	if report.Len() != 0 {

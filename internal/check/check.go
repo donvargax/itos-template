@@ -1,7 +1,7 @@
 // Package check proves a template: itos-template check. It renders every
 // combination the template's manifest allows, each as new renders it (the
-// same code, newproject's Render) in a temporary folder of its own, runs
-// that render's checks in it and removes it.
+// same code, package template's Render) in a temporary folder of its own,
+// runs that render's checks in it and removes it.
 //
 // A check is a list of words run with no shell (os/exec), so it means the
 // same on every system; each word has the literals replaced by the answers
@@ -24,11 +24,13 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/donvargax/itos-template/internal/answer"
 	"github.com/donvargax/itos-template/internal/git"
 	"github.com/donvargax/itos-template/internal/manifest"
-	"github.com/donvargax/itos-template/internal/newproject"
+	"github.com/donvargax/itos-template/internal/problem"
 	"github.com/donvargax/itos-template/internal/render"
 	"github.com/donvargax/itos-template/internal/tempdir"
+	"github.com/donvargax/itos-template/internal/template"
 )
 
 // Options are what check was asked to check.
@@ -48,14 +50,14 @@ var identity = []string{
 // Run checks the template o names, writing the report to report, and
 // returns check's exit code. A failure before any combination is rendered
 // (the template unreachable, its manifest refused, an answer missing) is a
-// *newproject.Failure, nothing reported.
+// *problem.Failure, nothing reported.
 func Run(o Options, report io.Writer) (int, error) {
-	src, err := newproject.Open(o.Template)
+	src, err := template.Open(o.Template)
 	if err != nil {
 		return 0, err
 	}
 	defer src.Close()
-	answers, err := newproject.Answers(src.Manifest, o.Answers, o.Defaults)
+	answers, err := answer.Resolve(src.Manifest, o.Answers, o.Defaults)
 	if err != nil {
 		return 0, err
 	}
@@ -69,13 +71,13 @@ func Run(o Options, report io.Writer) (int, error) {
 		if result.passed() {
 			passed++
 		} else {
-			worst = max(worst, newproject.CodeRefused)
-			if result.renderCode == newproject.CodeEnvironment || result.renderCode == newproject.CodeInternal {
+			worst = max(worst, problem.CodeRefused)
+			if result.renderCode == problem.CodeEnvironment || result.renderCode == problem.CodeInternal {
 				worst = max(worst, result.renderCode)
 			}
 		}
 		if _, err := io.WriteString(report, result.String()); err != nil {
-			return newproject.CodeInternal, fmt.Errorf("cannot write the report: %w", err)
+			return problem.CodeInternal, fmt.Errorf("cannot write the report: %w", err)
 		}
 	}
 	noun := "combinations"
@@ -83,7 +85,7 @@ func Run(o Options, report io.Writer) (int, error) {
 		noun = "combination"
 	}
 	if _, err := fmt.Fprintf(report, "\n%d of %d %s passed.\n", passed, len(combinations), noun); err != nil {
-		return newproject.CodeInternal, fmt.Errorf("cannot write the report: %w", err)
+		return problem.CodeInternal, fmt.Errorf("cannot write the report: %w", err)
 	}
 	return worst, nil
 }
@@ -116,12 +118,12 @@ func (r *combinationResult) passed() bool {
 
 // checkCombination renders c into a temporary folder, runs its checks there
 // and removes it.
-func checkCombination(src *newproject.Source, c manifest.Combination, answers map[string]string, r *render.Replacer) *combinationResult {
+func checkCombination(src *template.Template, c manifest.Combination, answers map[string]string, r *render.Replacer) *combinationResult {
 	result := &combinationResult{name: c.Name()}
 	dir, err := tempdir.Make("itos-template-check-")
 	if err != nil {
 		result.renderErr = fmt.Sprintf("cannot make a temporary folder: %v", err)
-		result.renderCode = newproject.CodeEnvironment
+		result.renderCode = problem.CodeEnvironment
 		return result
 	}
 	defer func() {
@@ -130,12 +132,7 @@ func checkCombination(src *newproject.Source, c manifest.Combination, answers ma
 		}
 	}()
 	if _, err := src.Render(c, answers, dir, false, identity); err != nil {
-		var f *newproject.Failure
-		if errors.As(err, &f) {
-			result.renderCode = f.Code
-		} else {
-			result.renderCode = newproject.CodeInternal
-		}
+		result.renderCode = problem.As(err).Code
 		result.renderErr = err.Error()
 		return result
 	}

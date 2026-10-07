@@ -9,7 +9,7 @@ import (
 	"testing"
 
 	"github.com/donvargax/itos-template/internal/git"
-	"github.com/donvargax/itos-template/internal/manifest"
+	"github.com/donvargax/itos-template/internal/problem"
 	"github.com/donvargax/itos-template/internal/prompt"
 )
 
@@ -61,9 +61,9 @@ questions:
     default: Nobody
 `
 
-// template makes a template: main with the manifest and a CRLF file,
+// newTemplate makes a template: main with the manifest and a CRLF file,
 // stack/sh adding an executable script, sh/extra a file.
-func template(t *testing.T) string {
+func newTemplate(t *testing.T) string {
 	t.Helper()
 	isolate(t)
 	dir := t.TempDir()
@@ -115,7 +115,7 @@ func (a *answers) Ask(q prompt.Question) (string, error) {
 }
 
 func TestMakeAsksOnATerminalForWhatTheCommandLineLeftOut(t *testing.T) {
-	tpl := template(t)
+	tpl := newTemplate(t)
 	folder := filepath.Join(t.TempDir(), "made")
 	asker := &answers{given: []string{"sh", "blue-fox", ""}}
 	result, err := Make(Options{Template: tpl, Folder: folder, Asker: asker})
@@ -137,7 +137,7 @@ func TestMakeAsksOnATerminalForWhatTheCommandLineLeftOut(t *testing.T) {
 // The commit records an executable as the template does, on every system:
 // on windows, where the file system has no execute bit, too.
 func TestMakeCommitsAnExecutableAsExecutable(t *testing.T) {
-	tpl := template(t)
+	tpl := newTemplate(t)
 	folder := filepath.Join(t.TempDir(), "made")
 	_, err := Make(Options{Template: tpl, Folder: folder, Stack: "sh", Features: []string{"extra"}, Answers: []string{"name=blue-fox"}, Defaults: true})
 	if err != nil {
@@ -158,11 +158,11 @@ func TestMakeCommitsAnExecutableAsExecutable(t *testing.T) {
 }
 
 func TestMakeRefusesWithoutWritingWhenTheInputEnds(t *testing.T) {
-	tpl := template(t)
+	tpl := newTemplate(t)
 	folder := filepath.Join(t.TempDir(), "made")
 	_, err := Make(Options{Template: tpl, Folder: folder, Stack: "sh", Asker: &answers{}})
-	var f *Failure
-	if !errors.As(err, &f) || f.Code != CodeUsage || f.Problems[0].Rule != "answer-missing" {
+	var f *problem.Failure
+	if !errors.As(err, &f) || f.Code != problem.CodeUsage || f.Problems[0].Rule != "answer-missing" {
 		t.Fatalf("Make = %v", err)
 	}
 	if _, err := os.Stat(folder); !errors.Is(err, os.ErrNotExist) {
@@ -178,14 +178,14 @@ func TestMakeRefusesATemplateWithNoManifest(t *testing.T) {
 	run(t, dir, "add", "-A")
 	run(t, dir, "commit", "-q", "-m", "main")
 	_, err := Make(Options{Template: dir, Folder: filepath.Join(t.TempDir(), "made"), Stack: "sh"})
-	var f *Failure
-	if !errors.As(err, &f) || f.Code != CodeUsage || f.Problems[0].Rule != "manifest-missing" {
+	var f *problem.Failure
+	if !errors.As(err, &f) || f.Code != problem.CodeUsage || f.Problems[0].Rule != "manifest-missing" {
 		t.Fatalf("Make = %v", err)
 	}
 }
 
 func TestMakeRefusesAnAnswerThatMakesTwoFilesOne(t *testing.T) {
-	tpl := template(t)
+	tpl := newTemplate(t)
 	writeFile(t, tpl, "acme-widget.txt", "one\n")
 	writeFile(t, tpl, "blue-fox.txt", "two\n")
 	run(t, tpl, "add", "-A")
@@ -195,8 +195,8 @@ func TestMakeRefusesAnAnswerThatMakesTwoFilesOne(t *testing.T) {
 	run(t, tpl, "checkout", "-q", "main")
 	folder := filepath.Join(t.TempDir(), "made")
 	_, err := Make(Options{Template: tpl, Folder: folder, Stack: "sh", Answers: []string{"name=blue-fox"}, Defaults: true})
-	var f *Failure
-	if !errors.As(err, &f) || f.Code != CodeUsage || f.Problems[0].Rule != "answer-name" {
+	var f *problem.Failure
+	if !errors.As(err, &f) || f.Code != problem.CodeUsage || f.Problems[0].Rule != "answer-name" {
 		t.Fatalf("Make = %v", err)
 	}
 	if _, err := os.Stat(folder); !errors.Is(err, os.ErrNotExist) {
@@ -212,12 +212,12 @@ func withManifest(t *testing.T, tpl, text string) {
 }
 
 func TestMakeRefusesACombinationTheManifestListsAsUnsupported(t *testing.T) {
-	tpl := template(t)
+	tpl := newTemplate(t)
 	withManifest(t, tpl, strings.Replace(manifestText, "version: 1\n", "version: 2\nunsupported:\n  - stack: sh\n    features: [extra]\n", 1))
 	folder := filepath.Join(t.TempDir(), "made")
 	_, err := Make(Options{Template: tpl, Folder: folder, Stack: "sh", Features: []string{"extra"}, Answers: []string{"name=blue-fox"}, Defaults: true})
-	var f *Failure
-	if !errors.As(err, &f) || f.Code != CodeRefused || f.Problems[0].Rule != "combination-unsupported" || !strings.Contains(f.Problems[0].Message, "sh + extra") {
+	var f *problem.Failure
+	if !errors.As(err, &f) || f.Code != problem.CodeRefused || f.Problems[0].Rule != "combination-unsupported" || !strings.Contains(f.Problems[0].Message, "sh + extra") {
 		t.Fatalf("Make = %v", err)
 	}
 	if _, err := os.Stat(folder); !errors.Is(err, os.ErrNotExist) {
@@ -225,41 +225,5 @@ func TestMakeRefusesACombinationTheManifestListsAsUnsupported(t *testing.T) {
 	}
 	if _, err := Make(Options{Template: tpl, Folder: folder, Stack: "sh", Answers: []string{"name=blue-fox"}, Defaults: true}); err != nil {
 		t.Errorf("the stack alone, which is supported: %v", err)
-	}
-}
-
-func TestAnswersNamesEveryMissingOneAndNeverAsks(t *testing.T) {
-	src, err := Open(template(t))
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer src.Close()
-	_, err = Answers(src.Manifest, nil, false)
-	var f *Failure
-	if !errors.As(err, &f) || f.Code != CodeUsage || len(f.Problems) != 2 {
-		t.Fatalf("Answers = %v", err)
-	}
-	got, err := Answers(src.Manifest, []string{"name=blue-fox"}, true)
-	if err != nil || got["name"] != "blue-fox" || got["owner"] != "Nobody" {
-		t.Errorf("Answers = %v, %v", got, err)
-	}
-}
-
-// A render no one keeps is committed as the identity given, so a git that
-// knows no one can still render it.
-func TestRenderCommitsAsTheIdentityGiven(t *testing.T) {
-	src, err := Open(template(t))
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer src.Close()
-	stack, _ := src.Manifest.Stack("sh")
-	folder := t.TempDir()
-	identity := []string{"GIT_AUTHOR_NAME=check", "GIT_AUTHOR_EMAIL=check@localhost", "GIT_COMMITTER_NAME=check", "GIT_COMMITTER_EMAIL=check@localhost"}
-	if _, err := src.Render(manifest.Combination{Stack: stack}, map[string]string{"name": "blue-fox", "owner": "Nobody"}, folder, false, identity); err != nil {
-		t.Fatal(err)
-	}
-	if author := run(t, folder, "log", "-1", "--format=%an <%ae>"); author != "check <check@localhost>" {
-		t.Errorf("the render's commit is by %s", author)
 	}
 }
