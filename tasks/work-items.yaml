@@ -172,6 +172,9 @@ items:
       Once the scenarios grow, a push runs the smoke set and those it names, and a nightly.yml runs
       the whole suite (itos's ci.nightly and nightly.yml), ci.watch naming it so itos status reads
       it.
+
+      Decision 20: the nightly run sets RAPID_CHECKS high for the domain's properties and points
+      Go's fuzzer at the parsers through rapid.MakeFuzz.
     tags: [ci]
   - id: tools-on-platforms
     title: The platform jobs run tools/bin/pinned and the pre-commit hook on macOS and Windows
