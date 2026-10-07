@@ -78,3 +78,18 @@
   done_when:
     - run: test -f .goreleaser.yaml
     - run: grep -rq goreleaser .github/workflows
+- id: T-6
+  type: build
+  title: "itos 6.4.0: the pin and CI's itos action move from 6.0.0"
+  why: >
+    The person's call, 2026-10-07. What the coordinator uses: itos draft (6.1.0), the coordinator's
+    pending changes held while an agent runs and committed between agents; tags on work items, from
+    a set work.tags declares (6.2.0); ci watch and push following the newer run when a push's run is
+    cancelled (6.3.1); work done passing over commits that touch only the registry (6.4.0). No
+    release since 6.0.0 is breaking, and the config gained only work.tags, optional, so nothing else
+    changes. The pin's checksums are the SHA-256 of 6.4.0's checksums.txt; the action is pinned to
+    the commit v6.4.0 tags, e64df75, as every action here is pinned to a commit.
+  done_when:
+    - run: grep -q 'version. "6.4.0"' itos.yaml
+    - run: grep -q 'donvargax/itos@e64df756d607dd2312753890cdf32da29c2a9b32 # v6.4.0' .github/workflows/ci.yml
+    - run: grep -q 'donvargax/itos@e64df756d607dd2312753890cdf32da29c2a9b32 # v6.4.0' .github/workflows/release.yml
