@@ -27,6 +27,9 @@ type world struct {
 	root string // the itos-template checkout: where go.mod is
 	bin  string // the itos-template binary under test
 	dir  string // the scratch repository
+
+	exit           int
+	stdout, stderr string
 }
 
 func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
@@ -34,9 +37,20 @@ func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
 	sc.Before(func(ctx context.Context, _ *godog.Scenario) (context.Context, error) {
 		return ctx, w.setUp()
 	})
-	sc.After(func(ctx context.Context, _ *godog.Scenario, err error) (context.Context, error) {
+	// The scenario's error is godog's already: returned here, it would be
+	// reported twice, as the hook's and as the step's.
+	sc.After(func(ctx context.Context, _ *godog.Scenario, _ error) (context.Context, error) {
 		_ = os.RemoveAll(w.dir)
-		return ctx, err
+		return ctx, nil
+	})
+
+	sc.Step(`^itos-template runs with "([^"]*)"$`, func(args string) error {
+		return w.run(w.dir, w.bin, strings.Fields(args)...)
+	})
+
+	sc.Step(`^it exits with code (\d+)$`, w.exitsWith)
+	sc.Step(`^the first line of its standard output is "([^"]*)" and the stamped version$`, func(name string) error {
+		return w.firstLineIs(name + " " + stampedVersion)
 	})
 }
 
@@ -212,6 +226,54 @@ func (w *world) gitIn(dir string, args ...string) error {
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return fmt.Errorf("git %s: %v\n%s", strings.Join(args, " "), err, out)
+	}
+	return nil
+}
+
+// When steps.
+
+// A program run in the folder dir, its exit code and output what the Then
+// steps read.
+func (w *world) run(dir, program string, args ...string) error {
+	cmd := exec.Command(program, args...)
+	cmd.Dir = dir
+	cmd.Env = w.env()
+	var stdout, stderr strings.Builder
+	cmd.Stdout = &stdout
+	cmd.Stderr = &stderr
+	err := cmd.Run()
+	w.stdout, w.stderr = stdout.String(), stderr.String()
+	var exit *exec.ExitError
+	switch {
+	case err == nil:
+		w.exit = 0
+	case errors.As(err, &exit):
+		w.exit = exit.ExitCode()
+	default:
+		return fmt.Errorf("running %s: %w", program, err)
+	}
+	return nil
+}
+
+// Then steps.
+
+func (w *world) report() string {
+	return fmt.Sprintf("exit %d\n--- stdout\n%s--- stderr\n%s", w.exit, w.stdout, w.stderr)
+}
+
+func (w *world) exitsWith(code int) error {
+	if w.exit != code {
+		return fmt.Errorf("itos-template exited %d, not %d\n%s", w.exit, code, w.report())
+	}
+	return nil
+}
+
+// firstLineIs is whether standard output's first line is text, a line ending
+// in \r\n read as one in \n.
+func (w *world) firstLineIs(text string) error {
+	first, _, _ := strings.Cut(w.stdout, "\n")
+	if first = strings.TrimSuffix(first, "\r"); first != text {
+		return fmt.Errorf("the first line of standard output is %q, not %q\n%s", first, text, w.report())
 	}
 	return nil
 }
