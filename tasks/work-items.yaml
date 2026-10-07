@@ -471,7 +471,7 @@ items:
     title: depguard refuses the mocking libraries (decision 19)
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: []
     kind: task
     why: >
