@@ -109,11 +109,19 @@ func removeTemplates() {
 }
 
 // theTemplate builds the fixture template name from testdata, once a run:
-// no command a scenario runs changes it, as new only clones it.
+// no command a scenario runs changes it, as new and check only clone it.
 func (w *world) theTemplate(name string) error {
+	return w.useTemplate(name, func(dir string) error {
+		return w.buildTemplate(filepath.Join(w.root, "features", "testdata", name), dir)
+	})
+}
+
+// useTemplate makes the template the scenario's: the one built for key, or
+// one build makes in a new folder, once a run for each key.
+func (w *world) useTemplate(key string, build func(dir string) error) error {
 	templatesMu.Lock()
 	defer templatesMu.Unlock()
-	dir, ok := templates[name]
+	dir, ok := templates[key]
 	if !ok {
 		if templatesDir == "" {
 			var err error
@@ -121,11 +129,11 @@ func (w *world) theTemplate(name string) error {
 				return err
 			}
 		}
-		dir = filepath.Join(templatesDir, name)
-		if err := w.buildTemplate(filepath.Join(w.root, "features", "testdata", name), dir); err != nil {
-			return fmt.Errorf("building the template %s: %w", name, err)
+		dir = filepath.Join(templatesDir, strconv.Itoa(len(templates)))
+		if err := build(dir); err != nil {
+			return fmt.Errorf("building the template %s: %w", key, err)
 		}
-		templates[name] = dir
+		templates[key] = dir
 	}
 	w.templateDir = dir
 	w.template = filepath.ToSlash(dir)

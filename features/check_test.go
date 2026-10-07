@@ -1,0 +1,381 @@
+// The steps of check.feature: fixture templates whose manifest a scenario
+// changes, check run in a template's folder, and check's report, read
+// strictly in the format docs/manifest.md gives it ("What check reports"):
+// a report the format does not describe fails the step reading it, so the
+// format cannot drift from what the document says.
+package features
+
+import (
+	"bytes"
+	"errors"
+	"fmt"
+	"os"
+	"path/filepath"
+	"regexp"
+	"slices"
+	"strconv"
+	"strings"
+
+	"github.com/cucumber/godog"
+	"go.yaml.in/yaml/v3"
+)
+
+func (w *world) checkSteps(sc *godog.ScenarioContext) {
+	sc.Step(`^the template "([^"]*)" whose feature "([^"]*)" of the stack "([^"]*)" has the check "([^"]*)"$`, w.templateWithFeatureCheck)
+	sc.Step(`^the template "([^"]*)" whose manifest lists the stack "([^"]*)" with the features (".*") as unsupported$`, w.templateWithUnsupported)
+
+	// Split before {template} is expanded, so a path with a space stays one
+	// argument.
+	sc.Step(`^itos-template runs in the template's folder with "([^"]*)"$`, func(args string) error {
+		if w.templateDir == "" {
+			return errors.New("no template in this scenario")
+		}
+		fields := strings.Fields(args)
+		for i, f := range fields {
+			fields[i] = w.expand(f)
+		}
+		return w.run(w.templateDir, w.bin, fields...)
+	})
+
+	sc.Step(`^its report says "([^"]*)" passed$`, w.reportSaysPassed)
+	sc.Step(`^its report says "([^"]*)" failed at "([^"]*)"$`, w.reportSaysFailedAt)
+	sc.Step(`^its report shows the checks of "([^"]*)" in order: (".*")$`, w.reportShowsChecks)
+	sc.Step(`^its report does not name "([^"]*)"$`, w.reportDoesNotName)
+	sc.Step(`^its report names no other combination$`, w.reportNamesNoOther)
+	sc.Step(`^its report names no combination$`, w.reportNamesNone)
+}
+
+// The fixture templates a scenario changes.
+
+// templateWithFeatureCheck is the fixture template name, its manifest on the
+// root branch giving the feature of the stack one more check: the words of
+// check, split at spaces.
+func (w *world) templateWithFeatureCheck(name, feature, stack, check string) error {
+	key := fmt.Sprintf("%s whose feature %s of %s has the check %q", name, feature, stack, check)
+	return w.changedTemplate(name, key, func(top *yaml.Node) error {
+		features := mappingValue(top, "features")
+		if features == nil || features.Kind != yaml.SequenceNode {
+			return errors.New("the manifest lists no features")
+		}
+		for _, f := range features.Content {
+			if scalarValue(f, "name") != feature || scalarValue(f, "stack") != stack {
+				continue
+			}
+			checks := mappingValue(f, "checks")
+			if checks == nil {
+				checks = &yaml.Node{Kind: yaml.SequenceNode, Tag: "!!seq"}
+				f.Content = append(f.Content, scalar("checks"), checks)
+			}
+			words := &yaml.Node{Kind: yaml.SequenceNode, Tag: "!!seq", Style: yaml.FlowStyle}
+			for _, word := range strings.Fields(check) {
+				words.Content = append(words.Content, scalar(word))
+			}
+			checks.Content = append(checks.Content, words)
+			return nil
+		}
+		return fmt.Errorf("the manifest has no feature %s of the stack %s", feature, stack)
+	})
+}
+
+// templateWithUnsupported is the fixture template name, its manifest on the
+// root branch listing the stack with exactly the features as unsupported.
+func (w *world) templateWithUnsupported(name, stack, features string) error {
+	list := quotedList(features)
+	key := fmt.Sprintf("%s whose manifest lists %s with %q as unsupported", name, stack, list)
+	return w.changedTemplate(name, key, func(top *yaml.Node) error {
+		unsupported := mappingValue(top, "unsupported")
+		if unsupported == nil {
+			unsupported = &yaml.Node{Kind: yaml.SequenceNode, Tag: "!!seq"}
+			top.Content = append(top.Content, scalar("unsupported"), unsupported)
+		}
+		names := &yaml.Node{Kind: yaml.SequenceNode, Tag: "!!seq", Style: yaml.FlowStyle}
+		for _, f := range list {
+			names.Content = append(names.Content, scalar(f))
+		}
+		unsupported.Content = append(unsupported.Content, &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map", Content: []*yaml.Node{
+			scalar("stack"), scalar(stack),
+			scalar("features"), names,
+		}})
+		return nil
+	})
+}
+
+// changedTemplate builds, once a run for each key, the fixture template name
+// with one more commit on its root branch: the manifest there, its top
+// mapping changed by change. The manifest is read from the root branch
+// alone, so the other branches keep the fixture's.
+func (w *world) changedTemplate(name, key string, change func(top *yaml.Node) error) error {
+	return w.useTemplate(key, func(dir string) error {
+		if err := w.buildTemplate(filepath.Join(w.root, "features", "testdata", name), dir); err != nil {
+			return err
+		}
+		file := filepath.Join(dir, "itos-template.yaml")
+		data, err := os.ReadFile(file)
+		if err != nil {
+			return err
+		}
+		var doc yaml.Node
+		if err := yaml.Unmarshal(data, &doc); err != nil {
+			return err
+		}
+		if doc.Kind != yaml.DocumentNode || len(doc.Content) != 1 || doc.Content[0].Kind != yaml.MappingNode {
+			return errors.New("the manifest is not a mapping")
+		}
+		if err := change(doc.Content[0]); err != nil {
+			return err
+		}
+		var out bytes.Buffer
+		enc := yaml.NewEncoder(&out)
+		enc.SetIndent(2)
+		if err := enc.Encode(&doc); err != nil {
+			return err
+		}
+		if err := enc.Close(); err != nil {
+			return err
+		}
+		if err := os.WriteFile(file, out.Bytes(), 0o644); err != nil {
+			return err
+		}
+		return w.gitIn(dir, "commit", "-q", "-a", "-m", "Change the manifest: "+key)
+	})
+}
+
+// mappingValue is the value of key in the mapping m, or nil.
+func mappingValue(m *yaml.Node, key string) *yaml.Node {
+	if m.Kind != yaml.MappingNode {
+		return nil
+	}
+	for i := 0; i+1 < len(m.Content); i += 2 {
+		if m.Content[i].Value == key {
+			return m.Content[i+1]
+		}
+	}
+	return nil
+}
+
+func scalarValue(m *yaml.Node, key string) string {
+	if v := mappingValue(m, key); v != nil && v.Kind == yaml.ScalarNode {
+		return v.Value
+	}
+	return ""
+}
+
+func scalar(s string) *yaml.Node {
+	return &yaml.Node{Kind: yaml.ScalarNode, Tag: "!!str", Value: s}
+}
+
+// The report.
+
+// checkReport is check's report as the steps read it: each combination in
+// the order it names them, and the count its last line gives.
+type checkReport struct {
+	combinations []combinationReport
+	passed       int
+}
+
+type combinationReport struct {
+	name        string
+	passed      bool
+	notRendered bool
+	checks      []checkLine
+}
+
+type checkLine struct {
+	status string // passed, failed or skipped
+	check  string // the check as it ran, the answers in place
+}
+
+var (
+	combinationLine = regexp.MustCompile(`^([a-z0-9][a-z0-9._-]*(?: \+ [a-z0-9][a-z0-9._-]*)*): (passed|failed)$`)
+	checkStatusLine = regexp.MustCompile(`^  (passed|failed|skipped): (\S.*)$`)
+	notRenderedLine = "  not rendered"
+	outputLine      = regexp.MustCompile(`^    \|(?: .*)?$`)
+	summaryLine     = regexp.MustCompile(`^(\d+) of (\d+) combinations? passed\.$`)
+)
+
+// parseReport reads standard output as check's report, strictly: one block
+// per combination, its name and whether it passed, then its checks, each
+// passed, failed or skipped, a failed one followed by its output (lines
+// starting with "    |"), or "not rendered" followed by why; then an empty
+// line and the count of combinations that passed. A line the format does
+// not describe, or a report that contradicts itself, is an error.
+func parseReport(stdout string) (*checkReport, error) {
+	text := strings.ReplaceAll(stdout, "\r\n", "\n")
+	if !strings.HasSuffix(text, "\n") {
+		return nil, fmt.Errorf("the report does not end with a line ending")
+	}
+	lines := strings.Split(strings.TrimSuffix(text, "\n"), "\n")
+	if len(lines) < 1 {
+		return nil, errors.New("the report is empty")
+	}
+	m := summaryLine.FindStringSubmatch(lines[len(lines)-1])
+	if m == nil {
+		return nil, fmt.Errorf("the report's last line, %q, is not the count of combinations that passed", lines[len(lines)-1])
+	}
+	r := &checkReport{}
+	r.passed, _ = strconv.Atoi(m[1])
+	total, _ := strconv.Atoi(m[2])
+	body := lines[:len(lines)-1]
+	if len(body) > 0 {
+		if body[len(body)-1] != "" {
+			return nil, errors.New("the report's count is not after an empty line")
+		}
+		body = body[:len(body)-1]
+	}
+	var c *combinationReport
+	output := false // whether the line before may be followed by output
+	for i, line := range body {
+		bad := func(why string) error { return fmt.Errorf("the report's line %d, %q, %s", i+1, line, why) }
+		if m := combinationLine.FindStringSubmatch(line); m != nil {
+			r.combinations = append(r.combinations, combinationReport{name: m[1], passed: m[2] == "passed"})
+			c = &r.combinations[len(r.combinations)-1]
+			output = false
+			continue
+		}
+		if c == nil {
+			return nil, bad("comes before any combination")
+		}
+		switch m := checkStatusLine.FindStringSubmatch(line); {
+		case m != nil:
+			if c.notRendered {
+				return nil, bad("names a check of a combination that was not rendered")
+			}
+			if n := len(c.checks); n > 0 && c.checks[n-1].status != "passed" && m[1] != "skipped" {
+				return nil, bad("follows a check that did not pass, so is not skipped")
+			}
+			if m[1] == "skipped" && (len(c.checks) == 0 || c.checks[len(c.checks)-1].status == "passed") {
+				return nil, bad("skips a check that no failed check stopped")
+			}
+			c.checks = append(c.checks, checkLine{status: m[1], check: m[2]})
+			output = m[1] == "failed"
+		case line == notRenderedLine:
+			if c.notRendered || len(c.checks) > 0 {
+				return nil, bad("says not rendered after the combination's checks")
+			}
+			c.notRendered = true
+			output = true
+		case outputLine.MatchString(line):
+			if !output {
+				return nil, bad("is output, but follows no failed check and no render that failed")
+			}
+		default:
+			return nil, bad("is no line the report's format describes")
+		}
+	}
+	passed := 0
+	for _, c := range r.combinations {
+		failed := c.notRendered || slices.ContainsFunc(c.checks, func(l checkLine) bool { return l.status != "passed" })
+		if c.passed == failed {
+			return nil, fmt.Errorf("the report says %s %s, but its checks say otherwise", c.name, map[bool]string{true: "passed", false: "failed"}[c.passed])
+		}
+		if c.passed {
+			passed++
+		}
+	}
+	if total != len(r.combinations) || passed != r.passed {
+		return nil, fmt.Errorf("the report counts %d of %d combinations passed, but names %d, %d passed", r.passed, total, len(r.combinations), passed)
+	}
+	return r, nil
+}
+
+// combination is the combination name in the report, which the scenario
+// then names: its report names no other combination is judged against the
+// ones the scenario named.
+func (w *world) combination(name string) (*combinationReport, error) {
+	r, err := parseReport(w.stdout)
+	if err != nil {
+		return nil, fmt.Errorf("%v\n%s", err, w.report())
+	}
+	w.named = append(w.named, name)
+	for i := range r.combinations {
+		if r.combinations[i].name == name {
+			return &r.combinations[i], nil
+		}
+	}
+	return nil, fmt.Errorf("the report does not name %s\n%s", name, w.report())
+}
+
+func (w *world) reportSaysPassed(name string) error {
+	c, err := w.combination(name)
+	if err != nil {
+		return err
+	}
+	if !c.passed {
+		return fmt.Errorf("the report says %s failed\n%s", name, w.report())
+	}
+	return nil
+}
+
+func (w *world) reportSaysFailedAt(name, check string) error {
+	c, err := w.combination(name)
+	if err != nil {
+		return err
+	}
+	if c.passed {
+		return fmt.Errorf("the report says %s passed\n%s", name, w.report())
+	}
+	i := slices.IndexFunc(c.checks, func(l checkLine) bool { return l.status == "failed" })
+	if i < 0 || c.checks[i].check != check {
+		return fmt.Errorf("the report does not say %s failed at %q\n%s", name, check, w.report())
+	}
+	return nil
+}
+
+func (w *world) reportShowsChecks(name, list string) error {
+	c, err := w.combination(name)
+	if err != nil {
+		return err
+	}
+	var got []string
+	for _, l := range c.checks {
+		got = append(got, l.check)
+	}
+	if want := quotedList(list); !slices.Equal(got, want) {
+		return fmt.Errorf("the report shows the checks of %s as %q, not %q\n%s", name, got, want, w.report())
+	}
+	return nil
+}
+
+func (w *world) reportDoesNotName(name string) error {
+	r, err := parseReport(w.stdout)
+	if err != nil {
+		return fmt.Errorf("%v\n%s", err, w.report())
+	}
+	if slices.ContainsFunc(r.combinations, func(c combinationReport) bool { return c.name == name }) {
+		return fmt.Errorf("the report names %s\n%s", name, w.report())
+	}
+	return nil
+}
+
+func (w *world) reportNamesNoOther() error {
+	r, err := parseReport(w.stdout)
+	if err != nil {
+		return fmt.Errorf("%v\n%s", err, w.report())
+	}
+	var others []string
+	for _, c := range r.combinations {
+		if !slices.Contains(w.named, c.name) {
+			others = append(others, c.name)
+		}
+	}
+	if len(others) > 0 {
+		return fmt.Errorf("the report names %q too\n%s", others, w.report())
+	}
+	return nil
+}
+
+// reportNamesNone is whether standard output names no combination: empty,
+// or a report of none.
+func (w *world) reportNamesNone() error {
+	if w.stdout == "" {
+		return nil
+	}
+	r, err := parseReport(w.stdout)
+	if err != nil {
+		return fmt.Errorf("%v\n%s", err, w.report())
+	}
+	if len(r.combinations) > 0 {
+		return fmt.Errorf("the report names %d combinations\n%s", len(r.combinations), w.report())
+	}
+	return nil
+}

@@ -33,6 +33,8 @@ type world struct {
 
 	template    string // the fixture template's path, with /, for {template}
 	templateDir string // the fixture template's folder
+
+	named []string // the combinations of check's report the scenario named
 }
 
 func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
@@ -62,6 +64,7 @@ func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
 		return w.firstLineIs(name + " " + stampedVersion)
 	})
 	w.newSteps(sc)
+	w.checkSteps(sc)
 }
 
 // setUp makes the scenario's scratch repository, an empty git repository on
