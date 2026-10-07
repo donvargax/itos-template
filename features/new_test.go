@@ -33,6 +33,7 @@ func (w *world) newSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^the template "([^"]*)" whose branch "([^"]*)" holds a submodule at "([^"]*)"$`, w.templateWithSubmodule)
 	sc.Step(`^the template "([^"]*)" whose root branch holds no itos-template\.yaml$`, w.templateWithoutManifest)
 	sc.Step(`^the template "([^"]*)" whose manifest has the key "([^"]*)"$`, w.templateWithKey)
+	sc.Step(`^the template "([^"]*)" whose manifest gives the first commit the message "([^"]*)" with the footer "([^"]*)"$`, w.templateWithFirstCommit)
 	sc.Step(`^the template "([^"]*)" whose branch "([^"]*)" is missing$`, w.templateWithoutBranch)
 	sc.Step(`^the template "([^"]*)" whose branch "([^"]*)" holds the file "([^"]*)"$`, func(name, branch, file string) error {
 		return w.templateWithFiles(name, branch, `"`+file+`"`)
@@ -96,6 +97,8 @@ func (w *world) newSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^its JSON output names the problems? (".*")$`, w.jsonNamesProblems)
 	sc.Step(`^the first commit of "([^"]*)" records "([^"]*)" as (executable|not executable)$`, w.firstCommitRecordsMode)
 	sc.Step(`^the first commit of "([^"]*)" is by "([^"]*)"$`, w.firstCommitIsBy)
+	sc.Step(`^the first commit of "([^"]*)" has the header "([^"]*)"$`, w.firstCommitHasHeader)
+	sc.Step(`^the first commit of "([^"]*)" has the footer "([^"]*)"$`, w.firstCommitHasFooter)
 	sc.Step(`^the folder "([^"]*)" is a git repository with exactly (\d+) commits?$`, w.repositoryWithCommits)
 	sc.Step(`^the working tree of "([^"]*)" has no changes$`, w.noChanges)
 
@@ -309,6 +312,42 @@ func (w *world) firstCommitIsBy(dir, who string) error {
 	}
 	if names := strings.Split(strings.ReplaceAll(out, "\r\n", "\n"), "\n"); !slices.Equal(names, []string{who, who}) {
 		return fmt.Errorf("the first commit of %s is by %q, not %s", dir, names, who)
+	}
+	return nil
+}
+
+// firstCommitHasHeader is whether the first line of the first commit of
+// dir's message is header, as a commit lint reads a commit's header.
+func (w *world) firstCommitHasHeader(dir, header string) error {
+	first, err := w.firstCommit(dir)
+	if err != nil {
+		return err
+	}
+	out, err := w.gitOut(w.path(dir), "log", "-1", "--format=%B", first)
+	if err != nil {
+		return err
+	}
+	if got, _, _ := strings.Cut(strings.ReplaceAll(out, "\r\n", "\n"), "\n"); got != header {
+		return fmt.Errorf("the first commit of %s has the header %q, not %q\n%s", dir, got, header, out)
+	}
+	return nil
+}
+
+// firstCommitHasFooter is whether footer is one of the first commit of dir's
+// footers, as git reads a message's trailers: the lines of its last
+// paragraph, each a token, a colon and a value.
+func (w *world) firstCommitHasFooter(dir, footer string) error {
+	first, err := w.firstCommit(dir)
+	if err != nil {
+		return err
+	}
+	out, err := w.gitOut(w.path(dir), "log", "-1", "--format=%(trailers:only,unfold)", first)
+	if err != nil {
+		return err
+	}
+	if !slices.Contains(strings.Split(strings.ReplaceAll(out, "\r\n", "\n"), "\n"), footer) {
+		body, _ := w.gitOut(w.path(dir), "log", "-1", "--format=%B", first)
+		return fmt.Errorf("the first commit of %s has no footer %q: its footers are %q\n%s", dir, footer, out, body)
 	}
 	return nil
 }
