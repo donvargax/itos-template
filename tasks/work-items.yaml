@@ -89,14 +89,15 @@ items:
       docs/template-contents.md works. Which repository holds the template (its own, beside this
       one) is settled then.
     tags: [new, check]
-  - id: renovate
-    title: Renovate keeps the dependencies current, merging an update only when CI is green on its head
+  - id: T-14
+    title: Renovate keeps the Go modules and the workflows' actions current, landing on main once CI is green
     phase: 1
     owner: donvargax
     status: todo
     depends_on: [T-4]
-    kind: idea
+    kind: task
     why: >
+      Was renovate.
       docs/template-contents.md: semantic chore(deps) commits, a release-age cooldown, rebase
       auto-merge, actions pinned by digest. Waits on itos accepting the bot's commits (itos's
       p1-bot-dependency-prs) and its PR mode (p1-pr-mode); until then updates are made by hand.
