@@ -1,0 +1,10 @@
+# The fixture template's branches, in the order they are made: each line a
+# branch and the branch it starts from, the first the root. The files of a
+# branch are the folder of its name beside this file, laid over what it
+# starts from (features/new.feature's description).
+main
+stack/go main
+go/cli stack/go
+go/web go/cli
+stack/python main
+python/cli stack/python

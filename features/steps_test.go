@@ -30,6 +30,9 @@ type world struct {
 
 	exit           int
 	stdout, stderr string
+
+	template    string // the fixture template's path, with /, for {template}
+	templateDir string // the fixture template's folder
 }
 
 func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
@@ -44,14 +47,21 @@ func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
 		return ctx, nil
 	})
 
+	// Split before {template} is expanded, so a path with a space stays one
+	// argument.
 	sc.Step(`^itos-template runs with "([^"]*)"$`, func(args string) error {
-		return w.run(w.dir, w.bin, strings.Fields(args)...)
+		fields := strings.Fields(args)
+		for i, f := range fields {
+			fields[i] = w.expand(f)
+		}
+		return w.run(w.dir, w.bin, fields...)
 	})
 
 	sc.Step(`^it exits with code (\d+)$`, w.exitsWith)
 	sc.Step(`^the first line of its standard output is "([^"]*)" and the stamped version$`, func(name string) error {
 		return w.firstLineIs(name + " " + stampedVersion)
 	})
+	w.newSteps(sc)
 }
 
 // setUp makes the scenario's scratch repository, an empty git repository on

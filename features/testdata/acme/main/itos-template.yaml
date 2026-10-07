@@ -1,0 +1,26 @@
+# The acme fixture's manifest (docs/manifest.md).
+version: 1
+stacks:
+  - name: go
+  - name: python
+features:
+  - name: cli
+    stack: go
+  - name: web
+    stack: go
+    needs: [cli]
+  - name: cli
+    stack: python
+questions:
+  - name: name
+    literal: acme-widget
+    question: What is the project's name?
+    pattern: "[a-z][a-z0-9]*(-[a-z0-9]+)*"
+    case_forms: true
+  - name: module
+    literal: example.com/acme/widget
+    question: What is the project's module path?
+    pattern: "[a-z0-9.-]+(/[a-z0-9._-]+)+"
+    default: example.com/you/project
+template_only:
+  - .github/workflows/template.yml

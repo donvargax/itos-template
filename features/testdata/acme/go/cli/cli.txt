@@ -1,0 +1,1 @@
+The cli feature of acme-widget.

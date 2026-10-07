@@ -45,6 +45,7 @@ func TestFeatures(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(removeCallerPath)
+	t.Cleanup(removeTemplates)
 	root, err := moduleRoot()
 	if err != nil {
 		t.Fatal(err)
