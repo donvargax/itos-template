@@ -467,3 +467,12 @@ items:
       could take what is asked (a stack among these, an answer to this question of the manifest's)
       and prompt or internal/cli word it, the domain giving only the choices and the check.
     refs: [T-9]
+  - id: T-10
+    title: depguard refuses the mocking libraries (decision 19)
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: task
+    why: >
+      The ledger's T-10 says why.
