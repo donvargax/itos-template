@@ -3,6 +3,24 @@
 version: "2"
 linters:
   default: standard # errcheck, govet, ineffassign, staticcheck, unused
+  enable:
+    - depguard
+  settings:
+    depguard:
+      rules:
+        # Each command is a slice, and a slice imports no other (decision 16):
+        # what two share belongs to the domain, in a package named for what it
+        # models. Every slice is listed twice, under files and under deny, so
+        # a new slice (update, sync) is added to both; cmd may import them all.
+        slices:
+          files:
+            - "**/internal/check/**"
+            - "**/internal/newproject/**"
+          deny:
+            - pkg: github.com/donvargax/itos-template/internal/check$
+              desc: "a slice imports no other slice (decision 16): move what they share into the domain"
+            - pkg: github.com/donvargax/itos-template/internal/newproject$
+              desc: "a slice imports no other slice (decision 16): move what they share into the domain"
 formatters:
   enable:
     - gofmt
