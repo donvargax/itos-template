@@ -322,3 +322,12 @@ items:
       (docs/manifest.md, Checking a template in its CI). check could read the remote-tracking
       branches and the root from the origin when the template is the folder it runs in, and work
       from a subfolder of it too, so a template CI step is one line.
+  - id: T-6
+    title: "itos 6.4.0: the pin and CI's itos action move from 6.0.0"
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: task
+    why: >
+      The ledger's T-6 says why.
