@@ -74,17 +74,20 @@ A commit's type is one of `feat`, `fix`, `refactor`, `perf`, `test`, `build`, `c
 ### Footers
 
 - `Task:` names tasks of the ledger, `tasks/phase-{group}.yaml`.
+- `Scenarios:` names `scenario` tests by their IDs, live ones only (not `@wip`).
+- `Item:` names items of the work registry, `tasks/work-items.yaml`.
+- `Upgrading:` is free text.
 
 The footers each type needs:
 
-- `feat`: none.
-- `fix`: none.
+- `feat`: `Scenarios:` and `Upgrading:`.
+- `fix`: `Scenarios:` and `Upgrading:`.
 - `refactor`: `Task:`.
 - `perf`: `Task:`.
-- `test`: `Task:`.
+- `test`: `Task:` or `Item:`.
 - `build`: `Task:`.
 - `ci`: `Task:`.
-- `chore`: `Task:`.
+- `chore`: `Task:` or `Item:`.
 - `docs`: none.
 - `style`: `Task:`.
 - `revert`: `Task:`.
@@ -100,6 +103,7 @@ The commit-msg hook, `itos hook commit-msg`, runs these on every commit, the fir
 
 - itos's own data, when the commit stages any of it (the config, the ledger, the work registry and the smoke sets), as `itos config check` judges it.
 - The paths the commit's type may touch.
+- The `scenario-moves` rule: outside `feat` and `fix`, the `scenario` tests may only move between files, unchanged.
 - The header and the footers.
 - The static checks of the tasks `Task:` names: a failure refuses the commit once the task's work item is done, and is only printed while it is not.
 
