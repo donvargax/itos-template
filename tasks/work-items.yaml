@@ -326,7 +326,7 @@ items:
     title: "itos 6.4.0: the pin and CI's itos action move from 6.0.0"
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: []
     kind: task
     why: >
