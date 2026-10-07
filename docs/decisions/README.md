@@ -18,6 +18,6 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0013: Look for a library before building what one likely already solves](0013-look-for-a-library-before-building-what-one-likely-already-solves.md)
 - [ADR-0014: check renders every combination the manifest allows, less those it lists as unsupported](0014-check-renders-every-combination-the-manifest-allows-less-those-it-lists-as-unsupported.md)
 - [ADR-0015: A template's checks are lists of words run with no shell](0015-a-template-s-checks-are-lists-of-words-run-with-no-shell.md)
-- [ADR-0016: Domain-driven design in vertical slices, with no mappers](0016-domain-driven-design-in-vertical-slices-with-no-mappers.md)
+- [ADR-0017: Thin UI and application layers over a domain that does the work, through ports](0017-thin-ui-and-application-layers-over-a-domain-that-does-the-work-through-ports.md)
 
 <!-- itos:decisions:end -->
