@@ -16,12 +16,12 @@ linters:
     # The arrows between the layers (decision 17): the domain and its ports
     # reach the outside only through infra implementing the ports; infra
     # imports nothing of ours but the ports; a slice imports no other slice
-    # (decision 16); kong stays in the UI. Each list names every package of
+    # (decision 17); kong stays in the UI. Each list names every package of
     # its layer, so a new one (a slice, a domain package, an infra) is
     # added where it belongs.
     depguard:
       rules:
-        # Each command is a slice, and a slice imports no other (decision 16):
+        # Each command is a slice, and a slice imports no other (decision 17):
         # what two share belongs to the domain, in a package named for what it
         # models. Every slice is listed twice, under files and under deny, so
         # a new slice (update, sync) is added to both; cmd may import them all.
@@ -31,11 +31,11 @@ linters:
             - "**/internal/newproject/**"
           deny:
             - pkg: github.com/donvargax/itos-template/internal/check$
-              desc: "a slice imports no other slice (decision 16): move what they share into the domain"
+              desc: "a slice imports no other slice (decision 17): move what they share into the domain"
             - pkg: github.com/donvargax/itos-template/internal/newproject$
-              desc: "a slice imports no other slice (decision 16): move what they share into the domain"
+              desc: "a slice imports no other slice (decision 17): move what they share into the domain"
         # The domain and its ports, their tests too: no infra, slice, UI or
-        # kong. Its tests run it against porttest's fakes (decision 18).
+        # kong. Its tests run it against porttest's fakes (decision 19).
         domain:
           files:
             - "**/internal/answer/**"
@@ -95,6 +95,23 @@ linters:
           deny:
             - pkg: github.com/donvargax/itos-template
               desc: "infra imports nothing of ours but the ports it implements (decision 17)"
+        # Tests use our own fakes and stubs, never mocks, which script and
+        # check calls (decision 19): no mocking library comes in, in any
+        # package or test.
+        mocks:
+          files:
+            - $all
+          deny:
+            - pkg: github.com/golang/mock
+              desc: "never mocks (decision 19): a fake or a stub of the port, in its porttest"
+            - pkg: go.uber.org/mock
+              desc: "never mocks (decision 19): a fake or a stub of the port, in its porttest"
+            - pkg: github.com/stretchr/testify/mock
+              desc: "never mocks (decision 19): a fake or a stub of the port, in its porttest"
+            - pkg: github.com/vektra/mockery
+              desc: "never mocks (decision 19): a fake or a stub of the port, in its porttest"
+            - pkg: github.com/maxbrunsfeld/counterfeiter
+              desc: "never mocks (decision 19): a fake or a stub of the port, in its porttest"
         # kong is the UI's: cmd, internal/cli and the slices.
         kong:
           files:
