@@ -638,3 +638,13 @@ items:
       carries the setup proven here, so the document says which one a made project gets before it
       does.
     tags: [new]
+  - id: T-15
+    title: A release cuts a patch when the binary's linked modules or its Go toolchain changed
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: [T-14]
+    kind: task
+    why: >
+      The ledger's T-15 says why.
+    tags: [ci]
