@@ -33,6 +33,10 @@ status by hand.
 - **Conventional Commits,** committed with `itos commit -F <file>`, never `git commit`. The body
   says what changed and why: it is the changelog. No body line starts with a word and a colon
   (git reads it as a footer).
+- **A library or our own code** for a problem one likely already solves is the person's call
+  with the coordinator (decision 13), made in the spec. Meeting one the spec did not settle,
+  stop and propose the candidates, weighed by activity, complexity, change and value; never
+  choose alone.
 - **Decide the split before editing:** each commit type may touch only certain paths (the block
   below). Check a split with `itos commit check-paths --type <type> <path>…`; never relabel a
   commit to get past a rule.

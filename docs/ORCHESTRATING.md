@@ -18,6 +18,8 @@ teaches, in the guide's lesson format.
 - Reads: `AGENTS.md`, `PLAN.md`, the decision records the item rests on, and for bootstrap work
   the itos files it copies.
 - The neighbours: the scenarios of the commands the item touches.
+- Code a library may already solve: weigh the candidates with the person while specifying, by
+  activity, complexity, likely change and value, and put the choice in the spec (decision 13).
 - Windows is a platform job: what touches files, modes, line endings or paths needs a Windows
   thought (itos learned it: `go:embed` with CRLF checkouts, Unix file modes in tests).
 
