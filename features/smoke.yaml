@@ -24,3 +24,7 @@
   scenarios:
     - id: "@ID-CLI-01"
       why: --version, the one call every build answers, the binary built, stamped and run in one step
+- file: new.feature
+  scenarios:
+    - id: "@ID-NEW-01"
+      why: new's whole path in one run, the template cloned, its stack rendered with every case form and the project committed, on the fixture's smallest render

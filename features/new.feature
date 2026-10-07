@@ -42,7 +42,7 @@ Feature: new makes a project from a template
   any other file is copied as it is. In a step {template} stands for the
   fixture's path, and a folder is relative to the scenario's scratch folder.
 
-  @ID-NEW-01 @slice-1 @wip
+  @ID-NEW-01 @slice-1
   Scenario: new renders the stack into a new folder, the answers in every case form in contents
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"
@@ -51,7 +51,7 @@ Feature: new makes a project from a template
     And the file "made/go.mod" contains "module example.com/blue/fox"
     And no text file of the project in "made" contains "acme-widget", "acme_widget", "acmeWidget", "AcmeWidget", "ACME_WIDGET" or "example.com/acme/widget"
 
-  @ID-NEW-02 @slice-1 @wip
+  @ID-NEW-02 @slice-1
   Scenario: new replaces a literal in file and folder names too
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"
@@ -59,13 +59,13 @@ Feature: new makes a project from a template
     And the path "made/cmd/acme-widget" does not exist
 
   # A binary file is left byte for byte: a replacement there could corrupt it.
-  @ID-NEW-03 @slice-1 @wip
+  @ID-NEW-03 @slice-1
   Scenario: new leaves a binary file as the template has it
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"
     Then the file "made/logo.bin" is the same as the template's "logo.bin"
 
-  @ID-NEW-04 @slice-1 @wip
+  @ID-NEW-04 @slice-1
   Scenario: new merges the chosen features onto the stack and leaves the others out
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go --feature cli --answer name=blue-fox --answer module=example.com/blue/fox"
@@ -81,14 +81,14 @@ Feature: new makes a project from a template
     Then the path "made/itos-template.yaml" does not exist
     And the path "made/.github/workflows/template.yml" does not exist
 
-  @ID-NEW-06 @slice-1 @wip
+  @ID-NEW-06 @slice-1
   Scenario: the made project is a git repository whose one commit holds the render
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go --feature cli --answer name=blue-fox --answer module=example.com/blue/fox"
     Then the folder "made" is a git repository with exactly 1 commit
     And the working tree of "made" has no changes
 
-  @ID-NEW-07 @slice-1 @wip
+  @ID-NEW-07 @slice-1
   Scenario: the record names the template, the stack, the features, the answers and the commit of each branch rendered
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go --feature cli --answer name=blue-fox --answer module=example.com/blue/fox"
@@ -97,14 +97,14 @@ Feature: new makes a project from a template
     And the record in "made" has the answer "name" as "blue-fox" and "module" as "example.com/blue/fox"
     And the record in "made" names the commit of the template's branches "main", "stack/go" and "go/cli"
 
-  @ID-NEW-08 @slice-1 @wip
+  @ID-NEW-08 @slice-1
   Scenario: new takes a template by a git URL as by a path
     Given the template "acme"
     When itos-template runs with "new file://{template} made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"
     Then it exits with code 0
     And the file "made/cmd/blue-fox/main.go" exists
 
-  @ID-NEW-09 @slice-1 @wip
+  @ID-NEW-09 @slice-1
   Scenario: new writes into an existing empty folder
     Given the template "acme"
     And an empty folder "made"
@@ -112,7 +112,7 @@ Feature: new makes a project from a template
     Then it exits with code 0
     And the file "made/cmd/blue-fox/main.go" exists
 
-  @ID-NEW-10 @slice-1 @wip
+  @ID-NEW-10 @slice-1
   Scenario: new refuses a folder that has files in it with exit 1, naming it, and leaves it as it was
     Given the template "acme"
     And a folder "made" holding the file "keep.txt"
@@ -123,7 +123,7 @@ Feature: new makes a project from a template
 
   # Without a terminal nothing can be asked: every missing answer is named at
   # once, so a script's author fixes them in one go.
-  @ID-NEW-11 @slice-1 @wip
+  @ID-NEW-11 @slice-1
   Scenario: without a terminal new refuses missing answers with exit 2, naming every one, and writes nothing
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go"
@@ -132,14 +132,14 @@ Feature: new makes a project from a template
     And its error output says "module"
     And the path "made" does not exist
 
-  @ID-NEW-12 @slice-1 @wip
+  @ID-NEW-12 @slice-1
   Scenario: --defaults takes a missing answer's default
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
     Then it exits with code 0
     And the file "made/go.mod" contains "module example.com/you/project"
 
-  @ID-NEW-13 @slice-1 @wip
+  @ID-NEW-13 @slice-1
   Scenario: --defaults still refuses a missing answer that has no default with exit 2
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go --defaults"
@@ -147,7 +147,7 @@ Feature: new makes a project from a template
     And its error output says "name"
     And the path "made" does not exist
 
-  @ID-NEW-14 @slice-1 @wip
+  @ID-NEW-14 @slice-1
   Scenario: new refuses an answer that does not match its question's pattern with exit 2, and writes nothing
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go --answer name=Blue_Fox --answer module=example.com/blue/fox"
@@ -155,7 +155,7 @@ Feature: new makes a project from a template
     And its error output says "name"
     And the path "made" does not exist
 
-  @ID-NEW-15 @slice-1 @wip
+  @ID-NEW-15 @slice-1
   Scenario: new refuses a stack the manifest does not list with exit 2, naming it
     Given the template "acme"
     When itos-template runs with "new {template} made --stack rust --answer name=blue-fox --answer module=example.com/blue/fox"
@@ -165,7 +165,7 @@ Feature: new makes a project from a template
 
   # A combination the template refuses is a check saying no (docs/CLI.md's
   # exit 1), not a usage error: the names are known, only together refused.
-  @ID-NEW-16 @slice-1 @wip
+  @ID-NEW-16 @slice-1
   Scenario: new refuses a feature of another stack with exit 1, naming both
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go --feature python/cli --answer name=blue-fox --answer module=example.com/blue/fox"
@@ -176,7 +176,7 @@ Feature: new makes a project from a template
 
   # A feature's dependency is never brought in unasked: what is rendered is
   # what the command line says.
-  @ID-NEW-17 @slice-1 @wip
+  @ID-NEW-17 @slice-1
   Scenario: new refuses a feature whose needed feature is not chosen with exit 1, naming both
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go --feature web --answer name=blue-fox --answer module=example.com/blue/fox"
@@ -185,7 +185,7 @@ Feature: new makes a project from a template
     And its error output says "cli"
     And the path "made" does not exist
 
-  @ID-NEW-18 @slice-1 @wip
+  @ID-NEW-18 @slice-1
   Scenario: new renders a feature with the feature it needs when both are chosen
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go --feature cli --feature web --answer name=blue-fox --answer module=example.com/blue/fox"
@@ -193,7 +193,7 @@ Feature: new makes a project from a template
     And the file "made/web.txt" exists
     And the file "made/cli.txt" exists
 
-  @ID-NEW-19 @slice-1 @wip
+  @ID-NEW-19 @slice-1
   Scenario: new refuses a template git cannot reach with exit 3, naming it, and writes nothing
     When itos-template runs with "new nosuch-template made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"
     Then it exits with code 3

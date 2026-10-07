@@ -13,17 +13,20 @@ import (
 	"io"
 	"log/slog"
 	"os"
+	"strings"
 
 	"github.com/alecthomas/kong"
 
+	"github.com/donvargax/itos-template/internal/newproject"
+	"github.com/donvargax/itos-template/internal/prompt"
 	"github.com/donvargax/itos-template/internal/version"
 )
 
 // Exit codes (docs/CLI.md, "Exit codes").
 const (
 	exitOK       = 0
-	exitUsage    = 2
-	exitInternal = 70
+	exitUsage    = newproject.CodeUsage
+	exitInternal = newproject.CodeInternal
 )
 
 // cli is the command line: its flags and commands.
@@ -31,15 +34,18 @@ type cli struct {
 	// An action, not a switch: it prints and exits, so it has no --no- pair
 	// and no environment variable.
 	Version kong.VersionFlag `help:"Print the version and exit."`
+
+	New newCmd `cmd:"" help:"Make a project from a template."`
 }
 
 func main() {
-	os.Exit(run(os.Args[1:], os.Stdout, os.Stderr))
+	os.Exit(run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr, prompt.Terminal()))
 }
 
-// run parses args and runs what they name, returning the exit code. kong
+// run parses args and runs what they name, returning the exit code; it asks
+// questions on in only when terminal says stdin and stdout are one. kong
 // exits by itself, 0, after printing the help.
-func run(args []string, stdout, stderr io.Writer) int {
+func run(args []string, in io.Reader, stdout, stderr io.Writer, terminal bool) int {
 	slog.SetDefault(logger(stderr))
 	var c cli
 	parser, err := kong.New(&c,
@@ -55,17 +61,39 @@ func run(args []string, stdout, stderr io.Writer) int {
 	}
 	ctx, err := parser.Parse(args)
 	if err != nil {
-		// kong's own code for a usage error is 80; docs/CLI.md's is 2.
+		// kong's own code for a usage error is 80; docs/CLI.md's is 2. With
+		// --json, the failure's object too (rule 29).
+		if wantsJSON(args) {
+			printJSON(stdout, stderr, failure([]newproject.Problem{{Rule: "usage", Message: err.Error()}}))
+		}
 		fail(stderr, err)
 		return exitUsage
 	}
-	if ctx.Command() == "" {
-		if err := ctx.PrintUsage(false); err != nil {
-			fail(stderr, err)
-			return exitInternal
-		}
+	if command := strings.Fields(ctx.Command()); len(command) > 0 && command[0] == "new" {
+		return c.New.run(in, stdout, stderr, terminal)
+	}
+	if err := ctx.PrintUsage(false); err != nil {
+		fail(stderr, err)
+		return exitInternal
 	}
 	return exitOK
+}
+
+// wantsJSON is whether args ask for --json before any --, as a command line
+// kong could not parse is read.
+func wantsJSON(args []string) bool {
+	json := false
+	for _, a := range args {
+		switch a {
+		case "--":
+			return json
+		case "--json", "--json=true":
+			json = true
+		case "--no-json", "--json=false":
+			json = false
+		}
+	}
+	return json
 }
 
 // fail writes err on stderr as a line for people, itos-template: first
