@@ -211,6 +211,7 @@ items:
       under --trust, never silently. Settle in its scenarios: the steps' shape in the manifest,
       their order across root, stack and features, what a refused or failed step leaves, and where
       new records what the clone command reads.
+    tags: [new]
   - id: new-picker
     title: new picks the stack and features from lists on a terminal, with charmbracelet/huh
     phase: 1
