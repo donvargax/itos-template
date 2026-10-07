@@ -1,7 +1,9 @@
-// Package prompt asks a person for what a command line left out, on a
-// terminal only (docs/CLI.md, rule 37; decision 11): a plain line prompt
-// behind a small interface, so the pick lists the idea new-picker brings
-// (charmbracelet/huh) can take its place without new changing.
+// Package prompt is the infra that asks a person for what a command line
+// left out, on a terminal only (docs/CLI.md, rule 37; decision 11): the
+// domain's port.Asker, a plain line prompt, so the pick lists the idea
+// new-picker brings (charmbracelet/huh) can take its place without the
+// domain changing. It imports no package of ours but the ports it
+// implements (decision 17).
 package prompt
 
 import (
@@ -13,21 +15,9 @@ import (
 	"strings"
 
 	"golang.org/x/term"
+
+	"github.com/donvargax/itos-template/internal/template/port"
 )
-
-// Question is one thing to ask: its text, its default when it has one, and
-// the check an answer must pass, asked again until it does.
-type Question struct {
-	Text       string
-	Default    string
-	HasDefault bool
-	Check      func(answer string) error
-}
-
-// Asker asks questions.
-type Asker interface {
-	Ask(q Question) (string, error)
-}
 
 // ErrNoAnswer is the input ending before an answer was given.
 var ErrNoAnswer = errors.New("the input ended before an answer was given")
@@ -40,12 +30,16 @@ type Lines struct {
 	Out io.Writer
 }
 
+var _ port.Asker = (*Lines)(nil)
+
 // NewLines asks on out, reading in.
 func NewLines(in io.Reader, out io.Writer) *Lines {
 	return &Lines{In: bufio.NewReader(in), Out: out}
 }
 
-func (l *Lines) Ask(q Question) (string, error) {
+// Ask asks q until it is answered with an answer its check takes, and
+// returns that answer.
+func (l *Lines) Ask(q port.Question) (string, error) {
 	for {
 		text := q.Text
 		if q.HasDefault {

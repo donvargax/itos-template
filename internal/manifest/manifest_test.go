@@ -226,3 +226,11 @@ func TestParseSaysACheckIsAListOfWords(t *testing.T) {
 		t.Errorf("Parse = %v", err)
 	}
 }
+
+func TestACheckIsWrittenQuotingAWordOnlyWhenItMustBe(t *testing.T) {
+	got := Check{"sh", "-c", "go test ./...", "", `a"b`, "tab\there", "it's", `back\slash`, "bell\a", "plain/path.go"}.String()
+	want := `sh -c "go test ./..." "" "a\"b" "tab\there" "it's" "back\\slash" "bell\a" plain/path.go`
+	if got != want {
+		t.Errorf("the check is written\n%s, not\n%s", got, want)
+	}
+}

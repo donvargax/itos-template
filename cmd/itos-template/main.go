@@ -7,11 +7,12 @@
 // each switch with its --no- pair. The main output goes to stdout; logs,
 // structured, and errors go to stderr.
 //
-// main only assembles: each command is a slice (decision 16), its kong
-// struct, its use case and its output in a package of its own (newproject,
-// check), and main parses the command line, runs the one it names and exits
-// with the code the slice returns. A usage error, which kong finds before
-// any slice runs, is the one failure main reports itself.
+// main only assembles: each command is a slice (decisions 16 and 17), its
+// kong struct and its handler in a package of its own (newproject, check),
+// and main parses the command line, runs the one it names through the UI
+// the slices share (internal/cli) and exits with the code the slice
+// returns. A usage error, which kong finds before any slice runs, is the
+// one failure main reports itself, through that UI.
 package main
 
 import (
@@ -23,20 +24,20 @@ import (
 	"github.com/alecthomas/kong"
 
 	"github.com/donvargax/itos-template/internal/check"
+	"github.com/donvargax/itos-template/internal/cli"
 	"github.com/donvargax/itos-template/internal/newproject"
-	"github.com/donvargax/itos-template/internal/problem"
 	"github.com/donvargax/itos-template/internal/prompt"
 	"github.com/donvargax/itos-template/internal/version"
 )
 
-// cli is the command line: its flags and commands.
-type cli struct {
+// commandLine is the command line: its flags and commands.
+type commandLine struct {
 	// An action, not a switch: it prints and exits, so it has no --no- pair
 	// and no environment variable.
 	Version kong.VersionFlag `help:"Print the version and exit."`
 
-	New   newproject.Command `cmd:"" help:"Make a project from a template."`
-	Check check.Command      `cmd:"" help:"Render every combination a template allows and run its checks."`
+	New   newproject.CLI `cmd:"" help:"Make a project from a template."`
+	Check check.CLI      `cmd:"" help:"Render every combination a template allows and run its checks."`
 }
 
 func main() {
@@ -48,7 +49,8 @@ func main() {
 // exits by itself, 0, after printing the help.
 func run(args []string, in io.Reader, stdout, stderr io.Writer, terminal bool) int {
 	slog.SetDefault(logger(stderr))
-	var c cli
+	ui := &cli.UI{In: in, Stdout: stdout, Stderr: stderr, Terminal: terminal}
+	var c commandLine
 	parser, err := kong.New(&c,
 		kong.Name("itos-template"),
 		kong.Description("Make projects from a template that is a real project, and keep them up to date with it."),
@@ -57,24 +59,23 @@ func run(args []string, in io.Reader, stdout, stderr io.Writer, terminal bool) i
 		kong.Vars{"version": "itos-template " + version.Version()},
 	)
 	if err != nil {
-		return problem.Internal(err).Report(stdout, stderr, false)
+		return ui.Fail(err, false)
 	}
 	ctx, err := parser.Parse(args)
 	if err != nil {
-		// kong's own code for a usage error is 80; docs/CLI.md's is 2. With
-		// --json, the failure's object too (rule 29).
-		return problem.New(problem.CodeUsage, "usage", "%v", err).Report(stdout, stderr, wantsJSON(args))
+		// With --json, the failure's object too (rule 29).
+		return ui.Usage(err, wantsJSON(args))
 	}
 	if command := strings.Fields(ctx.Command()); len(command) > 0 {
 		switch command[0] {
 		case "new":
-			return c.New.Run(in, stdout, stderr, terminal)
+			return c.New.Run(ui)
 		case "check":
-			return c.Check.Run(stdout, stderr)
+			return c.Check.Run(ui)
 		}
 	}
 	if err := ctx.PrintUsage(false); err != nil {
-		return problem.Internal(err).Report(stdout, stderr, false)
+		return ui.Fail(err, false)
 	}
 	return 0
 }

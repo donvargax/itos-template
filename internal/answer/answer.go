@@ -2,52 +2,60 @@
 // command line, each name=answer, against its manifest: each checked by its
 // question, a missing one's default taken when asked to (--defaults), and
 // what is still missing either returned to be asked on a terminal or
-// refused (decision 11). Every problem is a usage problem, all reported
-// together, so one run names every answer to fix.
+// refused (decision 11). It is domain, and does no I/O.
+//
+// Every problem is an Error of its own, all returned together, so one run
+// names every answer to fix; internal/cli turns each into a line and an
+// exit code.
 package answer
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
 	"github.com/donvargax/itos-template/internal/manifest"
-	"github.com/donvargax/itos-template/internal/problem"
 )
 
+// Given are the answers as a command line gives them, each name=answer.
+type Given []string
+
+// Set is the answers by their questions' names, each one its question
+// takes.
+type Set map[string]string
+
 // Resolve is the answers to m's questions, never asked: those given, and
-// with defaults a missing one's default. Every problem is a usage problem,
-// all reported together: a malformed or unknown answer, one given twice,
-// one its question does not take, and each missing one.
-func Resolve(m *manifest.Manifest, given []string, defaults bool) (map[string]string, error) {
+// with defaults a missing one's default. Every problem is returned, joined
+// (errors.Join): a malformed or unknown answer, one given twice, one its
+// question does not take, and each missing one.
+func Resolve(m *manifest.Manifest, given Given, defaults bool) (Set, error) {
 	answers, _, problems := Read(m, given, defaults, false)
 	if len(problems) > 0 {
-		return nil, &problem.Failure{Code: problem.CodeUsage, Problems: problems}
+		return nil, errors.Join(problems...)
 	}
 	return answers, nil
 }
 
 // Read reads the answers given against m's questions, takes a missing one's
 // default with defaults, and returns the questions still missing to ask
-// them when ask; without ask each missing one is a problem.
-func Read(m *manifest.Manifest, given []string, defaults, ask bool) (map[string]string, []*manifest.Question, []problem.Problem) {
-	var problems []problem.Problem
-	add := func(rule, format string, args ...any) {
-		problems = append(problems, problem.Problem{Rule: rule, Message: fmt.Sprintf(format, args...)})
-	}
-	answers := map[string]string{}
+// them when ask; without ask each missing one is a problem. Every problem
+// is an Error.
+func Read(m *manifest.Manifest, given Given, defaults, ask bool) (Set, []*manifest.Question, []error) {
+	var problems []error
+	answers := Set{}
 	for _, kv := range given {
 		name, answer, ok := strings.Cut(kv, "=")
 		q, known := m.Question(name)
 		switch {
 		case !ok:
-			add("answer-malformed", "--answer takes name=answer, and %q has no =", kv)
+			problems = append(problems, &Malformed{Given: kv})
 		case !known:
-			add("answer-unknown", "the template asks no question %s: its questions are %s", name, strings.Join(m.QuestionNames(), ", "))
+			problems = append(problems, &Unknown{Name: name, Questions: m.QuestionNames()})
 		case hasKey(answers, name):
-			add("answer-twice", "the answer to %s is given twice", name)
+			problems = append(problems, &Twice{Name: name})
 		default:
 			if err := q.Check(answer); err != nil {
-				add("answer-malformed", "the answer to %s, %q, is not one it takes: %v", name, answer, err)
+				problems = append(problems, &NotTaken{Name: name, Answer: answer, Reason: err})
 			}
 			answers[name] = answer
 		}
@@ -61,16 +69,70 @@ func Read(m *manifest.Manifest, given []string, defaults, ask bool) (map[string]
 			answers[q.Name] = *q.Default
 		case ask:
 			missing = append(missing, q)
-		case q.Default != nil:
-			add("answer-missing", "no answer to %s (%s): give one with --answer %s=<answer>, or take its default, %s, with --defaults", q.Name, q.Question, q.Name, *q.Default)
 		default:
-			add("answer-missing", "no answer to %s (%s): give one with --answer %s=<answer>", q.Name, q.Question, q.Name)
+			problems = append(problems, &Missing{Question: q})
 		}
 	}
 	return answers, missing, problems
 }
 
-func hasKey(m map[string]string, k string) bool {
+func hasKey(m Set, k string) bool {
 	_, ok := m[k]
 	return ok
 }
+
+// Error is an answer that cannot be taken, a sealed set (decision 17):
+// internal/cli gives each kind its exit code.
+//
+//sumtype:decl
+type Error interface {
+	error
+	answerError()
+}
+
+// Malformed is an answer given with no = between its name and itself.
+type Malformed struct{ Given string }
+
+// Unknown is an answer to a question the template does not ask, and the
+// questions it does.
+type Unknown struct {
+	Name      string
+	Questions []string
+}
+
+// Twice is an answer given twice.
+type Twice struct{ Name string }
+
+// NotTaken is an answer its question does not take, and why.
+type NotTaken struct {
+	Name, Answer string
+	Reason       error
+}
+
+// Missing is a question with no answer, where none can be asked.
+type Missing struct{ Question *manifest.Question }
+
+// NotAnswered is a question asked on a terminal and not answered, and why.
+type NotAnswered struct {
+	Question *manifest.Question
+	Err      error
+}
+
+func (*Malformed) answerError()   {}
+func (*Unknown) answerError()     {}
+func (*Twice) answerError()       {}
+func (*NotTaken) answerError()    {}
+func (*Missing) answerError()     {}
+func (*NotAnswered) answerError() {}
+
+func (e *Malformed) Error() string { return fmt.Sprintf("the answer %q has no =", e.Given) }
+func (e *Unknown) Error() string   { return "no question " + e.Name }
+func (e *Twice) Error() string     { return "the answer to " + e.Name + " twice" }
+func (e *NotTaken) Error() string {
+	return fmt.Sprintf("the answer to %s, %q: %v", e.Name, e.Answer, e.Reason)
+}
+func (e *Missing) Error() string { return "no answer to " + e.Question.Name }
+func (e *NotAnswered) Error() string {
+	return fmt.Sprintf("no answer to %s: %v", e.Question.Name, e.Err)
+}
+func (e *NotAnswered) Unwrap() error { return e.Err }

@@ -1,11 +1,24 @@
+// Package render makes a project's files from a template's merged tree
+// (decision 1): each literal replaced by its answer in every text file's
+// contents, in each element of every path and in a symbolic link's target.
+// It is domain, and does no I/O: the tree comes from the template's
+// port.Repository, and what it makes is written through the project's
+// port.Disk (package project).
+//
+// A render is the same on every system and every machine, as an update
+// needs it (decision 3): replacement works within lines and never touches a
+// line ending, so a file with CRLF keeps it, and a binary file is copied as
+// it is. Every name is checked before anything is written.
 package render
 
 import (
-	"errors"
+	"bytes"
 	"fmt"
-	"os"
+	"io/fs"
 	"path"
 	"strings"
+
+	"github.com/donvargax/itos-template/internal/template/port"
 )
 
 // Replacer replaces a template's literals by their answers, in a text
@@ -32,136 +45,115 @@ func (r *Replacer) Contents(data []byte) []byte {
 }
 
 // Text is s with every literal replaced, as in a text file's contents: what
-// check makes of a check's words.
+// check makes of a check's words, and new of a link's target.
 func (r *Replacer) Text(s string) string { return r.r.Replace(s) }
 
-// NameError is a render whose file names cannot be written: an answer that
-// makes a name no file can have, or two files of one name.
-type NameError struct{ Problem string }
-
-func (e *NameError) Error() string { return e.Problem }
-
 // Path is the template's path p (with /) with every literal replaced in each
-// of its elements, never across them.
+// of its elements, never across them. An element no file can be named (empty,
+// . or .., .git, or holding a / or a \) is a *BadName.
 func (r *Replacer) Path(p string) (string, error) {
 	elements := strings.Split(p, "/")
 	for i, e := range elements {
 		replaced := r.r.Replace(e)
 		if replaced == "" || replaced == "." || replaced == ".." || strings.ContainsAny(replaced, "/\\\x00") ||
 			strings.EqualFold(replaced, ".git") {
-			return "", &NameError{fmt.Sprintf("the template's %s would be named %q, which no file can be: the answers make it %q", p, strings.Join(append(elements[:i:i], replaced), "/"), replaced)}
+			return "", &BadName{Path: p, Would: strings.Join(append(elements[:i:i], replaced), "/"), Element: replaced}
 		}
 		elements[i] = replaced
 	}
 	return strings.Join(elements, "/"), nil
 }
 
-// File is a file of the render: the template's entry and the path it is
-// written to, with /.
-type File struct {
-	Entry
-	To string
-}
-
-// DefectError is a template that cannot be rendered as it is.
-type DefectError struct{ Problem string }
-
-func (e *DefectError) Error() string { return e.Problem }
-
-// Plan is a render's files, every name checked, nothing written yet.
-type Plan struct {
-	t     *Template
-	r     *Replacer
-	Files []File
-}
-
-// Plan lists the files of tree a render writes: those keep takes, each
-// path's literals replaced. Two files of one name, a file where another
-// needs a folder, a name the answers make impossible and a submodule are
-// refused before anything is written.
-func (t *Template) Plan(tree string, keep func(path string) bool, r *Replacer) (*Plan, error) {
-	entries, err := t.Entries(tree)
-	if err != nil {
-		return nil, err
-	}
-	plan := &Plan{t: t, r: r}
+// Plan is the files a render of tree writes: those keep takes, each path's
+// literals replaced, and each text file's contents and each link's target.
+// Two files of one name, a file where another needs a folder, a name the
+// answers make impossible and a submodule are refused, each an Error,
+// before anything is written. Every file keeps its mode.
+func Plan(tree []port.File, keep func(path string) bool, r *Replacer) ([]port.File, error) {
+	var files []port.File
 	from := map[string]string{}
-	for _, e := range entries {
-		if !keep(e.Path) {
+	for _, f := range tree {
+		if !keep(f.Path) {
 			continue
 		}
-		if e.Submodule() {
-			return nil, &DefectError{fmt.Sprintf("the template holds the submodule %s, which new cannot render", e.Path)}
+		if f.Mode&fs.ModeIrregular != 0 {
+			return nil, &Submodule{Path: f.Path}
 		}
-		to, err := r.Path(e.Path)
+		to, err := r.Path(f.Path)
 		if err != nil {
 			return nil, err
 		}
 		if other, ok := from[to]; ok {
-			return nil, &NameError{fmt.Sprintf("the template's %s and %s would both be %s: give answers that tell them apart", other, e.Path, to)}
+			return nil, &SameName{First: other, Second: f.Path, To: to}
 		}
-		from[to] = e.Path
-		plan.Files = append(plan.Files, File{Entry: e, To: to})
+		from[to] = f.Path
+		var data []byte
+		if f.Mode&fs.ModeSymlink != 0 {
+			data = []byte(r.Text(string(f.Data)))
+		} else {
+			data = r.Contents(f.Data)
+		}
+		files = append(files, port.File{Path: to, Mode: f.Mode, Data: data})
 	}
 	for to, p := range from {
 		for dir := path.Dir(to); dir != "."; dir = path.Dir(dir) {
 			if other, ok := from[dir]; ok {
-				return nil, &NameError{fmt.Sprintf("the template's file %s would be %s, a folder of %s: give answers that tell them apart", other, dir, p)}
+				return nil, &FileIsFolder{File: other, Folder: dir, Of: p}
 			}
 		}
 	}
-	return plan, nil
+	return files, nil
 }
 
-// Write writes the plan's files into the folder dir, which exists: each
-// text file's contents and each link's target with its literals replaced, a
-// file git records as executable written so where the system has the bit.
-// It returns the paths (with /) of the executable files, for the commit to
-// record them so where the file system cannot (windows).
-func (p *Plan) Write(dir string) ([]string, error) {
-	oids := make([]string, len(p.Files))
-	for i, f := range p.Files {
-		oids[i] = f.OID
-	}
-	var executables []string
-	err := p.t.Blobs(oids, func(i int, data []byte) error {
-		f := p.Files[i]
-		to := osPath(dir, f.To)
-		if err := os.MkdirAll(osPath(dir, path.Dir(f.To)), 0o755); err != nil {
-			return err
-		}
-		if f.Link() {
-			if err := os.Symlink(p.r.r.Replace(string(data)), to); err != nil {
-				return &LinkError{Path: f.To, Err: err}
-			}
-			return nil
-		}
-		mode := os.FileMode(0o644)
-		if f.Executable() {
-			mode = 0o755
-			executables = append(executables, f.To)
-		}
-		return os.WriteFile(to, p.r.Contents(data), mode)
-	})
-	return executables, err
+// Executable is whether f is a file to record as executable.
+func Executable(f port.File) bool { return f.Mode.IsRegular() && f.Mode&0o111 != 0 }
+
+// isText is whether data is a text file's contents, as git tells them: no
+// NUL in its first 8000 bytes.
+func isText(data []byte) bool {
+	return !bytes.Contains(data[:min(len(data), 8000)], []byte{0})
 }
 
-// LinkError is a symbolic link the system would not make (windows without
-// the right to).
-type LinkError struct {
-	Path string
-	Err  error
+// Error is a template that cannot be rendered with the answers given, a
+// sealed set (decision 17): internal/cli gives each kind its exit code.
+//
+//sumtype:decl
+type Error interface {
+	error
+	renderError()
 }
 
-func (e *LinkError) Error() string {
-	return fmt.Sprintf("cannot make the symbolic link %s: %v", e.Path, e.Err)
+// BadName is the template's Path that the answers would name Would, its
+// element Element being a name no file can have.
+type BadName struct{ Path, Would, Element string }
+
+// SameName is the template's files First and Second that the answers would
+// both name To.
+type SameName struct{ First, Second, To string }
+
+// FileIsFolder is the template's file File that the answers would name
+// Folder, a folder of the file Of.
+type FileIsFolder struct{ File, Folder, Of string }
+
+// Submodule is a submodule the template holds at Path, which a render
+// cannot write: a defect of the template.
+type Submodule struct{ Path string }
+
+func (*BadName) renderError()      {}
+func (*SameName) renderError()     {}
+func (*FileIsFolder) renderError() {}
+func (*Submodule) renderError()    {}
+
+func (e *BadName) Error() string {
+	return fmt.Sprintf("the answers name %s %q", e.Path, e.Would)
 }
 
-func (e *LinkError) Unwrap() error { return e.Err }
-
-// IsDefect is whether err says the template cannot be rendered as it is.
-func IsDefect(err error) bool {
-	var d *DefectError
-	var c *ConflictError
-	return errors.As(err, &d) || errors.As(err, &c)
+func (e *SameName) Error() string {
+	return fmt.Sprintf("the answers name both %s and %s %s", e.First, e.Second, e.To)
 }
+
+func (e *FileIsFolder) Error() string {
+	return fmt.Sprintf("the answers name the file %s %s, a folder of %s", e.File, e.Folder, e.Of)
+}
+
+func (e *Submodule) Error() string { return "a submodule at " + e.Path }

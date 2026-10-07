@@ -21,7 +21,9 @@ import (
 	"regexp"
 	"slices"
 	"sort"
+	"strconv"
 	"strings"
+	"unicode"
 
 	"go.yaml.in/yaml/v3"
 
@@ -62,6 +64,23 @@ func (c *Check) UnmarshalYAML(n *yaml.Node) error {
 	}
 	*c = words
 	return nil
+}
+
+// String is the check as check's report writes it: its words joined by
+// spaces, a word written as it is unless it is empty or holds a space, a
+// quote, a backslash or a character that does not print, which is written
+// in double quotes as Go writes a string.
+func (c Check) String() string {
+	shown := make([]string, len(c))
+	for i, w := range c {
+		shown[i] = w
+		if w == "" || strings.ContainsFunc(w, func(r rune) bool {
+			return unicode.IsSpace(r) || r == '"' || r == '\'' || r == '\\' || !unicode.IsPrint(r)
+		}) {
+			shown[i] = strconv.Quote(w)
+		}
+	}
+	return strings.Join(shown, " ")
 }
 
 // Unsupported is a combination the template cannot support: a stack and
@@ -107,24 +126,25 @@ type Question struct {
 	words   caseform.Words
 }
 
-// Error is a manifest that cannot be used, every problem found in it.
-type Error struct{ Problems []string }
+// Invalid is a manifest that cannot be used, every problem found in it.
+type Invalid struct{ Problems []string }
 
-func (e *Error) Error() string { return strings.Join(e.Problems, "; ") }
+func (e *Invalid) Error() string { return strings.Join(e.Problems, "; ") }
 
-// Parse reads and checks a manifest.
+// Parse reads and checks a manifest. A manifest that cannot be used is an
+// *Invalid.
 func Parse(data []byte) (*Manifest, error) {
 	dec := yaml.NewDecoder(bytes.NewReader(data))
 	dec.KnownFields(true)
 	var m Manifest
 	if err := dec.Decode(&m); err != nil {
 		if errors.Is(err, io.EOF) {
-			return nil, &Error{[]string{"it is empty"}}
+			return nil, &Invalid{[]string{"it is empty"}}
 		}
-		return nil, &Error{[]string{err.Error()}}
+		return nil, &Invalid{[]string{err.Error()}}
 	}
 	if problems := m.check(); len(problems) > 0 {
-		return nil, &Error{problems}
+		return nil, &Invalid{problems}
 	}
 	return &m, nil
 }
@@ -419,6 +439,13 @@ func (m *Manifest) IsTemplateOnly(p string) bool {
 		}
 	}
 	return false
+}
+
+// Choice is a combination as a command line names it: a stack by its name,
+// and features by their names (cli) or their branches (go/cli), unchecked.
+type Choice struct {
+	Stack    string
+	Features []string
 }
 
 // Combination is a stack and the features a render merges onto it, in the

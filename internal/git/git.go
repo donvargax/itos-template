@@ -1,8 +1,17 @@
-// Package git runs the real git: the one ITOS_GIT names, as itos sets it for
-// every program it starts, else the first git on the PATH that is not an
-// itos. itos can be linked as git before the real one on the PATH (itos
-// git-shim install), and itos-template's own git commands (a clone, a merge,
-// a project's first commit) must never run an itos's policy instead.
+// Package git is the infra that runs the real git (decision 17): it clones
+// a template and merges its branches (Repo, port.Repository), and makes a
+// project's folder a repository and commits it (Committer, port.Committer).
+// It imports no package of ours but the ports it implements. Reading git's
+// output and exit codes, and turning them into the ports' terms (a merge's
+// conflicts, a commit refused) or its own sealed errors (Error), is its
+// anti-corruption layer, kept here; internal/cli gives each of its errors
+// an exit code.
+//
+// The git it runs is the one ITOS_GIT names, as itos sets it for every
+// program it starts, else the first git on the PATH that is not an itos.
+// itos can be linked as git before the real one on the PATH (itos git-shim
+// install), and itos-template's own git commands (a clone, a merge, a
+// project's first commit) must never run an itos's policy instead.
 //
 // The rule is itos's own (its internal/git's Bin and IsItos, its bug 45 and
 // T-104), copied since a module cannot import another's internal packages.
@@ -14,7 +23,6 @@ import (
 	"bytes"
 	"debug/buildinfo"
 	"errors"
-	"fmt"
 	"io"
 	"os"
 	"os/exec"
@@ -105,54 +113,6 @@ func executable(info os.FileInfo) bool {
 	return info.Mode().IsRegular() && (runtime.GOOS == "windows" || info.Mode().Perm()&0o111 != 0)
 }
 
-// Error is a git command that failed: Missing when no git could be run at
-// all, else its exit code and what it said on stderr, from which a caller
-// reads the kind of the failure (docs/CLI.md, rule 31).
-type Error struct {
-	Args    []string
-	Code    int
-	Stderr  string
-	Missing bool
-	Err     error
-}
-
-func (e *Error) Error() string {
-	if e.Missing {
-		return fmt.Sprintf("cannot run git: %v", e.Err)
-	}
-	if line := e.LastLine(); line != "" {
-		return line
-	}
-	return fmt.Sprintf("git %s exited %d", strings.Join(e.Args, " "), e.Code)
-}
-
-func (e *Error) Unwrap() error { return e.Err }
-
-// LastLine is the last line git wrote on stderr that is not empty: what it
-// said went wrong.
-func (e *Error) LastLine() string {
-	lines := strings.Split(strings.TrimSpace(e.Stderr), "\n")
-	return strings.TrimSpace(lines[len(lines)-1])
-}
-
-// Code reads err's git exit code: -1 when err is no *Error.
-func Code(err error) int {
-	var e *Error
-	if errors.As(err, &e) {
-		return e.Code
-	}
-	return -1
-}
-
-// Command is one git run: in Dir, reading Stdin, with Env added to an
-// environment that holds nothing of a git repository around the caller's
-// (a hook's GIT_DIR, say), so the command reads only Dir.
-type Command struct {
-	Dir   string
-	Stdin io.Reader
-	Env   []string
-}
-
 // ownRepository are the variables that point git at a repository other than
 // the one its folder holds.
 var ownRepository = []string{
@@ -160,12 +120,10 @@ var ownRepository = []string{
 	"GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_PREFIX", "GIT_NAMESPACE",
 }
 
-func (c Command) environ() []string { return Environ(c.Env...) }
-
 // Environ is this process's environment less what points git at another
 // repository than the one its folder holds (a hook's GIT_DIR, say), extra
-// added: what itos-template's own git commands run in, and the programs it
-// runs in a render, which may run git themselves.
+// added: what itos-template's own git commands run in, and the programs a
+// check runs in a render, which may run git themselves.
 func Environ(extra ...string) []string {
 	var env []string
 	for _, kv := range os.Environ() {
@@ -186,20 +144,29 @@ func containsFold(list []string, s string) bool {
 	return false
 }
 
-// Output runs git with args and returns its standard output, or an *Error.
-func (c Command) Output(args ...string) ([]byte, error) {
+// command is one git run: in dir, reading stdin, with env added to Environ,
+// so the command reads only dir's repository.
+type command struct {
+	dir   string
+	stdin io.Reader
+	env   []string
+}
+
+// output runs git with args and returns its standard output, or a *Failed
+// or a *Missing.
+func (c command) output(args ...string) ([]byte, error) {
 	var stdout bytes.Buffer
-	err := c.Stream(&stdout, args...)
+	err := c.stream(&stdout, args...)
 	return stdout.Bytes(), err
 }
 
-// Stream runs git with args, its standard output written to stdout, and
-// returns nil or an *Error.
-func (c Command) Stream(stdout io.Writer, args ...string) error {
+// stream runs git with args, its standard output written to stdout, and
+// returns nil, a *Failed or a *Missing.
+func (c command) stream(stdout io.Writer, args ...string) error {
 	cmd := exec.Command(Bin(), args...)
-	cmd.Dir = c.Dir
-	cmd.Env = c.environ()
-	cmd.Stdin = c.Stdin
+	cmd.Dir = c.dir
+	cmd.Env = Environ(c.env...)
+	cmd.Stdin = c.stdin
 	cmd.Stdout = stdout
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
@@ -209,12 +176,21 @@ func (c Command) Stream(stdout io.Writer, args ...string) error {
 	}
 	var exit *exec.ExitError
 	if errors.As(err, &exit) {
-		return &Error{Args: args, Code: exit.ExitCode(), Stderr: stderr.String(), Err: err}
+		return &Failed{Args: args, Code: exit.ExitCode(), Stderr: stderr.String()}
 	}
-	return &Error{Args: args, Code: -1, Missing: true, Err: err}
+	return &Missing{Err: err}
 }
 
-// Run is Output in dir.
-func Run(dir string, args ...string) ([]byte, error) {
-	return Command{Dir: dir}.Output(args...)
+// run is output in dir.
+func run(dir string, args ...string) ([]byte, error) {
+	return command{dir: dir}.output(args...)
+}
+
+// exitCode reads err's git exit code: -1 when err is no *Failed.
+func exitCode(err error) int {
+	var f *Failed
+	if errors.As(err, &f) {
+		return f.Code
+	}
+	return -1
 }

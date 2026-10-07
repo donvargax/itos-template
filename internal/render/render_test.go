@@ -2,177 +2,104 @@ package render
 
 import (
 	"errors"
-	"os"
-	"path/filepath"
-	"runtime"
 	"slices"
 	"strings"
 	"testing"
 
-	"github.com/donvargax/itos-template/internal/git"
+	"github.com/donvargax/itos-template/internal/template/port"
+	"github.com/donvargax/itos-template/internal/template/port/porttest"
 )
-
-// isolate runs git with no config of the caller's and a fixed identity.
-func isolate(t *testing.T) {
-	t.Helper()
-	t.Setenv("GIT_CONFIG_GLOBAL", os.DevNull)
-	t.Setenv("GIT_CONFIG_NOSYSTEM", "1")
-	for _, v := range []string{"GIT_AUTHOR_NAME", "GIT_COMMITTER_NAME"} {
-		t.Setenv(v, "render tests")
-	}
-	for _, v := range []string{"GIT_AUTHOR_EMAIL", "GIT_COMMITTER_EMAIL"} {
-		t.Setenv(v, "render@localhost")
-	}
-}
-
-func run(t *testing.T, dir string, args ...string) string {
-	t.Helper()
-	out, err := git.Run(dir, args...)
-	if err != nil {
-		t.Fatalf("git %v: %v", args, err)
-	}
-	return string(out)
-}
-
-func write(t *testing.T, dir, p string, data string, mode os.FileMode) {
-	t.Helper()
-	full := filepath.Join(dir, filepath.FromSlash(p))
-	if err := os.MkdirAll(filepath.Dir(full), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(full, []byte(data), mode); err != nil {
-		t.Fatal(err)
-	}
-}
-
-// template makes a template repository: main with a CRLF text file and a
-// binary one, stack/go adding an executable script under a folder named
-// after the literal, go/a and go/b each changing one file of main's.
-func template(t *testing.T) string {
-	t.Helper()
-	isolate(t)
-	dir := t.TempDir()
-	run(t, dir, "init", "-q", "-b", "main")
-	run(t, dir, "config", "core.autocrlf", "false")
-	write(t, dir, "README.md", "# acme-widget\r\nAcmeWidget, ACME_WIDGET\r\n", 0o644)
-	write(t, dir, "logo.bin", "\x00acme-widget", 0o644)
-	write(t, dir, "shared.txt", "one\n2\n3\n4\ntwo\n", 0o644)
-	run(t, dir, "add", "-A")
-	run(t, dir, "commit", "-q", "-m", "main")
-	run(t, dir, "checkout", "-q", "-b", "stack/go")
-	write(t, dir, "acme-widget/run.sh", "#!/bin/sh\necho acme_widget\n", 0o755)
-	run(t, dir, "add", "-A")
-	run(t, dir, "update-index", "--chmod=+x", "acme-widget/run.sh")
-	run(t, dir, "commit", "-q", "-m", "stack/go")
-	run(t, dir, "checkout", "-q", "-b", "go/a")
-	write(t, dir, "shared.txt", "ONE\n2\n3\n4\ntwo\n", 0o644)
-	run(t, dir, "commit", "-q", "-am", "go/a")
-	run(t, dir, "checkout", "-q", "-b", "go/b", "stack/go")
-	write(t, dir, "shared.txt", "one\n2\n3\n4\nTWO\n", 0o644)
-	run(t, dir, "commit", "-q", "-am", "go/b")
-	run(t, dir, "checkout", "-q", "-b", "go/c", "stack/go")
-	write(t, dir, "shared.txt", "uno\n2\n3\n4\ntwo\n", 0o644)
-	run(t, dir, "commit", "-q", "-am", "go/c")
-	run(t, dir, "checkout", "-q", "main")
-	return dir
-}
-
-func clone(t *testing.T) *Template {
-	t.Helper()
-	tpl, err := Clone(template(t), filepath.Join(t.TempDir(), "clone"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	return tpl
-}
 
 var acme = NewReplacer([]string{
 	"acme-widget", "blue-fox", "acme_widget", "blue_fox", "ACME_WIDGET", "BLUE_FOX",
 	"acmeWidget", "blueFox", "AcmeWidget", "BlueFox",
 })
 
-func TestRenderMergesReplacesAndKeepsBytesAndModes(t *testing.T) {
-	tpl := clone(t)
-	if b, _ := tpl.DefaultBranch(); b != "main" {
-		t.Errorf("DefaultBranch = %q", b)
+// tree is a merged tree: a CRLF text file, a binary one, an executable
+// script under a folder named after the literal, and a link to it.
+func tree() []port.File {
+	return []port.File{
+		{Path: "README.md", Mode: 0o644, Data: []byte("# acme-widget\r\nAcmeWidget, ACME_WIDGET\r\n")},
+		{Path: "acme-widget/run.sh", Mode: porttest.Executable, Data: []byte("#!/bin/sh\necho acme_widget\n")},
+		{Path: "logo.bin", Mode: 0o644, Data: []byte("\x00acme-widget")},
+		{Path: "run", Mode: porttest.Link, Data: []byte("acme-widget/run.sh")},
 	}
-	base, ok, err := tpl.Commit("stack/go")
-	if err != nil || !ok {
-		t.Fatal(ok, err)
+}
+
+func all(string) bool { return true }
+
+func byPath(files []port.File) map[string]port.File {
+	m := map[string]port.File{}
+	for _, f := range files {
+		m[f.Path] = f
 	}
-	tree, err := tpl.Merge(base, "stack/go", []string{"go/a", "go/b"})
+	return m
+}
+
+func TestPlanReplacesInContentsNamesAndLinksKeepingBytesAndModes(t *testing.T) {
+	files, err := Plan(tree(), all, acme)
 	if err != nil {
 		t.Fatal(err)
 	}
-	plan, err := tpl.Plan(tree, func(string) bool { return true }, acme)
-	if err != nil {
-		t.Fatal(err)
+	got := byPath(files)
+	if f := got["README.md"]; string(f.Data) != "# blue-fox\r\nBlueFox, BLUE_FOX\r\n" || f.Mode != 0o644 {
+		t.Errorf("README.md is %q, %v: CRLF and the replacements not as they should be", f.Data, f.Mode)
 	}
-	out := t.TempDir()
-	executables, err := plan.Write(out)
-	if err != nil {
-		t.Fatal(err)
+	if f := got["logo.bin"]; string(f.Data) != "\x00acme-widget" {
+		t.Errorf("logo.bin is %q: a binary file is never replaced in", f.Data)
 	}
-	read := func(p string) string {
-		data, err := os.ReadFile(filepath.Join(out, filepath.FromSlash(p)))
-		if err != nil {
-			t.Fatal(err)
-		}
-		return string(data)
+	if f := got["blue-fox/run.sh"]; string(f.Data) != "#!/bin/sh\necho blue_fox\n" || !Executable(f) {
+		t.Errorf("blue-fox/run.sh is %q, %v", f.Data, f.Mode)
 	}
-	if got := read("README.md"); got != "# blue-fox\r\nBlueFox, BLUE_FOX\r\n" {
-		t.Errorf("README.md is %q: CRLF and the replacements not as they should be", got)
+	if f := got["run"]; string(f.Data) != "blue-fox/run.sh" || f.Mode != porttest.Link || Executable(f) {
+		t.Errorf("the link run is to %q, %v", f.Data, f.Mode)
 	}
-	if got := read("logo.bin"); got != "\x00acme-widget" {
-		t.Errorf("logo.bin is %q: a binary file is never replaced in", got)
-	}
-	if got := read("shared.txt"); got != "ONE\n2\n3\n4\nTWO\n" {
-		t.Errorf("shared.txt is %q, not both features' changes", got)
-	}
-	if got := read("blue-fox/run.sh"); got != "#!/bin/sh\necho blue_fox\n" {
-		t.Errorf("blue-fox/run.sh is %q", got)
-	}
-	if !slices.Equal(executables, []string{"blue-fox/run.sh"}) {
-		t.Errorf("executables %q", executables)
-	}
-	if runtime.GOOS != "windows" {
-		info, err := os.Stat(filepath.Join(out, "blue-fox", "run.sh"))
-		if err != nil || info.Mode().Perm()&0o111 == 0 {
-			t.Errorf("run.sh is not executable: %v %v", info.Mode(), err)
-		}
+	if len(files) != 4 {
+		t.Errorf("the plan is %v", files)
 	}
 }
 
 func TestPlanLeavesOutWhatKeepRefuses(t *testing.T) {
-	tpl := clone(t)
-	base, _, _ := tpl.Commit("main")
-	tree, err := tpl.Merge(base, "main", nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	plan, err := tpl.Plan(tree, func(p string) bool { return p != "logo.bin" }, acme)
+	files, err := Plan(tree(), func(p string) bool { return p != "logo.bin" }, acme)
 	if err != nil {
 		t.Fatal(err)
 	}
 	var paths []string
-	for _, f := range plan.Files {
-		paths = append(paths, f.To)
+	for _, f := range files {
+		paths = append(paths, f.Path)
 	}
-	if !slices.Equal(paths, []string{"README.md", "shared.txt"}) {
+	if !slices.Equal(paths, []string{"README.md", "blue-fox/run.sh", "run"}) {
 		t.Errorf("plan %q", paths)
 	}
 }
 
-func TestMergeRefusesConflictsNamingTheBranches(t *testing.T) {
-	tpl := clone(t)
-	base, _, _ := tpl.Commit("stack/go")
-	_, err := tpl.Merge(base, "stack/go", []string{"go/a", "go/c"})
-	var conflict *ConflictError
-	if !errors.As(err, &conflict) || conflict.Branch != "go/c" || !slices.Equal(conflict.Paths, []string{"shared.txt"}) {
-		t.Fatalf("Merge = %v", err)
+func TestPlanRefusesASubmoduleItKeeps(t *testing.T) {
+	sub := append(tree(), port.File{Path: "vendor/lib", Mode: porttest.Submodule})
+	_, err := Plan(sub, all, acme)
+	var s *Submodule
+	if !errors.As(err, &s) || s.Path != "vendor/lib" {
+		t.Fatalf("Plan = %v", err)
 	}
-	if !IsDefect(err) {
-		t.Error("a conflict is not read as the template's defect")
+	if _, err := Plan(sub, func(p string) bool { return p != "vendor/lib" }, acme); err != nil {
+		t.Errorf("a submodule left out is refused: %v", err)
+	}
+}
+
+func TestPlanRefusesTwoFilesOfOneName(t *testing.T) {
+	files := append(tree(), port.File{Path: "blue-fox/run.sh", Mode: 0o644})
+	_, err := Plan(files, all, acme)
+	var same *SameName
+	if !errors.As(err, &same) || same.First != "acme-widget/run.sh" || same.Second != "blue-fox/run.sh" || same.To != "blue-fox/run.sh" {
+		t.Fatalf("Plan = %v", err)
+	}
+}
+
+func TestPlanRefusesAFileWhereAnotherNeedsAFolder(t *testing.T) {
+	files := append(tree(), port.File{Path: "blue-fox", Mode: 0o644})
+	_, err := Plan(files, all, acme)
+	var folder *FileIsFolder
+	if !errors.As(err, &folder) || folder.File != "blue-fox" || folder.Folder != "blue-fox" || folder.Of != "acme-widget/run.sh" {
+		t.Fatalf("Plan = %v", err)
 	}
 }
 
@@ -180,34 +107,17 @@ func TestPathReplacesEachElementAndRefusesImpossibleNames(t *testing.T) {
 	if got, err := acme.Path("cmd/acme-widget/acme_widget.go"); err != nil || got != "cmd/blue-fox/blue_fox.go" {
 		t.Errorf("Path = %q, %v", got, err)
 	}
-	slash := NewReplacer([]string{"acme", "a/b"})
-	if _, err := slash.Path("acme/x"); err == nil {
-		t.Error("an answer making a / in a name is taken")
+	for answer, element := range map[string]string{"a/b": "a/b/x", "..": "../x", "": "/x", ".git": ".git/x", `a\b`: `a\b/x`} {
+		r := NewReplacer([]string{"acme", answer})
+		_, err := r.Path("acme/x")
+		var bad *BadName
+		if !errors.As(err, &bad) || bad.Path != "acme/x" || bad.Element != answer || bad.Would != strings.TrimSuffix(element, "/x") {
+			t.Errorf("an answer %q making a name no file can have: %v", answer, err)
+		}
 	}
-	dot := NewReplacer([]string{"acme", ".."})
-	if _, err := dot.Path("acme/x"); err == nil {
-		t.Error("an answer making .. a name is taken")
-	}
-}
-
-func TestPlanRefusesTwoFilesOfOneName(t *testing.T) {
-	tpl := clone(t)
-	base, _, _ := tpl.Commit("main")
-	tree, _ := tpl.Merge(base, "main", nil)
-	same := NewReplacer([]string{"README.md", "shared.txt"})
-	_, err := tpl.Plan(tree, func(string) bool { return true }, same)
-	var name *NameError
-	if !errors.As(err, &name) {
-		t.Fatalf("Plan = %v", err)
-	}
-}
-
-func TestCloneRefusesATemplateGitCannotReach(t *testing.T) {
-	isolate(t)
-	_, err := Clone(filepath.Join(t.TempDir(), "nosuch"), filepath.Join(t.TempDir(), "clone"))
-	var unreachable *UnreachableError
-	if !errors.As(err, &unreachable) {
-		t.Fatalf("Clone = %v", err)
+	r := NewReplacer([]string{"acme", ".."})
+	if _, err := r.Path("x/y/acme"); err == nil || err.(*BadName).Would != "x/y/.." {
+		t.Errorf("Would is not the path as far as the bad element: %v", err)
 	}
 }
 
@@ -220,5 +130,11 @@ func TestContentsLeavesABinaryFileAsItIs(t *testing.T) {
 	data[10] = 0
 	if got := acme.Contents(data); string(got[len(got)-11:]) != "acme-widget" {
 		t.Error("a NUL in the first 8000 bytes did not make the file binary")
+	}
+}
+
+func TestTextReplacesInAnyString(t *testing.T) {
+	if got := acme.Text("ls cmd/acme-widget"); got != "ls cmd/blue-fox" {
+		t.Errorf("Text = %q", got)
 	}
 }
