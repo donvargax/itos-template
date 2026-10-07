@@ -113,3 +113,14 @@ items:
     kind: idea
     why: >
       PLAN.md, order of work 5: the upkeep the branch model costs (decision 2), never a rebase.
+  - id: first-template
+    title: This repository's skeleton, its domain stripped, becomes the first template's stack/go and go/cli
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: [template-check]
+    kind: idea
+    why: >
+      PLAN.md, order of work 6; decision 4: the generator is the proof that a template made to
+      docs/template-contents.md works. Which repository holds the template (its own, beside this
+      one) is settled then.
