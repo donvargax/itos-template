@@ -28,6 +28,7 @@ import (
 func (w *world) newSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^the template "([^"]*)"$`, w.theTemplate)
 	sc.Step(`^the template "([^"]*)" whose question "([^"]*)" has the literal "([^"]*)"$`, w.templateWithLiteral)
+	sc.Step(`^the template "([^"]*)" whose branch "([^"]*)" holds the files (".*")$`, w.templateWithFiles)
 	sc.Step(`^an empty folder "([^"]*)"$`, func(dir string) error {
 		return os.MkdirAll(w.path(dir), 0o755)
 	})
@@ -139,6 +140,43 @@ func (w *world) templateWithLiteral(name, question, literal string) error {
 			return nil
 		}
 		return fmt.Errorf("the manifest has no question %s", question)
+	})
+}
+
+// templateWithFiles is the fixture template name with one more commit on its
+// branch branch, adding the files listed (with /), each holding its own path
+// and a line ending. The root branch is checked out again after, so it stays
+// the template's default branch.
+func (w *world) templateWithFiles(name, branch, files string) error {
+	list := quotedList(files)
+	key := fmt.Sprintf("%s whose branch %s holds the files %q", name, branch, list)
+	return w.useTemplate(key, func(dir string) error {
+		if err := w.buildTemplate(filepath.Join(w.root, "features", "testdata", name), dir); err != nil {
+			return err
+		}
+		root, err := w.gitOut(dir, "symbolic-ref", "--short", "HEAD")
+		if err != nil {
+			return err
+		}
+		if err := w.gitIn(dir, "checkout", "-q", branch); err != nil {
+			return err
+		}
+		for _, file := range list {
+			p := filepath.Join(dir, filepath.FromSlash(file))
+			if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+				return err
+			}
+			if err := os.WriteFile(p, []byte(file+"\n"), 0o644); err != nil {
+				return err
+			}
+			if err := w.gitIn(dir, "add", "--", file); err != nil {
+				return err
+			}
+		}
+		if err := w.gitIn(dir, "commit", "-q", "-m", "Add the files: "+key); err != nil {
+			return err
+		}
+		return w.gitIn(dir, "checkout", "-q", root)
 	})
 }
 
