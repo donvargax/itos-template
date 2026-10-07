@@ -33,19 +33,9 @@ items:
     title: CI on every push to main, the itos plan and the platform jobs on Linux, macOS and Windows
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      Bootstrap, second (PLAN.md). Harvested from itos
-      (/home/yorch/tmp/llms-safe/gamedev/svg-art/itos/.github/workflows/ci.yml and itos.yaml's ci
-      section): the range from the last green run, itos verify over it, the plan in itos.yaml
-      (gofmt, go vet, golangci-lint, govulncheck, the unit tests, the smoke scenarios and those the
-      push names), and platform jobs running every test on the three systems, since what touches
-      paths and line endings breaks on Windows first. Needs the GitHub repository
-      donvargax/itos-template to exist. Byte caps on AGENTS.md and docs/ORCHESTRATING.md from the
-      start (itos learned late that always-read docs grow: its T-110), checked in the plan and on
-      docs-only pushes.
   - id: T-5
     title: "Releases cut by CI: a green push with a feat or a fix releases itself, built by GoReleaser and attested"
     phase: 1
