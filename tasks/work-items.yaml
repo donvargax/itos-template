@@ -373,11 +373,9 @@ items:
     title: The code in vertical slices over a shared domain, with no mappers (decision 16)
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      The ledger's T-8 says why.
     tags: [new, check]
   - id: file-length-limit
     title: A limit on a Go file's length, revive's file-length-limit in golangci-lint
