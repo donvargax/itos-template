@@ -106,7 +106,9 @@ ci:
     # govulncheck asks the vulnerability database, so it is late.
     - { run: tools/bin/pinned golangci-lint run ./..., cost: static }
     - { run: go tool govulncheck -test ./..., cost: late }
-    - { run: "go test ./cmd/... ./internal/...", cost: late } # the unit tests, the Go packages'
+    # The unit tests, the Go packages'. RAPID_CHECKS=1 runs each property of the domain on one random
+    # case (decision 20), as fast as an example test, each push trying a new one.
+    - { run: "RAPID_CHECKS=1 go test ./cmd/... ./internal/...", cost: late }
     # The one merged run of the scenarios: the smoke set and those the range names, the whole suite
     # when there is no green run to start from. No nightly yet: the whole suite is the smoke set's
     # size.
