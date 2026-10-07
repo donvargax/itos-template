@@ -93,3 +93,14 @@ items:
     why: >
       PLAN.md, order of work 3: the template proves itself. The combinations and each one's check
       commands come from the manifest; a combination not listed is unsupported, never offered.
+  - id: update-merges
+    title: itos-template update brings a project to a newer template release by a 3-way merge of the old and new renders
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: [new-renders]
+    kind: idea
+    why: >
+      PLAN.md, order of work 4; decision 3. Conflicts are left for the person as git leaves them;
+      the update lands as an ordinary commit through the project's gates, saying which release it
+      came from.
