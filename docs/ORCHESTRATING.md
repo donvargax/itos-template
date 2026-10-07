@@ -20,6 +20,9 @@ teaches, in the guide's lesson format.
 - The neighbours: the scenarios of the commands the item touches.
 - Code a library may already solve: weigh the candidates with the person while specifying, by
   activity, complexity, likely change and value, and put the choice in the spec (decision 13).
+  A library deferred until it brings value is watched: before specifying an item that would use
+  it, raise it with the person again (charmbracelet/huh, for anything asking on a terminal:
+  `new-picker`).
 - Windows is a platform job: what touches files, modes, line endings or paths needs a Windows
   thought (itos learned it: `go:embed` with CRLF checkouts, Unix file modes in tests).
 
