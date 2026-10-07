@@ -206,3 +206,7 @@ items:
       the hooks up when it makes the project, so no project carries a setup tool of its own. Settle
       in its scenarios: how the manifest names a stack's hook declaration, and what new does when
       itos is not on the PATH.
+
+      Decision 6: the same declaration is also a command, itos template hooks, which a clone not
+      made by new runs; new and the command share the code. Settle in its scenarios what it does
+      when the record new left is missing.
