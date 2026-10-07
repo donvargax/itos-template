@@ -554,3 +554,14 @@ items:
     why: >
       docs/CONFIG.md rule 3 (decision 22): an author finds each problem without searching the file.
     tags: [new, check]
+  - id: config-print-defaults
+    title: itos-template prints a manifest as it reads it, every default filled in
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      docs/CONFIG.md rule 15 (decision 22): convention over configuration made visible, so a reader
+      sees every default the file leaves out.
+    tags: [new, check, cli]
