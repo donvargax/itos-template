@@ -26,8 +26,8 @@ items:
   - id: T-3
     title: The Go module, a kong command skeleton with --version, and the acceptance harness running the built binary
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: task
     why: >
