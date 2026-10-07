@@ -509,3 +509,16 @@ items:
     depends_on: []
     kind: slice
     tags: [new, check]
+  - id: new-root-only
+    title: new renders a template's root alone, with no stack, for a template with nothing stack-specific
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      The person's idea, 2026-10-07: a template with only GitHub Actions ready, or only docs, based
+      on a stack template's root. A stack with no code (stack/actions) already works today;
+      rendering the root alone would need new to take no --stack, which it refuses now
+      (stack-missing). Worth it only if a stack branch that adds nothing proves awkward.
+    tags: [new]
