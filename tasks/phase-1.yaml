@@ -294,3 +294,24 @@
     - run: >-
         t=$(mktemp) && npx --yes --package renovate -- renovate --platform=local
         --dry-run=extract > "$t" 2>&1; grep -q 'Extracted dependencies' "$t"
+- id: T-15
+  type: build
+  title: "A release cuts a patch when the binary's linked modules or its Go toolchain changed"
+  why: >
+    The owner's call, 2026-10-07 (decision 23): a dependency update Renovate lands (T-14) is a
+    build commit, which released nothing, so a security fix in a module the binary links, or in
+    Go's standard library, reached no user until the next feat or fix. tools/bin/release-version
+    keeps its rules (a breaking change a major, a feat a minor, a fix a patch) and adds one,
+    after them: with none of those, a patch when, between the last release's tag and HEAD, the
+    modules ./cmd/itos-template links changed (go list -deps, each package's module path and
+    version, at both commits, the tag read from a worktree or git archive of it), or the Go
+    toolchain it is built with changed (go.mod's toolchain line, else its go line, at both).
+    What leaves the binary as it was releases nothing: a test-only module (godog, rapid), a tool
+    of go.mod's tool block (govulncheck), a go.sum-only change, an indirect module the binary
+    never links, a workflow's action. Its line on stderr says why, naming each module that moved
+    or the toolchain, so the release's run shows it. internal/release's tests and
+    release-version's hold the rule with example repositories (decision 19), the module-path
+    check from itos's T-089 kept as it is.
+  done_when:
+    - run: go test ./tools/bin/release-version/... ./internal/release/...
+    - run: grep -q 'toolchain' tools/bin/release-version/main.go
