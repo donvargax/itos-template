@@ -111,4 +111,20 @@ The pre-push hook, `itos hook pre-push`, runs these on every push:
 
 - The commit rules above, over every commit the push adds, as `itos verify` judges them.
 
+CI runs its plan, `itos ci run`, on every push, in this order, stopping at the first failure:
+
+- `! gofmt -l cmd internal features | grep .`
+- `go vet ./...`
+- `itos tests smoke check scenario`
+- `itos config check`
+- `tools/bin/doc-caps`
+- `tools/bin/pinned golangci-lint run ./...`
+- The static checks of the tasks the push's commits name.
+- `go tool govulncheck -test ./...`
+- `go test ./cmd/... ./internal/...`
+- The `scenario` tests of the smoke set and those the push's commits name, in one run.
+- The other checks of the tasks the push's commits name.
+
+A push that touches only `**/*.md`, `docs/**` and `tasks/**` runs only `itos config check` and `tools/bin/doc-caps`, and the static checks of the tasks its commits name.
+
 <!-- itos:end -->
