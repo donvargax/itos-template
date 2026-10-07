@@ -10,5 +10,6 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0003: Updates are a 3-way merge of the old and new renders](0003-updates-are-a-3-way-merge-of-the-old-and-new-renders.md)
 - [ADR-0004: Go and kong, an itos extension, its infrastructure harvested from itos](0004-go-and-kong-an-itos-extension-its-infrastructure-harvested-from-itos.md)
 - [ADR-0007: The template drives a made project's setup: steps in the manifest, run once trusted](0007-the-template-drives-a-made-project-s-setup-steps-in-the-manifest-run-once-trusted.md)
+- [ADR-0008: One manifest, itos-template.yaml, on the root branch and merged down into every branch](0008-one-manifest-itos-template-yaml-on-the-root-branch-and-merged-down-into-every-branch.md)
 
 <!-- itos:decisions:end -->
