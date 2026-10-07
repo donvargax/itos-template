@@ -1,12 +1,14 @@
 name: CI
 
 # Harvested from itos's (github.com/donvargax/itos, .github/workflows/ci.yml), its TypeScript,
-# nightly and own-build steps left behind; its release job calls release.yml (T-5). Pull requests
-# too, for the dependency updates a bot proposes; people push to main.
+# nightly and own-build steps left behind; its release job calls release.yml (T-5). People push to
+# main. Renovate pushes its renovate/** branches and fast-forwards main to one once this workflow is
+# green on it (.github/renovate.json5, branch automerge, T-14), so it runs there too. A pull request
+# is opened only for a branch that goes red, and it runs on that as well.
 on:
   pull_request:
   push:
-    branches: [main]
+    branches: [main, "renovate/**"]
 
 permissions:
   contents: read
@@ -45,8 +47,11 @@ jobs:
         with:
           version: 6.0.0
       # Where the range starts, computed once for every step below: a pull request's base, else
-      # the last green run on main, else empty (run everything). Read from --json, since only
-      # machine output is itos's contract; jq fails the step when the output has no string "from".
+      # the head's nearest first parent with a green run of this workflow, on any branch, else
+      # empty (run everything). On main that is the last green run; on a Renovate branch, the last
+      # green run on main it descends from, or its own once it has one, so the range is what the
+      # branch adds. Read from --json, since only machine output is itos's contract; jq fails the
+      # step when the output has no string "from".
       - name: Range
         env:
           BASE: ${{ github.event.pull_request.base.sha }}
@@ -93,7 +98,8 @@ jobs:
   # A push to main whose ci job and platform jobs are green cuts a release when its commits since
   # the last tag carry a feat, a fix or a breaking change (T-5; release.yml says how), as itos's
   # ci.yml calls its release. The only job with write access, granted here and to nothing else; a
-  # pull request never releases.
+  # pull request or a Renovate branch never releases, and a dependency update fast-forwarded onto
+  # main is a build or a ci commit, which cuts none.
   release:
     needs: [ci, platform]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'

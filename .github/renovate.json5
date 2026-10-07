@@ -1,0 +1,86 @@
+// Renovate: how the Go modules and the workflows' actions stay current (T-14). Renovate runs
+// centrally, from donvargax/github-admin with the owner's GitHub App, every four hours over each
+// repository the App is installed on that holds a config, so this file holds only what is this
+// repository's. Every update lands on main as one commit, with no pull request, once CI is green on
+// its branch. donvargax/project-template's .github/renovate.json5 is the working example.
+{
+	$schema: "https://docs.renovatebot.com/renovate-schema.json",
+
+	// The owner's shared presets (github.com/donvargax/renovate-config): default.json, the weekly
+	// window (Mondays 00:00-05:59 UTC), a seven-day wait on every release but the owner's own,
+	// automerge on green CI, the Dependency Dashboard, OSV vulnerability alerts, and a security fix
+	// that skips the window and the wait; go.json, go mod tidy after every update and a module's
+	// import paths moved with its major. Pinned by tag: the renovate-config manager moves the pin,
+	// so a new release of the presets arrives as an update of its own.
+	extends: [
+		"github>donvargax/renovate-config#v1.3.0",
+		"github>donvargax/renovate-config:go#v1.3.0",
+	],
+
+	// gomod covers go.mod: the require blocks, the toolchain line and the tool block's govulncheck;
+	// github-actions the uses: lines; renovate-config the presets' pins above. custom.regex is left
+	// out, so the presets' manager for versions in run: steps finds nothing: the tools
+	// tools/bin/pinned fetches and the GitHub CLI release.yml installs each have hashes beside
+	// their version, which a version-only update would leave stale, so they move by hand.
+	enabledManagers: ["gomod", "github-actions", "renovate-config"],
+
+	// itos moves by hand, with itos upgrade, as T-6 moved it: the pin in itos.yaml and the action
+	// that installs the launcher in ci.yml and release.yml, its commit and its version input, move
+	// together.
+	ignoreDeps: ["donvargax/itos"],
+
+	// Branch automerge: Renovate fast-forwards main to its renovate/** branch once CI is green
+	// there (ci.yml runs on push to renovate/** for it), so no pull request is opened unless CI
+	// goes red, and main takes no merge commits.
+	automergeType: "branch",
+
+	// The presets' window is for making branches; a branch made in it lands whenever it goes green,
+	// on whichever run finds it so. The default, written so no preset narrows it to the window.
+	automergeSchedule: ["at any time"],
+
+	// Every commit passes the commit-msg rules CI re-checks (itos verify): a lowercase
+	// `build: <subject>` or `ci: <subject>` with no scope (the rules below), a body saying what
+	// moved, each dependency from its version to the next, and the Task footer. No body line starts
+	// with a word and a colon, which git would read as a footer. A pinned action shows its new
+	// commit beside its version, as the uses: line has them. A module at a pseudo-version moves by
+	// its commit, so it shows its commits, short: two pseudo-versions on one line would run past
+	// the 100 characters a body line may hold.
+	semanticCommits: "enabled",
+	commitBody: "Renovate's update, landed on main once CI passed on its branch.\n\n{{#each upgrades}}{{#unless @first}}\n{{/unless}}- {{{depName}}} {{#if (equals updateType 'digest')}}{{{currentDigestShort}}} to {{{newDigestShort}}}{{else}}{{{currentVersion}}} to {{{newVersion}}}{{#if newDigestShort}} ({{{newDigestShort}}}){{/if}}{{/if}}{{/each}}",
+	// T-14's checks run on every Renovate push, so each one proves this config again.
+	commitTrailers: ["Task: T-14"],
+
+	// The presets turn lockfile maintenance on, in the same window. No package rule reaches it (it
+	// names no package), so its commit is given the same shape here: build, no scope, and a body;
+	// the footer is the one above. Renovate's gomod manager has no lockfile maintenance (go.sum
+	// is tidied with every update instead), so it shapes no commit today; it is here for the day
+	// one does.
+	lockFileMaintenance: {
+		semanticCommitType: "build",
+		semanticCommitScope: null,
+		commitBody: "Renovate's lockfile maintenance, every dependency re-resolved within the versions\ngo.mod allows, landed on main once CI passed on its branch.",
+	},
+
+	packageRules: [
+		{
+			// Every package is build, after config:recommended's rules, which would make it chore
+			// or fix: the Go modules change what the binary is built from.
+			matchPackageNames: ["*"],
+			semanticCommitType: "build",
+			semanticCommitScope: null,
+		},
+		{
+			// The workflows' actions and the presets' pin change CI's configuration, so they are
+			// ci: the owner's call, over build for all.
+			matchManagers: ["github-actions", "renovate-config"],
+			semanticCommitType: "ci",
+			semanticCommitScope: null,
+		},
+		{
+			// uses: <sha> # vX.Y.Z, as ci.yml and release.yml write them: the SHA and the comment
+			// move together.
+			matchManagers: ["github-actions"],
+			pinDigests: true,
+		},
+	],
+}
