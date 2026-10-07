@@ -192,3 +192,16 @@ items:
       Once the scenarios grow, a push runs the smoke set and those it names, and a nightly.yml runs
       the whole suite (itos's ci.nightly and nightly.yml), ci.watch naming it so itos status reads
       it.
+  - id: tools-on-platforms
+    title: The platform jobs run tools/bin/pinned and the pre-commit hook on macOS and Windows
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      T-4's platform jobs run go test alone, so the shell scripts a contributor's clone runs
+      (tools/hooks/pre-commit, tools/bin/pinned with its per-platform checksums) are proved only on
+      Linux, in the plan. The .gitattributes T-4 added keeps them LF on Windows checkouts, which
+      nothing yet proves: a step in each platform job running tools/bin/pinned golangci-lint version
+      would.
