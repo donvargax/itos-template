@@ -245,3 +245,52 @@
     - run: test -x tools/bin/domain-coverage
     - run: grep -q domain-coverage itos.yaml
     - run: tools/bin/domain-coverage
+- id: T-14
+  type: build
+  title: "Renovate keeps the Go modules and the workflows' actions current, landing on main once CI is green"
+  why: >
+    The owner's call, 2026-10-07, before first-template, so the template carries a Renovate setup
+    proven here (docs/template-contents.md lists Renovate in a made project's first day).
+    Renovate runs centrally from donvargax/github-admin with the owner's GitHub App
+    (donvargax-renovate), every four hours, over each repository the App is installed on that has
+    a config; the owner installs it here. The shared rules are the owner's presets,
+    github.com/donvargax/renovate-config, pinned by tag: default.json (the Monday 00:00-05:59 UTC
+    window, a seven-day wait on every release but the owner's own, automerge on green CI, the
+    Dependency Dashboard, OSV vulnerability alerts, a security fix skipping the window and the
+    wait) and go.json (gomodTidy, gomodUpdateImportPaths). donvargax/project-template is the
+    working example (.github/renovate.json5; its T-026, T-038 to T-040; its ci.yml on
+    renovate/**). The decisions. .github/renovate.json5 extends
+    github>donvargax/renovate-config#v1.3.0 and github>donvargax/renovate-config:go#v1.3.0, with
+    enabledManagers gomod, github-actions and renovate-config. Every Renovate commit passes the
+    commit-msg rules CI re-checks (itos verify): semanticCommits enabled; build, with no scope,
+    for the Go modules (they change what the binary is built from), and ci, with no scope, for
+    the workflows' actions and the presets' pin (they change CI's configuration), the owner's
+    call over build for all, through packageRules matching every package and then those two
+    managers, and a lockFileMaintenance block with build, since no package rule reaches lockfile
+    maintenance; a commitBody saying what moved, each dependency from its version to the next,
+    with no body line starting with a word and a colon, which git reads as a footer;
+    commitTrailers ["Task: T-14"], so every Renovate commit makes CI run this task's checks and
+    re-prove the config. A sample message of each type passes itos commit check-message.
+    Branch automerge (automergeType branch): Renovate fast-forwards main to its renovate/**
+    branch once CI is green there, so no pull request is opened unless CI goes red and main takes
+    no merge commits; ci.yml runs on push to renovate/** for it, keeping its pull_request
+    trigger for the pull request a red branch gets, its comment saying so (the owner confirmed
+    branch automerge over bot pull requests). itos ci range already starts such a branch's range
+    at the last green run on main, which the branch descends from; the first Renovate branch
+    confirms it. automergeSchedule at any time, so a branch made in the window lands whenever it
+    goes green. github-actions with pinDigests, so an action's SHA and its version comment move
+    together, as project-template writes them. Renovate does not move tools/bin/pinned (each
+    version has hashes beside it a version-only update would leave stale; no custom manager, it
+    moves by hand) nor itos: ignoreDeps donvargax/itos, since the itos action in ci.yml and
+    release.yml moves with itos.yaml's pin, by itos upgrade, as T-6 moved them together.
+    govulncheck, in go.mod's tool block, moves by the gomod manager. A dependency update cuts no
+    release until T-15. The checks run on every Renovate push and need the network, as
+    project-template's do; at one update a week the cost is accepted. renovate exits 0 on an
+    invalid config, so the second check asks for the line it prints only once the presets
+    resolved and the dependencies were extracted.
+  done_when:
+    - run: test -f .github/renovate.json5
+    - run: npx --yes --package renovate -- renovate-config-validator --strict .github/renovate.json5
+    - run: >-
+        t=$(mktemp) && npx --yes --package renovate -- renovate --platform=local
+        --dry-run=extract > "$t" 2>&1; grep -q 'Extracted dependencies' "$t"
