@@ -233,3 +233,17 @@ items:
       monochrome theme, or CLIG's colour on a terminal, none under NO_COLOR or when not one. Prompts
       are unit-tested, through huh's accessible mode, since scenarios run with no terminal (rule
       37).
+  - id: adopt
+    title: itos-template adopt writes the record for an existing project, so it can take template updates
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [new-renders, update-merges]
+    kind: idea
+    why: >
+      A project made before the template, itos or itos-cc say, has files and history, so new refuses
+      its folder (decision 12) and nothing records which template release it matches. update
+      re-renders the old release from the record (decisions 3 and 10), not from the project's first
+      commit, so adopting is writing that record from the answers that match the project, as cruft
+      link does. Settle in its scenarios: how the release and answers are chosen, and how a project
+      that differs from the render is shown the difference before its first update.
