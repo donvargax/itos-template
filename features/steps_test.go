@@ -35,7 +35,7 @@ func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
 		return ctx, w.setUp()
 	})
 	sc.After(func(ctx context.Context, _ *godog.Scenario, err error) (context.Context, error) {
-		os.RemoveAll(w.dir)
+		_ = os.RemoveAll(w.dir)
 		return ctx, err
 	})
 }

@@ -1,0 +1,8 @@
+# golangci-lint's configuration, version 2. The binary is the release
+# tools/bin/pinned pins; the pre-commit hook (tools/hooks/pre-commit) runs it.
+version: "2"
+linters:
+  default: standard # errcheck, govet, ineffassign, staticcheck, unused
+formatters:
+  enable:
+    - gofmt

@@ -2,3 +2,6 @@
 /itos-template
 *.test
 /coverage.*
+
+# The pinned tools tools/bin/pinned fetches.
+/.tools/

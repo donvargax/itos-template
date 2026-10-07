@@ -42,22 +42,29 @@ func run(args []string, stdout, stderr io.Writer) int {
 		kong.Writers(stdout, stderr),
 	)
 	if err != nil {
-		fmt.Fprintf(stderr, "itos-template: %v\n", err)
+		fail(stderr, err)
 		return exitInternal
 	}
 	ctx, err := parser.Parse(args)
 	if err != nil {
 		// kong's own code for a usage error is 80; docs/CLI.md's is 2.
-		fmt.Fprintf(stderr, "itos-template: %v\n", err)
+		fail(stderr, err)
 		return exitUsage
 	}
 	if ctx.Command() == "" {
 		if err := ctx.PrintUsage(false); err != nil {
-			fmt.Fprintf(stderr, "itos-template: %v\n", err)
+			fail(stderr, err)
 			return exitInternal
 		}
 	}
 	return exitOK
+}
+
+// fail writes err on stderr as a line for people, itos-template: first
+// (docs/CLI.md, rule 32). A stderr that cannot be written leaves nowhere else
+// to say so.
+func fail(stderr io.Writer, err error) {
+	_, _ = fmt.Fprintf(stderr, "itos-template: %v\n", err)
 }
 
 // logger writes structured logs to w: JSON when w is not a terminal, text

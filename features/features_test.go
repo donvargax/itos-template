@@ -149,7 +149,7 @@ func featureTags(dir string) ([]string, error) {
 				}
 			}
 		}
-		f.Close()
+		_ = f.Close()
 		if err := lines.Err(); err != nil {
 			return nil, err
 		}
