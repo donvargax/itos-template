@@ -592,3 +592,24 @@ items:
       answer once, before rendering, or leave the answer's own text out of the scan; which is the
       person's call.
     tags: [check]
+  - id: outside-test-gaps
+    title: Scenarios for what tests outside the domain still hold that a scenario could reach
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      slice-3 gave the scenarios what tests outside the domain held, but some of what those tests
+      check a scenario could reach and none reads yet, so the tests stay. In internal/cli's, the
+      rule IDs of six kinds: combination-unsupported (ID-CHECK-05 reads its code alone),
+      template-unreachable (ID-NEW-19 and ID-CHECK-08 read its code alone), folder-not-empty for a
+      folder with files (ID-NEW-10 reads its code alone), answer-name for a file the answers make a
+      folder (ID-NEW-33 reads its code alone), manifest-missing for a template whose HEAD names no
+      branch, and answer-name for a name the answers make '..'. In internal/git's and
+      internal/disk's, a template's CRLF file keeping its line endings through the merge and the
+      write; a written file's execute bit in the working tree, where ID-NEW-22 reads only the mode
+      the commit records; and check committing its renders by its own identity, so it runs where git
+      knows no one. Scenarios for these let those tests, or their parts, go (decision 19).
+    refs: [slice-3]
+    tags: [new]
