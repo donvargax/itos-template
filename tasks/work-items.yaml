@@ -83,3 +83,13 @@ items:
       the manifest's format and place in the template repository, how a template is named (a path or
       a git URL), the record a made project keeps (tag, stack, features, answers) and where, asking
       on a terminal for answers not given, refusing a feature whose stack or dependency is missing.
+  - id: template-check
+    title: itos-template check renders every combination a template allows and runs its checks, scanning for leftover literals and leaked credentials
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: [new-renders]
+    kind: idea
+    why: >
+      PLAN.md, order of work 3: the template proves itself. The combinations and each one's check
+      commands come from the manifest; a combination not listed is unsupported, never offered.
