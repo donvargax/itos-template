@@ -228,6 +228,7 @@ items:
       monochrome theme, or CLIG's colour on a terminal, none under NO_COLOR or when not one. Prompts
       are unit-tested, through huh's accessible mode, since scenarios run with no terminal (rule
       37).
+    tags: [new, cli]
   - id: adopt
     title: itos-template adopt writes the record for an existing project, so it can take template updates
     phase: 1
