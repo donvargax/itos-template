@@ -258,14 +258,15 @@ items:
       tag per branch under one version, say stack/go/v1.2.0, or one tag on a commit reaching every
       branch), then new's --ref and its default, and the record's release field.
     tags: [new, update]
-  - id: new-first-commit-rules
-    title: A made project's first commit passes the template's own commit rules
+  - id: slice-6
+    title: The manifest gives a made project's first commit its message, so the project's own commit rules pass it
     phase: 1
     owner: null
     status: todo
     depends_on: [slice-1]
-    kind: idea
+    kind: slice
     why: >
+      Was new-first-commit-rules.
       slice-1's new commits the render as 'chore: make the project from its template', with no
       footer. A template that uses itos (or any commit lint) holds that commit to its rules on the
       made project's first push, when CI has no green run to start from and judges the whole
