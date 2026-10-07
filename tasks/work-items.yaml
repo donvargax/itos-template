@@ -642,11 +642,9 @@ items:
     title: A release cuts a patch when the binary's linked modules or its Go toolchain changed
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: [T-14]
     kind: task
-    why: >
-      The ledger's T-15 says why.
     tags: [ci]
   - id: release-version-cliff
     title: git-cliff picks a release's version, release-version keeping only the checks git-cliff cannot make
