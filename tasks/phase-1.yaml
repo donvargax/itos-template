@@ -105,3 +105,31 @@
     - run: "grep -q 'tags: \\[new, check, update, sync, cli, ci, windows\\]' itos.yaml"
     - run: itos work check
     - run: "itos work list --tag check | grep -q template-scans"
+- id: T-8
+  type: refactor
+  title: "The code in vertical slices over a shared domain, with no mappers (decision 16)"
+  why: >
+    Decision 16, the person's call, 2026-10-07, applied while the code is small (about 2,600
+    lines) and before template-scans, update and sync add to it. Each command is a slice: new and
+    check each become one package and one file holding the command's kong struct (its flags, with
+    a Run method), its use case, its output and the I/O only it needs; cmd/itos-template/main.go
+    only assembles the commands, the version and the exit. A slice imports no other slice: what
+    new and check both need (opening a template by cloning it, resolving the answers, rendering
+    a combination into a folder and committing it) moves out of newproject into shared packages
+    named for what they model, beside manifest, caseform and render. No mappers: the
+    flag-to-Options copies in cmd/itos-template/new.go and check.go go, the kong struct being the
+    slice's input; newproject's private record struct becomes a domain Record, read and written
+    as .itos-template.yaml is, for update and adopt to use later. Turning a domain error into an
+    exit code stays at the slice's edge, the only translation left. Anti-corruption layers stay
+    where an outside model leaks in: git's output, in internal/git. depguard in .golangci.yml
+    refuses a slice package importing another, listing each slice, so the next slice is added to
+    it; the person drops it if it gets in the way too often. A file splits only when large or
+    complex; a limit on a file's length waits for the idea file-length-limit, after this. Nothing
+    a user sees changes: every scenario passes unchanged, and the help and output stay byte for
+    byte.
+  done_when:
+    - run: grep -q depguard .golangci.yml
+    - run: "! grep -rn 'type Options struct' cmd internal"
+    - run: "! grep -rn '^type record struct' internal"
+    - run: "! go list -deps ./internal/check | grep -q 'itos-template/internal/newproject$'"
+    - run: go build ./...
