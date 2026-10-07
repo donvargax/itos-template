@@ -23,6 +23,8 @@ import (
 func (w *world) checkSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^the template "([^"]*)" whose feature "([^"]*)" of the stack "([^"]*)" has the check "([^"]*)"$`, w.templateWithFeatureCheck)
 	sc.Step(`^the template "([^"]*)" whose manifest lists the stack "([^"]*)" with the features (".*") as unsupported$`, w.templateWithUnsupported)
+	sc.Step(`^the template "([^"]*)" whose branch "([^"]*)" holds the file "([^"]*)" with the line "([^"]*)"$`, w.templateWithFileLine)
+	sc.Step(`^the template "([^"]*)" whose root has, after its own, the check "([^"]*)" marked as scanning "([^"]*)"$`, w.templateWithMarkedCheck)
 
 	// Split before {template} is expanded, so a path with a space stays one
 	// argument.
@@ -40,6 +42,7 @@ func (w *world) checkSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^its report says "([^"]*)" passed$`, w.reportSaysPassed)
 	sc.Step(`^its report says "([^"]*)" failed at "([^"]*)"$`, w.reportSaysFailedAt)
 	sc.Step(`^its report shows the checks of "([^"]*)" in order: (".*")$`, w.reportShowsChecks)
+	sc.Step(`^its report says "([^"]*)" failed with the leftover "([^"]*)" at "([^"]*)"$`, w.reportSaysLeftover)
 	sc.Step(`^its report does not name "([^"]*)"$`, w.reportDoesNotName)
 	sc.Step(`^its report names no other combination$`, w.reportNamesNoOther)
 	sc.Step(`^its report names no combination$`, w.reportNamesNone)
@@ -95,6 +98,34 @@ func (w *world) templateWithUnsupported(name, stack, features string) error {
 		unsupported.Content = append(unsupported.Content, &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map", Content: []*yaml.Node{
 			scalar("stack"), scalar(stack),
 			scalar("features"), names,
+		}})
+		return nil
+	})
+}
+
+// templateWithMarkedCheck is the fixture template name, its manifest on the
+// root branch of version 3, the root's checks followed by one more in the
+// long form: the words of check, split at spaces, marked as scanning scan.
+func (w *world) templateWithMarkedCheck(name, check, scan string) error {
+	key := fmt.Sprintf("%s whose root has the check %q marked as scanning %q", name, check, scan)
+	return w.changedTemplate(name, key, func(top *yaml.Node) error {
+		version := mappingValue(top, "version")
+		if version == nil {
+			return errors.New("the manifest has no version")
+		}
+		*version = yaml.Node{Kind: yaml.ScalarNode, Tag: "!!int", Value: "3"}
+		checks := mappingValue(top, "checks")
+		if checks == nil || checks.Kind != yaml.SequenceNode {
+			return errors.New("the manifest has no checks of the root")
+		}
+		words := &yaml.Node{Kind: yaml.SequenceNode, Tag: "!!seq", Style: yaml.FlowStyle}
+		for _, word := range strings.Fields(check) {
+			words.Content = append(words.Content, scalar(word))
+		}
+		scans := &yaml.Node{Kind: yaml.SequenceNode, Tag: "!!seq", Style: yaml.FlowStyle, Content: []*yaml.Node{scalar(scan)}}
+		checks.Content = append(checks.Content, &yaml.Node{Kind: yaml.MappingNode, Tag: "!!map", Content: []*yaml.Node{
+			scalar("run"), words,
+			scalar("scans"), scans,
 		}})
 		return nil
 	})
@@ -177,7 +208,13 @@ type combinationReport struct {
 	name        string
 	passed      bool
 	notRendered bool
+	leftovers   []leftoverLine
 	checks      []checkLine
+}
+
+type leftoverLine struct {
+	text string // the text found
+	at   string // where: the path, or the path, a colon and the line
 }
 
 type checkLine struct {
@@ -191,7 +228,55 @@ var (
 	notRenderedLine = "  not rendered"
 	outputLine      = regexp.MustCompile(`^    \|(?: .*)?$`)
 	summaryLine     = regexp.MustCompile(`^(\d+) of (\d+) combinations? passed\.$`)
+	leftoverPrefix  = "  leftover: "
+	lineNumber      = regexp.MustCompile(`^(.+):([1-9][0-9]*)$`)
 )
+
+// parseLeftover reads a leftover's line after its prefix: the text found,
+// in double quotes as Go writes a string, then " at " and the path, a colon
+// and the line, for one in a file's contents, or " in the path " and the
+// path, for one in a path; the path written as a check's word is.
+func parseLeftover(rest string) (leftoverLine, error) {
+	quoted, err := strconv.QuotedPrefix(rest)
+	if err != nil {
+		return leftoverLine{}, errors.New("does not give the text found in double quotes")
+	}
+	text, _ := strconv.Unquote(quoted)
+	rest = rest[len(quoted):]
+	word := func(s string) (string, error) {
+		if !strings.HasPrefix(s, `"`) {
+			if s == "" || strings.ContainsAny(s, " \"'\\") {
+				return "", errors.New("writes a path that needs double quotes without them")
+			}
+			return s, nil
+		}
+		q, err := strconv.QuotedPrefix(s)
+		if err != nil || q != s {
+			return "", errors.New("writes a path in double quotes that do not close it")
+		}
+		u, _ := strconv.Unquote(q)
+		return u, nil
+	}
+	switch {
+	case strings.HasPrefix(rest, " at "):
+		m := lineNumber.FindStringSubmatch(rest[len(" at "):])
+		if m == nil {
+			return leftoverLine{}, errors.New("is at no path and line")
+		}
+		path, err := word(m[1])
+		if err != nil {
+			return leftoverLine{}, err
+		}
+		return leftoverLine{text: text, at: path + ":" + m[2]}, nil
+	case strings.HasPrefix(rest, " in the path "):
+		path, err := word(rest[len(" in the path "):])
+		if err != nil {
+			return leftoverLine{}, err
+		}
+		return leftoverLine{text: text, at: path}, nil
+	}
+	return leftoverLine{}, errors.New("says neither where in a file nor in which path")
+}
 
 // parseReport reads standard output as check's report, strictly: one block
 // per combination, its name and whether it passed, then its checks, each
@@ -236,6 +321,16 @@ func parseReport(stdout string) (*checkReport, error) {
 			return nil, bad("comes before any combination")
 		}
 		switch m := checkStatusLine.FindStringSubmatch(line); {
+		case strings.HasPrefix(line, leftoverPrefix):
+			if c.notRendered || len(c.checks) > 0 {
+				return nil, bad("names a leftover after the combination's checks, or of one not rendered")
+			}
+			l, err := parseLeftover(line[len(leftoverPrefix):])
+			if err != nil {
+				return nil, bad(err.Error())
+			}
+			c.leftovers = append(c.leftovers, l)
+			output = false
 		case m != nil:
 			if c.notRendered {
 				return nil, bad("names a check of a combination that was not rendered")
@@ -264,7 +359,7 @@ func parseReport(stdout string) (*checkReport, error) {
 	}
 	passed := 0
 	for _, c := range r.combinations {
-		failed := c.notRendered || slices.ContainsFunc(c.checks, func(l checkLine) bool { return l.status != "passed" })
+		failed := c.notRendered || len(c.leftovers) > 0 || slices.ContainsFunc(c.checks, func(l checkLine) bool { return l.status != "passed" })
 		if c.passed == failed {
 			return nil, fmt.Errorf("the report says %s %s, but its checks say otherwise", c.name, map[bool]string{true: "passed", false: "failed"}[c.passed])
 		}
@@ -317,6 +412,20 @@ func (w *world) reportSaysFailedAt(name, check string) error {
 	i := slices.IndexFunc(c.checks, func(l checkLine) bool { return l.status == "failed" })
 	if i < 0 || c.checks[i].check != check {
 		return fmt.Errorf("the report does not say %s failed at %q\n%s", name, check, w.report())
+	}
+	return nil
+}
+
+func (w *world) reportSaysLeftover(name, text, at string) error {
+	c, err := w.combination(name)
+	if err != nil {
+		return err
+	}
+	if c.passed {
+		return fmt.Errorf("the report says %s passed\n%s", name, w.report())
+	}
+	if !slices.Contains(c.leftovers, leftoverLine{text: text, at: at}) {
+		return fmt.Errorf("the report does not say %s failed with the leftover %q at %s\n%s", name, text, at, w.report())
 	}
 	return nil
 }

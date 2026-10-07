@@ -46,6 +46,12 @@ func (w *world) newSteps(sc *godog.ScenarioContext) {
 		}
 		return nil
 	})
+	sc.Step(`^its error output does not say "([^"]*)"$`, func(text string) error {
+		if strings.Contains(w.stderr, w.expand(text)) {
+			return fmt.Errorf("the error output says %q\n%s", text, w.report())
+		}
+		return nil
+	})
 	sc.Step(`^the file "([^"]*)" exists$`, func(file string) error {
 		info, err := os.Lstat(w.path(file))
 		if err != nil || !info.Mode().IsRegular() {
@@ -146,11 +152,28 @@ func (w *world) templateWithLiteral(name, question, literal string) error {
 
 // templateWithFiles is the fixture template name with one more commit on its
 // branch branch, adding the files listed (with /), each holding its own path
-// and a line ending. The root branch is checked out again after, so it stays
-// the template's default branch.
+// and a line ending.
 func (w *world) templateWithFiles(name, branch, files string) error {
-	list := quotedList(files)
-	key := fmt.Sprintf("%s whose branch %s holds the files %q", name, branch, list)
+	var added [][2]string
+	for _, file := range quotedList(files) {
+		added = append(added, [2]string{file, file + "\n"})
+	}
+	return w.templateWithBranchFiles(name, branch, fmt.Sprintf("the files %q", quotedList(files)), added)
+}
+
+// templateWithFileLine is the fixture template name with one more commit on
+// its branch branch, adding the file file (with /) holding the line line.
+func (w *world) templateWithFileLine(name, branch, file, line string) error {
+	return w.templateWithBranchFiles(name, branch, fmt.Sprintf("the file %q with the line %q", file, line), [][2]string{{file, line + "\n"}})
+}
+
+// templateWithBranchFiles is the fixture template name with one more commit
+// on its branch branch, adding each file of files, its path (with /) and
+// its contents; what names the files in the template's key. The root
+// branch is checked out again after, so it stays the template's default
+// branch.
+func (w *world) templateWithBranchFiles(name, branch, what string, files [][2]string) error {
+	key := fmt.Sprintf("%s whose branch %s holds %s", name, branch, what)
 	return w.useTemplate(key, func(dir string) error {
 		if err := w.buildTemplate(filepath.Join(w.root, "features", "testdata", name), dir); err != nil {
 			return err
@@ -162,19 +185,19 @@ func (w *world) templateWithFiles(name, branch, files string) error {
 		if err := w.gitIn(dir, "checkout", "-q", branch); err != nil {
 			return err
 		}
-		for _, file := range list {
-			p := filepath.Join(dir, filepath.FromSlash(file))
+		for _, file := range files {
+			p := filepath.Join(dir, filepath.FromSlash(file[0]))
 			if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
 				return err
 			}
-			if err := os.WriteFile(p, []byte(file+"\n"), 0o644); err != nil {
+			if err := os.WriteFile(p, []byte(file[1]), 0o644); err != nil {
 				return err
 			}
-			if err := w.gitIn(dir, "add", "--", file); err != nil {
+			if err := w.gitIn(dir, "add", "--", file[0]); err != nil {
 				return err
 			}
 		}
-		if err := w.gitIn(dir, "commit", "-q", "-m", "Add the files: "+key); err != nil {
+		if err := w.gitIn(dir, "commit", "-q", "-m", "Add "+what); err != nil {
 			return err
 		}
 		return w.gitIn(dir, "checkout", "-q", root)
