@@ -34,9 +34,14 @@
     itos's (features/steps_test.go and its suite setup in
     /home/yorch/tmp/llms-safe/gamedev/svg-art/itos, hiding claude, itos and itos-* from the PATH as
     itos's T-087 does, git resolved past any itos linked as git as its T-104 does), not rewritten.
-    itos.yaml gains the scenario test kind as itos's has it (tests.scenario, the Scenarios footer
-    feat and fix need, features/smoke.yaml), and the first live scenario, --version, lands in a feat
-    naming it. golangci-lint and govulncheck pinned, run by the pre-commit hook.
+    itos.yaml gains the scenario test kind as itos's has it (tests.scenario, IDs "ID-[A-Z]+-\d+",
+    the Scenarios footer feat and fix need, features/smoke.yaml), the Upgrading footer feat and fix
+    need (AGENTS.md already asks for it; T-5's release notes quote it), and the Item footer in place
+    of Task for test, docs and chore, so a slice's red-first test commit can name its item. The
+    first live scenario, @ID-CLI-01 in features/cli.feature, lands in a feat naming it:
+    itos-template --version exits 0 and prints the version the harness stamped at build; the dev
+    version printed when nothing is stamped is a unit test, since the harness always stamps.
+    golangci-lint and govulncheck pinned, run by the pre-commit hook.
   done_when:
     - run: go build ./... && go vet ./...
     - run: go test ./features -count=1
