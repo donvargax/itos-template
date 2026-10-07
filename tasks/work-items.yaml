@@ -159,6 +159,7 @@ items:
       itos-template runs git itself (new-renders), it needs the same rule, honouring the ITOS_GIT
       itos sets for an extension: move it into an internal package both import, as itos's T-104 made
       its steps use internal/git.
+    tags: [new]
   - id: nightly
     title: A nightly run of the whole scenario suite, once it outgrows the smoke set
     phase: 1
