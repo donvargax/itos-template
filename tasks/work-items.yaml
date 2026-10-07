@@ -198,20 +198,9 @@ items:
     title: "itos-template new and itos template hooks declare the hooks a stack's manifest names, for a stack with no hook tool of its own"
     phase: 1
     owner: null
-    status: todo
+    status: dropped
     depends_on: [new-renders]
     kind: idea
-    why: >
-      Decision 5: a project's pre-commit hook is its stack's, in the stack's own tool, and new sets
-      the hooks up when it makes the project, so no project carries a setup tool of its own. Settle
-      in its scenarios: how the manifest names a stack's hook declaration, and what new does when
-      itos is not on the PATH.
-
-      Decision 6: the same declaration is also a command, itos template hooks, which a clone not
-      made by new runs; new and the command share the code. Both declare only the hooks the stack's
-      manifest names (in practice the Go stack's pre-commit), never itos's own, which itos hook
-      install declares, and a stack with its own hook tool (vite-plus) names none. Settle in its scenarios what it does
-      when the record new left is missing.
   - id: new-setup
     title: "A template's setup steps: the manifest lists them per branch, new runs them once trusted, and itos template setup runs them in a clone"
     phase: 1
