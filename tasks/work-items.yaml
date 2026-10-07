@@ -392,3 +392,16 @@ items:
       slices want a file per layer before one is set. revive, bundled in the pinned golangci-lint
       2.14.0, has file-length-limit (a maximum, comments and blank lines skippable); funlen limits
       functions if wanted too.
+  - id: git-missing-wording
+    title: check's git-missing error names check, not new
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Found in T-8: package template's git-missing failure says 'cannot run git, which new clones,
+      merges and commits with' whichever command meets it, so itos-template check names new when git
+      is missing. The message should name the command running, or neither; a fix, so a scenario
+      under check.feature holds it.
+    tags: [check, cli]
