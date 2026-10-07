@@ -16,5 +16,6 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0011: Missing answers are asked on a terminal, and refused without one unless --defaults](0011-missing-answers-are-asked-on-a-terminal-and-refused-without-one-unless-defaults.md)
 - [ADR-0012: new writes into a missing or empty folder and commits the render as its first commit](0012-new-writes-into-a-missing-or-empty-folder-and-commits-the-render-as-its-first-commit.md)
 - [ADR-0013: Look for a library before building what one likely already solves](0013-look-for-a-library-before-building-what-one-likely-already-solves.md)
+- [ADR-0014: check renders every combination the manifest allows, less those it lists as unsupported](0014-check-renders-every-combination-the-manifest-allows-less-those-it-lists-as-unsupported.md)
 
 <!-- itos:decisions:end -->

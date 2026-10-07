@@ -63,6 +63,7 @@ questions:
     item: "slice-2"
     question: "Which combinations does itos-template check render, and which does new offer? Recommended: derived, every combination the stacks, features and needs allow, less those the manifest lists as unsupported, which check skips and new refuses. Or: listed explicitly, check rendering exactly the listed ones and new refusing any other (a fixed count, but a list to keep up to date)."
     answer: "Derived, less those the manifest lists as unsupported. The user's call, 2026-10-07, knowing each feature that needs no other doubles a stack's combinations."
+    decision: 14
   - id: q-15
     item: "slice-2"
     question: "How does the manifest write a check command? Recommended: a list of words run with no shell, the same on Linux, macOS and Windows, a template wanting a shell writing sh -c itself. Or: a shell line run by sh -c (cmd on Windows), easier to write but meaning different things per platform."
