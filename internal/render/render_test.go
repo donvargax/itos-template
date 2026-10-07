@@ -138,3 +138,81 @@ func TestTextReplacesInAnyString(t *testing.T) {
 		t.Errorf("Text = %q", got)
 	}
 }
+
+// problems are the problems a refusal of Plan names, one each, in order.
+func problems(t *testing.T, err error) []string {
+	t.Helper()
+	joined, ok := err.(interface{ Unwrap() []error })
+	if !ok {
+		t.Fatalf("Plan = %v, not the problems joined", err)
+	}
+	var lines []string
+	for _, e := range joined.Unwrap() {
+		var re Error
+		if !errors.As(e, &re) {
+			t.Fatalf("%v is no render.Error", e)
+		}
+		lines = append(lines, e.Error())
+	}
+	return lines
+}
+
+// refusesInOrder is whether Plan refuses files, and the same files in the
+// reverse order, run after run, naming the problems want in want's order:
+// a render, a refusal included, is the same every time (decision 3; bug-2).
+func refusesInOrder(t *testing.T, files []port.File, r *Replacer, want []string) {
+	t.Helper()
+	reversed := slices.Clone(files)
+	slices.Reverse(reversed)
+	for range 20 {
+		for _, tree := range [][]port.File{files, reversed} {
+			_, err := Plan(tree, all, r)
+			if got := problems(t, err); !slices.Equal(got, want) {
+				t.Fatalf("Plan names\n%s\nnot\n%s", strings.Join(got, "\n"), strings.Join(want, "\n"))
+			}
+		}
+	}
+}
+
+func TestPlanNamesEveryFileWhereAFolderIsNeededInPathOrder(t *testing.T) {
+	refusesInOrder(t, []port.File{
+		{Path: "acme-widget", Mode: 0o644},
+		{Path: "blue-fox/b.txt", Mode: 0o644},
+		{Path: "blue-fox/a.txt", Mode: 0o644},
+		{Path: "acme-widget/c/d.txt", Mode: 0o644},
+	}, acme, []string{
+		"the answers name the file acme-widget blue-fox, a folder of blue-fox/a.txt",
+		"the answers name the file acme-widget blue-fox, a folder of blue-fox/b.txt",
+		"the answers name the file acme-widget blue-fox, a folder of acme-widget/c/d.txt",
+	})
+}
+
+func TestPlanNamesEveryTwoFilesOfOneNameInPathOrder(t *testing.T) {
+	refusesInOrder(t, []port.File{
+		{Path: "b/acme-widget", Mode: 0o644},
+		{Path: "b/blue-fox", Mode: 0o644},
+		{Path: "a/blue-fox", Mode: 0o644},
+		{Path: "a/acme-widget", Mode: 0o644},
+	}, acme, []string{
+		"the answers name both a/acme-widget and a/blue-fox a/blue-fox",
+		"the answers name both b/acme-widget and b/blue-fox b/blue-fox",
+	})
+}
+
+func TestPlanNamesEveryNameNoFileCanHaveInPathOrder(t *testing.T) {
+	refusesInOrder(t, []port.File{
+		{Path: "z/acme/x", Mode: 0o644},
+		{Path: "a/acme", Mode: 0o644},
+		{Path: "m/ok", Mode: 0o644},
+	}, NewReplacer([]string{"acme", ".."}), []string{
+		`the answers name a/acme "a/.."`,
+		`the answers name z/acme/x "z/.."`,
+	})
+}
+
+func TestPlanNamesEverySubmoduleInPathOrder(t *testing.T) {
+	refusesInOrder(t, append(tree(),
+		port.File{Path: "vendor/z", Mode: porttest.Submodule},
+		port.File{Path: "vendor/a", Mode: porttest.Submodule},
+	), acme, []string{"a submodule at vendor/a", "a submodule at vendor/z"})
+}

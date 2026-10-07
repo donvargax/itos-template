@@ -13,9 +13,12 @@ package render
 
 import (
 	"bytes"
+	"cmp"
+	"errors"
 	"fmt"
 	"io/fs"
 	"path"
+	"slices"
 	"strings"
 
 	"github.com/donvargax/itos-template/internal/template/port"
@@ -66,27 +69,49 @@ func (r *Replacer) Path(p string) (string, error) {
 
 // Plan is the files a render of tree writes: those keep takes, each path's
 // literals replaced, and each text file's contents and each link's target.
-// Two files of one name, a file where another needs a folder, a name the
-// answers make impossible and a submodule are refused, each an Error,
-// before anything is written. Every file keeps its mode.
+// Every file keeps its mode. Nothing is written before Plan has looked at
+// every name, and it refuses with every problem it finds, each an Error
+// joined (errors.Join), so a template's author fixes them all at once, as
+// new names every missing answer at once: every submodule kept, else every
+// name the answers make that no file can have, two files of one name, or a
+// file where another needs a folder.
+//
+// The problems come in a fixed order, whatever the order of tree, as a
+// render, a refusal included, is the same every time (decision 3):
+// submodules in the order of their paths, and the clashes in the order of
+// the names the answers make. Two files of one name are named in the order
+// of their paths too.
 func Plan(tree []port.File, keep func(path string) bool, r *Replacer) ([]port.File, error) {
+	var submodules []string
+	for _, f := range tree {
+		if keep(f.Path) && f.Mode&fs.ModeIrregular != 0 {
+			submodules = append(submodules, f.Path)
+		}
+	}
+	if len(submodules) > 0 {
+		var errs []error
+		for _, p := range slices.Sorted(slices.Values(submodules)) {
+			errs = append(errs, &Submodule{Path: p})
+		}
+		return nil, errors.Join(errs...)
+	}
 	var files []port.File
-	from := map[string]string{}
+	var clashes []clash
+	from := map[string][]string{} // each name the answers make, the template's paths they make it of
 	for _, f := range tree {
 		if !keep(f.Path) {
 			continue
 		}
-		if f.Mode&fs.ModeIrregular != 0 {
-			return nil, &Submodule{Path: f.Path}
-		}
 		to, err := r.Path(f.Path)
-		if err != nil {
+		var bad *BadName
+		switch {
+		case errors.As(err, &bad):
+			clashes = append(clashes, clash{name: bad.Would, then: bad.Path, err: bad})
+			continue
+		case err != nil:
 			return nil, err
 		}
-		if other, ok := from[to]; ok {
-			return nil, &SameName{First: other, Second: f.Path, To: to}
-		}
-		from[to] = f.Path
+		from[to] = append(from[to], f.Path)
 		var data []byte
 		if f.Mode&fs.ModeSymlink != 0 {
 			data = []byte(r.Text(string(f.Data)))
@@ -95,14 +120,35 @@ func Plan(tree []port.File, keep func(path string) bool, r *Replacer) ([]port.Fi
 		}
 		files = append(files, port.File{Path: to, Mode: f.Mode, Data: data})
 	}
-	for to, p := range from {
+	for to, paths := range from {
+		paths = slices.Sorted(slices.Values(paths))
+		for _, p := range paths[1:] {
+			clashes = append(clashes, clash{name: to, then: p, err: &SameName{First: paths[0], Second: p, To: to}})
+		}
 		for dir := path.Dir(to); dir != "."; dir = path.Dir(dir) {
-			if other, ok := from[dir]; ok {
-				return nil, &FileIsFolder{File: other, Folder: dir, Of: p}
+			if others, ok := from[dir]; ok {
+				clashes = append(clashes, clash{name: to, then: dir, err: &FileIsFolder{File: slices.Min(others), Folder: dir, Of: paths[0]}})
 			}
 		}
 	}
+	if len(clashes) > 0 {
+		slices.SortFunc(clashes, func(a, b clash) int {
+			return cmp.Or(strings.Compare(a.name, b.name), strings.Compare(a.then, b.then), strings.Compare(a.err.Error(), b.err.Error()))
+		})
+		errs := make([]error, len(clashes))
+		for i, c := range clashes {
+			errs[i] = c.err
+		}
+		return nil, errors.Join(errs...)
+	}
 	return files, nil
+}
+
+// clash is a name problem Plan found, with what orders it among the others:
+// the name the answers make, then the path or folder it clashes over.
+type clash struct {
+	name, then string
+	err        Error
 }
 
 // Executable is whether f is a file to record as executable.

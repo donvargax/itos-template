@@ -375,7 +375,7 @@ Feature: new makes a project from a template
   # which clash the refusal named varied from run to run, and decision 3
   # needs a render, a refusal included, the same every time. It names every
   # clash, in path order, as new names every missing answer at once.
-  @ID-NEW-33 @bug-2 @wip
+  @ID-NEW-33 @bug-2
   Scenario: new refuses answers that name a file as a folder with exit 2, naming every clash
     Given the template "acme" whose branch "stack/go" holds the files "acme-widget", "blue-fox/a.txt" and "blue-fox/b.txt"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"

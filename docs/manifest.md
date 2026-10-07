@@ -172,7 +172,9 @@ first 8000 bytes, as git tells text from binary; any other file is copied as it 
 element of every file and folder name, and in a symbolic link's target. Replacement works within
 lines: a line ending is never touched, so a file with CRLF keeps it. Where two literals match at
 one place, the longer is replaced. Two literals, or two forms, may not be the same string, and the
-answers may not make two files one name or a name no file can have (`..`, a `/` within it).
+answers may not make two files one name, a file the folder of another, or a name no file can have
+(`..`, a `/` within it). A render refuses such answers before writing anything, naming every
+clash, in the order of the names the answers make.
 
 ### Paths only the template keeps
 
