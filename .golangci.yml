@@ -6,7 +6,18 @@ linters:
   enable:
     - depguard
     - gochecksumtype
+    - revive
   settings:
+    # A file is at most 600 lines of code, comments and blank lines not
+    # counted (T-11): decision 17 keeps a slice in one file until it grows
+    # large, and this says when. Only this rule of revive's runs.
+    revive:
+      rules:
+        - name: file-length-limit
+          arguments:
+            - max: 600
+              skipComments: true
+              skipBlankLines: true
     # The domain's and infra's errors are sealed sets (//sumtype:decl), and
     # internal/cli gives each kind its exit code in one switch per set
     # (decision 17, docs/CLI.md rule 31): a switch that leaves a kind out is
