@@ -50,7 +50,7 @@ Feature: check renders every combination a template allows and runs its checks
     stack python  git ls-files --error-unmatch pyproject.toml
   The checks run git, which is wherever the scenarios run, never a shell.
 
-  @ID-CHECK-01 @slice-2 @wip
+  @ID-CHECK-01 @slice-2
   Scenario: check renders every combination the template allows and exits 0 when every check passes
     Given the template "acme"
     When itos-template runs with "check {template} --answer name=blue-fox --defaults"
@@ -64,14 +64,14 @@ Feature: check renders every combination a template allows and runs its checks
 
   # The stack's check names cmd/acme-widget/main.go: it passes only because
   # its words had the literal replaced by the answer, as the render's files.
-  @ID-CHECK-02 @slice-2 @wip
+  @ID-CHECK-02 @slice-2
   Scenario: a combination runs the root's checks, then its stack's, then its features', the answers in place of the literals
     Given the template "acme"
     When itos-template runs with "check {template} --answer name=blue-fox --defaults"
     Then it exits with code 0
     And its report shows the checks of "go + cli" in order: "git ls-files --error-unmatch README.md", "git ls-files --error-unmatch cmd/blue-fox/main.go", "git ls-files --error-unmatch cli.txt"
 
-  @ID-CHECK-03 @slice-2 @wip
+  @ID-CHECK-03 @slice-2
   Scenario: a failing check fails its combination with exit 1 and the other combinations are still checked
     Given the template "acme" whose feature "web" of the stack "go" has the check "git ls-files --error-unmatch missing.txt"
     When itos-template runs with "check {template} --answer name=blue-fox --defaults"
@@ -80,7 +80,7 @@ Feature: check renders every combination a template allows and runs its checks
     And its report says "go + cli" passed
     And its report says "python + cli" passed
 
-  @ID-CHECK-04 @slice-2 @wip
+  @ID-CHECK-04 @slice-2
   Scenario: check leaves out a combination the manifest lists as unsupported
     Given the template "acme" whose manifest lists the stack "go" with the features "cli" and "web" as unsupported
     When itos-template runs with "check {template} --answer name=blue-fox --defaults"
@@ -88,7 +88,7 @@ Feature: check renders every combination a template allows and runs its checks
     And its report says "go + cli" passed
     And its report does not name "go + cli + web"
 
-  @ID-CHECK-05 @slice-2 @wip
+  @ID-CHECK-05 @slice-2
   Scenario: new refuses a combination the manifest lists as unsupported with exit 1, naming it, and writes nothing
     Given the template "acme" whose manifest lists the stack "go" with the features "cli" and "web" as unsupported
     When itos-template runs with "new {template} made --stack go --feature cli --feature web --answer name=blue-fox --defaults"
@@ -96,7 +96,7 @@ Feature: check renders every combination a template allows and runs its checks
     And its error output says "web"
     And the path "made" does not exist
 
-  @ID-CHECK-06 @slice-2 @wip
+  @ID-CHECK-06 @slice-2
   Scenario: check refuses missing answers with exit 2, naming every one, before rendering anything
     Given the template "acme"
     When itos-template runs with "check {template}"
@@ -105,14 +105,14 @@ Feature: check renders every combination a template allows and runs its checks
     And its error output says "module"
     And its report names no combination
 
-  @ID-CHECK-07 @slice-2 @wip
+  @ID-CHECK-07 @slice-2
   Scenario: check with no template named checks the repository it runs in
     Given the template "acme"
     When itos-template runs in the template's folder with "check --answer name=blue-fox --defaults"
     Then it exits with code 0
     And its report says "go + cli" passed
 
-  @ID-CHECK-08 @slice-2 @wip
+  @ID-CHECK-08 @slice-2
   Scenario: check refuses a template git cannot reach with exit 3, naming it
     When itos-template runs with "check nosuch-template --answer name=blue-fox --defaults"
     Then it exits with code 3

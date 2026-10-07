@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/donvargax/itos-template/internal/git"
+	"github.com/donvargax/itos-template/internal/manifest"
 	"github.com/donvargax/itos-template/internal/prompt"
 )
 
@@ -200,5 +201,65 @@ func TestMakeRefusesAnAnswerThatMakesTwoFilesOne(t *testing.T) {
 	}
 	if _, err := os.Stat(folder); !errors.Is(err, os.ErrNotExist) {
 		t.Errorf("the folder was made: %v", err)
+	}
+}
+
+// withManifest makes tpl's manifest on main text.
+func withManifest(t *testing.T, tpl, text string) {
+	t.Helper()
+	writeFile(t, tpl, "itos-template.yaml", text)
+	run(t, tpl, "commit", "-q", "-a", "-m", "manifest")
+}
+
+func TestMakeRefusesACombinationTheManifestListsAsUnsupported(t *testing.T) {
+	tpl := template(t)
+	withManifest(t, tpl, strings.Replace(manifestText, "version: 1\n", "version: 2\nunsupported:\n  - stack: sh\n    features: [extra]\n", 1))
+	folder := filepath.Join(t.TempDir(), "made")
+	_, err := Make(Options{Template: tpl, Folder: folder, Stack: "sh", Features: []string{"extra"}, Answers: []string{"name=blue-fox"}, Defaults: true})
+	var f *Failure
+	if !errors.As(err, &f) || f.Code != CodeRefused || f.Problems[0].Rule != "combination-unsupported" || !strings.Contains(f.Problems[0].Message, "sh + extra") {
+		t.Fatalf("Make = %v", err)
+	}
+	if _, err := os.Stat(folder); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("the folder was made: %v", err)
+	}
+	if _, err := Make(Options{Template: tpl, Folder: folder, Stack: "sh", Answers: []string{"name=blue-fox"}, Defaults: true}); err != nil {
+		t.Errorf("the stack alone, which is supported: %v", err)
+	}
+}
+
+func TestAnswersNamesEveryMissingOneAndNeverAsks(t *testing.T) {
+	src, err := Open(template(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer src.Close()
+	_, err = Answers(src.Manifest, nil, false)
+	var f *Failure
+	if !errors.As(err, &f) || f.Code != CodeUsage || len(f.Problems) != 2 {
+		t.Fatalf("Answers = %v", err)
+	}
+	got, err := Answers(src.Manifest, []string{"name=blue-fox"}, true)
+	if err != nil || got["name"] != "blue-fox" || got["owner"] != "Nobody" {
+		t.Errorf("Answers = %v, %v", got, err)
+	}
+}
+
+// A render no one keeps is committed as the identity given, so a git that
+// knows no one can still render it.
+func TestRenderCommitsAsTheIdentityGiven(t *testing.T) {
+	src, err := Open(template(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer src.Close()
+	stack, _ := src.Manifest.Stack("sh")
+	folder := t.TempDir()
+	identity := []string{"GIT_AUTHOR_NAME=check", "GIT_AUTHOR_EMAIL=check@localhost", "GIT_COMMITTER_NAME=check", "GIT_COMMITTER_EMAIL=check@localhost"}
+	if _, err := src.Render(manifest.Combination{Stack: stack}, map[string]string{"name": "blue-fox", "owner": "Nobody"}, folder, false, identity); err != nil {
+		t.Fatal(err)
+	}
+	if author := run(t, folder, "log", "-1", "--format=%an <%ae>"); author != "check <check@localhost>" {
+		t.Errorf("the render's commit is by %s", author)
 	}
 }

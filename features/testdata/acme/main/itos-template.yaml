@@ -1,11 +1,21 @@
 # The acme fixture's manifest (docs/manifest.md).
-version: 1
+version: 2
+# The root's checks, run in every render first, then the stack's, then the
+# features' (features/check.feature's description).
+checks:
+  - [git, ls-files, --error-unmatch, README.md]
 stacks:
   - name: go
+    checks:
+      - [git, ls-files, --error-unmatch, cmd/acme-widget/main.go]
   - name: python
+    checks:
+      - [git, ls-files, --error-unmatch, pyproject.toml]
 features:
   - name: cli
     stack: go
+    checks:
+      - [git, ls-files, --error-unmatch, cli.txt]
   - name: web
     stack: go
     needs: [cli]

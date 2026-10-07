@@ -31,6 +31,10 @@ func (r *Replacer) Contents(data []byte) []byte {
 	return []byte(r.r.Replace(string(data)))
 }
 
+// Text is s with every literal replaced, as in a text file's contents: what
+// check makes of a check's words.
+func (r *Replacer) Text(s string) string { return r.r.Replace(s) }
+
 // NameError is a render whose file names cannot be written: an answer that
 // makes a name no file can have, or two files of one name.
 type NameError struct{ Problem string }

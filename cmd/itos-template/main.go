@@ -35,7 +35,8 @@ type cli struct {
 	// and no environment variable.
 	Version kong.VersionFlag `help:"Print the version and exit."`
 
-	New newCmd `cmd:"" help:"Make a project from a template."`
+	New   newCmd   `cmd:"" help:"Make a project from a template."`
+	Check checkCmd `cmd:"" help:"Render every combination a template allows and run its checks."`
 }
 
 func main() {
@@ -69,8 +70,13 @@ func run(args []string, in io.Reader, stdout, stderr io.Writer, terminal bool) i
 		fail(stderr, err)
 		return exitUsage
 	}
-	if command := strings.Fields(ctx.Command()); len(command) > 0 && command[0] == "new" {
-		return c.New.run(in, stdout, stderr, terminal)
+	if command := strings.Fields(ctx.Command()); len(command) > 0 {
+		switch command[0] {
+		case "new":
+			return c.New.run(in, stdout, stderr, terminal)
+		case "check":
+			return c.Check.run(stdout, stderr)
+		}
 	}
 	if err := ctx.PrintUsage(false); err != nil {
 		fail(stderr, err)

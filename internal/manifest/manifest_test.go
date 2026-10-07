@@ -110,7 +110,18 @@ func TestReplacementsPutTheLongestLiteralFirst(t *testing.T) {
 func TestParseRefuses(t *testing.T) {
 	cases := map[string]string{
 		"an unknown key":            "version: 1\nstacks: [{name: go}]\nsetup: []\n",
-		"another version":           "version: 2\nstacks: [{name: go}]\n",
+		"a later version":           "version: 3\nstacks: [{name: go}]\n",
+		"no version":                "stacks: [{name: go}]\n",
+		"checks in version 1":       "version: 1\nstacks: [{name: go}]\nchecks: [[go, test]]\n",
+		"empty checks in version 1": "version: 1\nstacks: [{name: go, checks: []}]\n",
+		"unsupported in version 1":  "version: 1\nstacks: [{name: go}]\nfeatures: [{name: cli, stack: go}]\nunsupported: [{stack: go, features: [cli]}]\n",
+		"a check as one string":     "version: 2\nstacks: [{name: go}]\nchecks: [go test ./...]\n",
+		"a check with no program":   "version: 2\nstacks: [{name: go, checks: [[]]}]\n",
+		"a check's empty program":   "version: 2\nstacks: [{name: go}]\nfeatures: [{name: cli, stack: go, checks: [['', x]]}]\n",
+		"unsupported, no stack":     "version: 2\nstacks: [{name: go}]\nunsupported: [{stack: rust}]\n",
+		"unsupported, no feature":   "version: 2\nstacks: [{name: go}]\nunsupported: [{stack: go, features: [cli]}]\n",
+		"unsupported, a need left":  "version: 2\nstacks: [{name: go}]\nfeatures: [{name: cli, stack: go}, {name: web, stack: go, needs: [cli]}]\nunsupported: [{stack: go, features: [web]}]\n",
+		"unsupported, one twice":    "version: 2\nstacks: [{name: go}]\nfeatures: [{name: cli, stack: go}]\nunsupported: [{stack: go, features: [cli, cli]}]\n",
 		"no stack":                  "version: 1\n",
 		"a feature of no stack":     "version: 1\nstacks: [{name: go}]\nfeatures: [{name: cli, stack: rust}]\n",
 		"a need of another stack":   "version: 1\nstacks: [{name: go}, {name: py}]\nfeatures: [{name: cli, stack: py}, {name: web, stack: go, needs: [cli]}]\n",
@@ -130,5 +141,88 @@ func TestParseRefuses(t *testing.T) {
 		} else if strings.TrimSpace(err.Error()) == "" {
 			t.Errorf("%s: no problem named", name)
 		}
+	}
+}
+
+func names(cs []Combination) []string {
+	var n []string
+	for _, c := range cs {
+		n = append(n, c.Name())
+	}
+	return n
+}
+
+func TestCombinationsAreEachStackAloneAndWithEachSetOfFeaturesWhoseNeedsAreChosen(t *testing.T) {
+	m := acme(t)
+	want := []string{"go", "go + cli", "go + cli + web", "python", "python + cli"}
+	if got := names(m.Combinations()); !slices.Equal(got, want) {
+		t.Errorf("Combinations = %q, want %q", got, want)
+	}
+}
+
+func TestCombinationsPutFewerFeaturesFirstInTheManifestsOrder(t *testing.T) {
+	m, err := Parse([]byte("version: 2\nstacks: [{name: go}]\nfeatures: [{name: a, stack: go}, {name: b, stack: go}, {name: c, stack: go, needs: [a]}]\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"go", "go + a", "go + b", "go + a + b", "go + a + c", "go + a + b + c"}
+	if got := names(m.Combinations()); !slices.Equal(got, want) {
+		t.Errorf("Combinations = %q, want %q", got, want)
+	}
+}
+
+func TestCombinationsLeaveOutTheUnsupported(t *testing.T) {
+	m, err := Parse([]byte("version: 2\nstacks: [{name: go}, {name: py}]\nfeatures: [{name: a, stack: go}, {name: b, stack: go}]\nunsupported: [{stack: go, features: [b, a]}, {stack: py}]\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"go", "go + a", "go + b"}
+	if got := names(m.Combinations()); !slices.Equal(got, want) {
+		t.Errorf("Combinations = %q, want %q", got, want)
+	}
+	all := m.Combinations()
+	if _, ok := m.IsUnsupported(all[1]); ok {
+		t.Errorf("%s is unsupported", all[1].Name())
+	}
+}
+
+func TestChecksOfAreTheRootsThenTheStacksThenTheFeaturesInTheManifestsOrder(t *testing.T) {
+	m, err := Parse([]byte(`version: 2
+checks: [[root]]
+stacks: [{name: go, checks: [[stack, one], [stack, two]]}]
+features:
+  - {name: a, stack: go, checks: [[a]]}
+  - {name: b, stack: go, checks: [[b]]}
+`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, _ := m.combination("go", []string{"b", "a"})
+	var got []string
+	for _, c := range m.ChecksOf(b) {
+		got = append(got, strings.Join(c, " "))
+	}
+	want := []string{"root", "stack one", "stack two", "a", "b"}
+	if !slices.Equal(got, want) {
+		t.Errorf("ChecksOf = %q, want %q", got, want)
+	}
+}
+
+func TestParseReadsVersion1AsATemplateWithNoChecks(t *testing.T) {
+	m, err := Parse([]byte("version: 1\nstacks: [{name: go}]\nfeatures: [{name: cli, stack: go}]\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range m.Combinations() {
+		if len(m.ChecksOf(c)) != 0 {
+			t.Errorf("%s has checks", c.Name())
+		}
+	}
+}
+
+func TestParseSaysACheckIsAListOfWords(t *testing.T) {
+	_, err := Parse([]byte("version: 2\nstacks: [{name: go}]\nchecks: [go test ./...]\n"))
+	if err == nil || !strings.Contains(err.Error(), "list of words") {
+		t.Errorf("Parse = %v", err)
 	}
 }

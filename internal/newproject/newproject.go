@@ -15,6 +15,7 @@ package newproject
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"slices"
@@ -26,6 +27,7 @@ import (
 	"github.com/donvargax/itos-template/internal/manifest"
 	"github.com/donvargax/itos-template/internal/prompt"
 	"github.com/donvargax/itos-template/internal/render"
+	"github.com/donvargax/itos-template/internal/tempdir"
 )
 
 // The exit codes a failure carries (docs/CLI.md, "Exit codes").
@@ -91,32 +93,75 @@ func Make(o Options) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	tmp, err := os.MkdirTemp("", "itos-template-new-")
+	src, err := Open(o.Template)
+	if err != nil {
+		return nil, err
+	}
+	defer src.Close()
+	s, err := choose(src.Manifest, o)
+	if err != nil {
+		return nil, err
+	}
+	return src.Render(manifest.Combination{Stack: s.stack, Features: s.features}, s.answers, o.Folder, created, nil)
+}
+
+// Source is a template cloned into a temporary folder and its manifest,
+// read from its root branch: what new renders one project from, and check
+// every combination.
+type Source struct {
+	Name     string // the template as it was named
+	Manifest *manifest.Manifest
+
+	tmp        string
+	t          *render.Template
+	root       string // the root branch
+	rootCommit string
+}
+
+// Open clones the template name, anything git clone takes, and reads its
+// manifest.
+func Open(name string) (*Source, error) {
+	tmp, err := tempdir.Make("itos-template-template-")
 	if err != nil {
 		return nil, fail(CodeEnvironment, "temporary-folder", "cannot make a temporary folder: %v", err)
 	}
-	defer func() { _ = os.RemoveAll(tmp) }()
-
-	t, err := render.Clone(o.Template, filepath.Join(tmp, "template.git"))
+	src := &Source{Name: name, tmp: tmp}
+	src.t, err = render.Clone(name, filepath.Join(tmp, "template.git"))
 	if err != nil {
+		src.Close()
 		var unreachable *render.UnreachableError
 		if errors.As(err, &unreachable) {
-			return nil, fail(CodeEnvironment, "template-unreachable", "git cannot reach the template %s: %v. Name a path or a URL git clone takes.", o.Template, unreachable.Err)
+			return nil, fail(CodeEnvironment, "template-unreachable", "git cannot reach the template %s: %v. Name a path or a URL git clone takes.", name, unreachable.Err)
 		}
 		return nil, gitMissing(err)
 	}
-	m, root, rootCommit, err := readManifest(t, o.Template)
-	if err != nil {
+	if src.Manifest, src.root, src.rootCommit, err = readManifest(src.t, name); err != nil {
+		src.Close()
 		return nil, err
 	}
-	s, err := choose(m, o)
-	if err != nil {
-		return nil, err
-	}
+	return src, nil
+}
 
-	commits := map[string]string{root: rootCommit}
+// Close removes the clone. A clone left behind is only a temporary folder,
+// so a failure to remove it is logged, never returned.
+func (src *Source) Close() {
+	if err := tempdir.Remove(src.tmp); err != nil {
+		slog.Warn("cannot remove a temporary folder", "folder", src.tmp, "error", err)
+	}
+}
+
+// Render renders the combination c with answers, each one its question
+// takes, into folder, which is missing or empty (created says whether
+// Render makes it), as a git repository whose first commit is the render
+// and its record. Every check runs before folder is touched, and a failure
+// while writing leaves it as it was. commitEnv, when given, is added to the
+// environment of the commit's git, an identity for a render no one keeps;
+// without it the commit is the person's and git must know who they are.
+func (src *Source) Render(c manifest.Combination, answers map[string]string, folder string, created bool, commitEnv []string) (*Result, error) {
+	m, t := src.Manifest, src.t
+	commits := map[string]string{src.root: src.rootCommit}
 	var branches []string
-	for _, b := range append([]string{s.stack.Branch()}, s.featureBranches()...) {
+	for _, b := range append([]string{c.Stack.Branch()}, featureBranches(c.Features)...) {
 		sha, ok, err := t.Commit(b)
 		if err != nil {
 			return nil, internal(err)
@@ -135,7 +180,7 @@ func Make(o Options) (*Result, error) {
 		}
 		return nil, internal(err)
 	}
-	r := render.NewReplacer(m.Replacements(s.answers))
+	r := render.NewReplacer(m.Replacements(answers))
 	plan, err := t.Plan(tree, func(p string) bool { return !m.IsTemplateOnly(p) }, r)
 	if err != nil {
 		var name *render.NameError
@@ -150,20 +195,22 @@ func Make(o Options) (*Result, error) {
 	if slices.ContainsFunc(plan.Files, func(f render.File) bool { return f.To == RecordFile }) {
 		return nil, fail(CodeRefused, "template-defect", "the template holds %s, the file a made project records its render in: leave it out of the template", RecordFile)
 	}
-	if err := checkIdentity(tmp); err != nil {
-		return nil, err
+	if commitEnv == nil {
+		if err := checkIdentity(src.tmp); err != nil {
+			return nil, err
+		}
 	}
 
 	result := &Result{
-		Folder:   o.Folder,
-		Template: o.Template,
-		Stack:    s.stack.Name,
-		Features: s.featureNames(),
-		Answers:  s.answers,
+		Folder:   folder,
+		Template: src.Name,
+		Stack:    c.Stack.Name,
+		Features: featureNames(c.Features),
+		Answers:  answers,
 		Commits:  commits,
 	}
-	if result.Commit, err = write(o.Folder, plan, result); err != nil {
-		undo(o.Folder, created)
+	if result.Commit, err = write(folder, plan, result, commitEnv); err != nil {
+		undo(folder, created)
 		return nil, err
 	}
 	return result, nil
@@ -230,17 +277,17 @@ type selection struct {
 	answers  map[string]string
 }
 
-func (s *selection) featureBranches() []string {
+func featureBranches(features []manifest.Feature) []string {
 	var b []string
-	for _, f := range s.features {
+	for _, f := range features {
 		b = append(b, f.Branch())
 	}
 	return b
 }
 
-func (s *selection) featureNames() []string {
+func featureNames(features []manifest.Feature) []string {
 	names := []string{}
-	for _, f := range s.features {
+	for _, f := range features {
 		names = append(names, f.Name)
 	}
 	return names
@@ -257,7 +304,7 @@ func choose(m *manifest.Manifest, o Options) (*selection, error) {
 	add := func(f *Failure, rule, format string, args ...any) {
 		f.Problems = append(f.Problems, Problem{Rule: rule, Message: fmt.Sprintf(format, args...)})
 	}
-	s := &selection{answers: map[string]string{}}
+	s := &selection{}
 
 	stackName := o.Stack
 	if stackName == "" && o.Asker != nil && len(m.Stacks) > 0 {
@@ -311,39 +358,16 @@ func choose(m *manifest.Manifest, o Options) (*selection, error) {
 			}
 		}
 	}
+	if c := (manifest.Combination{Stack: stack, Features: s.features}); stackOK && len(refused.Problems) == 0 {
+		if _, ok := m.IsUnsupported(c); ok {
+			add(refused, "combination-unsupported", "the template does not support %s: its manifest lists that combination as unsupported", c.Name())
+		}
+	}
 
-	for _, kv := range o.Answers {
-		name, answer, ok := strings.Cut(kv, "=")
-		q, known := m.Question(name)
-		switch {
-		case !ok:
-			add(usage, "answer-malformed", "--answer takes name=answer, and %q has no =", kv)
-		case !known:
-			add(usage, "answer-unknown", "the template asks no question %s: its questions are %s", name, strings.Join(m.QuestionNames(), ", "))
-		case hasKey(s.answers, name):
-			add(usage, "answer-twice", "the answer to %s is given twice", name)
-		default:
-			if err := q.Check(answer); err != nil {
-				add(usage, "answer-malformed", "the answer to %s, %q, is not one it takes: %v", name, answer, err)
-			}
-			s.answers[name] = answer
-		}
-	}
 	var ask []*manifest.Question
-	for i := range m.Questions {
-		q := &m.Questions[i]
-		switch {
-		case hasKey(s.answers, q.Name):
-		case o.Defaults && q.Default != nil:
-			s.answers[q.Name] = *q.Default
-		case o.Asker != nil:
-			ask = append(ask, q)
-		case q.Default != nil:
-			add(usage, "answer-missing", "no answer to %s (%s): give one with --answer %s=<answer>, or take its default, %s, with --defaults", q.Name, q.Question, q.Name, *q.Default)
-		default:
-			add(usage, "answer-missing", "no answer to %s (%s): give one with --answer %s=<answer>", q.Name, q.Question, q.Name)
-		}
-	}
+	s.answers, ask = readAnswers(m, o.Answers, o.Defaults, o.Asker != nil, func(rule, format string, args ...any) {
+		add(usage, rule, format, args...)
+	})
 	if len(usage.Problems) > 0 {
 		return nil, usage
 	}
@@ -363,6 +387,61 @@ func choose(m *manifest.Manifest, o Options) (*selection, error) {
 		s.answers[q.Name] = answer
 	}
 	return s, nil
+}
+
+// Answers are the answers to m's questions, never asked: those given (each
+// name=answer), and with defaults a missing one's default. Every problem is
+// a usage problem, all reported together: a malformed or unknown answer,
+// one given twice, one its question does not take, and each missing one.
+func Answers(m *manifest.Manifest, given []string, defaults bool) (map[string]string, error) {
+	usage := &Failure{Code: CodeUsage}
+	answers, _ := readAnswers(m, given, defaults, false, func(rule, format string, args ...any) {
+		usage.Problems = append(usage.Problems, Problem{Rule: rule, Message: fmt.Sprintf(format, args...)})
+	})
+	if len(usage.Problems) > 0 {
+		return nil, usage
+	}
+	return answers, nil
+}
+
+// readAnswers reads the answers given against m's questions, takes a
+// missing one's default with defaults, and returns the questions still
+// missing to ask them when ask; without ask each missing one is a problem.
+func readAnswers(m *manifest.Manifest, given []string, defaults, ask bool, add func(rule, format string, args ...any)) (map[string]string, []*manifest.Question) {
+	answers := map[string]string{}
+	for _, kv := range given {
+		name, answer, ok := strings.Cut(kv, "=")
+		q, known := m.Question(name)
+		switch {
+		case !ok:
+			add("answer-malformed", "--answer takes name=answer, and %q has no =", kv)
+		case !known:
+			add("answer-unknown", "the template asks no question %s: its questions are %s", name, strings.Join(m.QuestionNames(), ", "))
+		case hasKey(answers, name):
+			add("answer-twice", "the answer to %s is given twice", name)
+		default:
+			if err := q.Check(answer); err != nil {
+				add("answer-malformed", "the answer to %s, %q, is not one it takes: %v", name, answer, err)
+			}
+			answers[name] = answer
+		}
+	}
+	var missing []*manifest.Question
+	for i := range m.Questions {
+		q := &m.Questions[i]
+		switch {
+		case hasKey(answers, q.Name):
+		case defaults && q.Default != nil:
+			answers[q.Name] = *q.Default
+		case ask:
+			missing = append(missing, q)
+		case q.Default != nil:
+			add("answer-missing", "no answer to %s (%s): give one with --answer %s=<answer>, or take its default, %s, with --defaults", q.Name, q.Question, q.Name, *q.Default)
+		default:
+			add("answer-missing", "no answer to %s (%s): give one with --answer %s=<answer>", q.Name, q.Question, q.Name)
+		}
+	}
+	return answers, missing
 }
 
 func hasKey(m map[string]string, k string) bool {
@@ -394,7 +473,8 @@ func checkIdentity(dir string) error {
 
 // write writes the render and its record into folder, makes it a git
 // repository and commits it all as its first commit, whose SHA it returns.
-func write(folder string, plan *render.Plan, result *Result) (string, error) {
+func write(folder string, plan *render.Plan, result *Result, env []string) (string, error) {
+	g := git.Command{Dir: folder, Env: env}
 	if err := os.MkdirAll(folder, 0o755); err != nil {
 		return "", fail(CodeEnvironment, "folder-unwritable", "cannot make the folder %s: %v", folder, err)
 	}
@@ -430,14 +510,14 @@ func write(folder string, plan *render.Plan, result *Result) (string, error) {
 		steps = append(steps, append([]string{"update-index", "--chmod=+x", "--"}, executables...))
 	}
 	for _, args := range steps {
-		if _, err := git.Run(folder, args...); err != nil {
+		if _, err := g.Output(args...); err != nil {
 			return "", internal(err)
 		}
 	}
-	if _, err := git.Run(folder, "commit", "-q", "-m", commitMessage(result)); err != nil {
+	if _, err := g.Output("commit", "-q", "-m", commitMessage(result)); err != nil {
 		return "", fail(CodeRefused, "commit-refused", "git refused the project's first commit: %v", err)
 	}
-	sha, err := git.Run(folder, "rev-parse", "HEAD")
+	sha, err := g.Output("rev-parse", "HEAD")
 	if err != nil {
 		return "", internal(err)
 	}

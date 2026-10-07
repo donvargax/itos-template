@@ -28,3 +28,7 @@
   scenarios:
     - id: "@ID-NEW-01"
       why: new's whole path in one run, the template cloned, its stack rendered with every case form and the project committed, on the fixture's smallest render
+- file: check.feature
+  scenarios:
+    - id: "@ID-CHECK-01"
+      why: check's whole path in one run, every combination of the fixture rendered as new renders it and each one's checks run, on renders small enough to stay fast

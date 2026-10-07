@@ -1,13 +1,15 @@
 // Package manifest reads a template's manifest, itos-template.yaml at the
 // top of its root branch and merged down into every branch (decision 8):
 // its stacks, its features, the questions whose answers replace its
-// literals, and the paths only the template keeps. docs/manifest.md is its
-// format, for template authors.
+// literals, the paths only the template keeps, and from version 2 the checks
+// check runs in each render and the combinations the template cannot
+// support. docs/manifest.md is its format, for template authors.
 //
 // A stack's branch is stack/<stack> and a feature's <stack>/<feature>, so the
 // manifest names branches by convention alone. Unknown keys are refused, so
-// a typo never passes for an option, and the keys later items add (setup
-// steps, checks) come with a version that names them.
+// a typo never passes for an option, and the keys later items add come with
+// a version that names them: version 1 refuses checks and unsupported, so a
+// manifest written for version 2 is never misread as one with no checks.
 package manifest
 
 import (
@@ -29,22 +31,51 @@ import (
 // File is the manifest's name at the top of a template's branches.
 const File = "itos-template.yaml"
 
-// Version is the manifest version this itos-template reads.
-const Version = 1
+// Version is the newest manifest version this itos-template reads; it
+// reads every one from 1.
+const Version = 2
 
 // Manifest is a template's itos-template.yaml.
 type Manifest struct {
-	Version      int        `yaml:"version"`
-	Stacks       []Stack    `yaml:"stacks"`
-	Features     []Feature  `yaml:"features"`
-	Questions    []Question `yaml:"questions"`
-	TemplateOnly []string   `yaml:"template_only"`
+	Version      int           `yaml:"version"`
+	Stacks       []Stack       `yaml:"stacks"`
+	Features     []Feature     `yaml:"features"`
+	Questions    []Question    `yaml:"questions"`
+	TemplateOnly []string      `yaml:"template_only"`
+	Checks       []Check       `yaml:"checks"`      // the root's, version 2
+	Unsupported  []Unsupported `yaml:"unsupported"` // version 2
+}
+
+// Check is a command check runs in a render: its words, the program first,
+// run with no shell, so it means the same on every system.
+type Check []string
+
+// UnmarshalYAML reads a check, refusing a string with a sentence saying
+// why: a shell would read one, and none runs a check.
+func (c *Check) UnmarshalYAML(n *yaml.Node) error {
+	if n.Kind != yaml.SequenceNode {
+		return fmt.Errorf("line %d: a check is a list of words, the program first, as [go, test, ./...]: no shell runs it, so it is never one string", n.Line)
+	}
+	var words []string
+	if err := n.Decode(&words); err != nil {
+		return err
+	}
+	*c = words
+	return nil
+}
+
+// Unsupported is a combination the template cannot support: a stack and
+// exactly the features it lists, by their names in the stack.
+type Unsupported struct {
+	Stack    string   `yaml:"stack"`
+	Features []string `yaml:"features"`
 }
 
 // Stack is a stack: the root and a working project in one language or
 // framework, on the branch stack/<name>.
 type Stack struct {
-	Name string `yaml:"name"`
+	Name   string  `yaml:"name"`
+	Checks []Check `yaml:"checks"` // version 2
 }
 
 // Branch is the stack's branch, stack/<name>.
@@ -53,9 +84,10 @@ func (s Stack) Branch() string { return "stack/" + s.Name }
 // Feature is an optional part of a stack, on the branch <stack>/<name>,
 // branched off its stack or off the features it needs.
 type Feature struct {
-	Name  string   `yaml:"name"`
-	Stack string   `yaml:"stack"`
-	Needs []string `yaml:"needs"`
+	Name   string   `yaml:"name"`
+	Stack  string   `yaml:"stack"`
+	Needs  []string `yaml:"needs"`
+	Checks []Check  `yaml:"checks"` // version 2
 }
 
 // Branch is the feature's branch, <stack>/<name>.
@@ -105,9 +137,15 @@ var (
 func (m *Manifest) check() []string {
 	var problems []string
 	add := func(format string, args ...any) { problems = append(problems, fmt.Sprintf(format, args...)) }
-	if m.Version != Version {
-		add("version is %d: this itos-template reads version %d", m.Version, Version)
+	if m.Version < 1 || m.Version > Version {
+		add("version is %d: this itos-template reads versions 1 to %d", m.Version, Version)
 	}
+	if m.Version == 1 {
+		for _, key := range m.version2Keys() {
+			add("%s is a key of version 2: write version: 2", key)
+		}
+	}
+	m.checkChecks(add)
 	if len(m.Stacks) == 0 {
 		add("it lists no stack")
 	}
@@ -188,12 +226,58 @@ func (m *Manifest) check() []string {
 			}
 		}
 	}
+	for _, u := range m.Unsupported {
+		if _, err := m.combination(u.Stack, u.Features); err != nil {
+			add("the unsupported combination %s names no combination the manifest allows: %v", unsupportedName(u), err)
+		}
+	}
 	for _, p := range m.TemplateOnly {
 		if p == "" || path.IsAbs(p) || strings.Contains(p, `\`) || path.Clean(p) != p || p == "." || strings.HasPrefix(p, "../") || p == ".." {
 			add("the template_only path %q is not a path in the template: write it relative to its top, with /", p)
 		}
 	}
 	return problems
+}
+
+// version2Keys are the keys of version 2 the manifest gives, each where it
+// is: a key given an empty list counts, as version 1 refused it.
+func (m *Manifest) version2Keys() []string {
+	var keys []string
+	if m.Checks != nil {
+		keys = append(keys, "checks")
+	}
+	if m.Unsupported != nil {
+		keys = append(keys, "unsupported")
+	}
+	for _, s := range m.Stacks {
+		if s.Checks != nil {
+			keys = append(keys, "the stack "+s.Name+"'s checks")
+		}
+	}
+	for _, f := range m.Features {
+		if f.Checks != nil {
+			keys = append(keys, "the feature "+f.Branch()+"'s checks")
+		}
+	}
+	return keys
+}
+
+// checkChecks refuses a check with no program.
+func (m *Manifest) checkChecks(add func(string, ...any)) {
+	each := func(where string, checks []Check) {
+		for i, c := range checks {
+			if len(c) == 0 || c[0] == "" {
+				add("%s check %d names no program: a check is a list of words, the program first", where, i+1)
+			}
+		}
+	}
+	each("the root's", m.Checks)
+	for _, s := range m.Stacks {
+		each("the stack "+s.Name+"'s", s.Checks)
+	}
+	for _, f := range m.Features {
+		each("the feature "+f.Branch()+"'s", f.Checks)
+	}
 }
 
 // Check is whether answer is an answer q takes: never empty, the pattern
@@ -335,4 +419,139 @@ func (m *Manifest) IsTemplateOnly(p string) bool {
 		}
 	}
 	return false
+}
+
+// Combination is a stack and the features a render merges onto it, in the
+// manifest's order.
+type Combination struct {
+	Stack    Stack
+	Features []Feature
+}
+
+// Name is the combination as check's report and new's refusals write it:
+// the stack, then each feature's name, joined by " + " (go + cli + web).
+func (c Combination) Name() string {
+	names := []string{c.Stack.Name}
+	for _, f := range c.Features {
+		names = append(names, f.Name)
+	}
+	return strings.Join(names, " + ")
+}
+
+func unsupportedName(u Unsupported) string {
+	return strings.Join(append([]string{u.Stack}, u.Features...), " + ")
+}
+
+// combination is the combination of the stack named stack with the features
+// named, by their names in the stack, or why the manifest does not allow it:
+// a stack or a feature it does not list, a feature named twice, or a feature
+// whose needs are not all named.
+func (m *Manifest) combination(stack string, features []string) (Combination, error) {
+	s, ok := m.Stack(stack)
+	if !ok {
+		return Combination{}, fmt.Errorf("the manifest lists no stack %s", stack)
+	}
+	var chosen []Feature
+	for _, name := range features {
+		i := slices.IndexFunc(m.Features, func(f Feature) bool { return f.Stack == stack && f.Name == name })
+		switch {
+		case i < 0:
+			return Combination{}, fmt.Errorf("the stack %s has no feature %s", stack, name)
+		case slices.ContainsFunc(chosen, func(f Feature) bool { return f.Name == name }):
+			return Combination{}, fmt.Errorf("it names the feature %s twice", name)
+		}
+		chosen = append(chosen, m.Features[i])
+	}
+	c := Combination{Stack: s, Features: m.Ordered(chosen)}
+	for _, f := range c.Features {
+		for _, need := range f.Needs {
+			if !slices.Contains(features, need) {
+				return Combination{}, fmt.Errorf("the feature %s needs the feature %s, which it does not name", f.Name, need)
+			}
+		}
+	}
+	return c, nil
+}
+
+// IsUnsupported is the entry of unsupported that lists the combination c,
+// and whether one does: its stack and exactly its features, in any order.
+func (m *Manifest) IsUnsupported(c Combination) (Unsupported, bool) {
+	for _, u := range m.Unsupported {
+		if u.Stack != c.Stack.Name || len(u.Features) != len(c.Features) {
+			continue
+		}
+		if !slices.ContainsFunc(c.Features, func(f Feature) bool { return !slices.Contains(u.Features, f.Name) }) {
+			return u, true
+		}
+	}
+	return Unsupported{}, false
+}
+
+// Combinations are every combination the manifest allows, less those it
+// lists as unsupported: for each stack in the manifest's order, the stack
+// alone, then each set of its features in which every feature's needs are
+// in the set too, the fewer features first, sets of as many in the
+// manifest's order.
+func (m *Manifest) Combinations() []Combination {
+	var all []Combination
+	for _, s := range m.Stacks {
+		var features []Feature
+		for _, f := range m.Features {
+			if f.Stack == s.Name {
+				features = append(features, f)
+			}
+		}
+		var sets [][]int
+		var grow func(set []int, from int)
+		grow = func(set []int, from int) {
+			sets = append(sets, slices.Clone(set))
+			for i := from; i < len(features); i++ {
+				grow(append(set, i), i+1)
+			}
+		}
+		grow(nil, 0)
+		slices.SortStableFunc(sets, func(a, b []int) int {
+			if len(a) != len(b) {
+				return len(a) - len(b)
+			}
+			return slices.Compare(a, b)
+		})
+		for _, set := range sets {
+			c := Combination{Stack: s}
+			for _, i := range set {
+				c.Features = append(c.Features, features[i])
+			}
+			if !c.needsChosen() {
+				continue
+			}
+			if _, unsupported := m.IsUnsupported(c); !unsupported {
+				all = append(all, c)
+			}
+		}
+	}
+	return all
+}
+
+// needsChosen is whether every feature of c has the features it needs in c.
+func (c Combination) needsChosen() bool {
+	for _, f := range c.Features {
+		for _, need := range f.Needs {
+			if !slices.ContainsFunc(c.Features, func(o Feature) bool { return o.Name == need }) {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// ChecksOf are the checks of the combination c, in the order check runs
+// them: the root's, then its stack's, then each of its features' in the
+// manifest's order.
+func (m *Manifest) ChecksOf(c Combination) []Check {
+	checks := slices.Clone(m.Checks)
+	checks = append(checks, c.Stack.Checks...)
+	for _, f := range m.Ordered(c.Features) {
+		checks = append(checks, f.Checks...)
+	}
+	return checks
 }

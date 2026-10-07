@@ -160,7 +160,13 @@ var ownRepository = []string{
 	"GIT_ALTERNATE_OBJECT_DIRECTORIES", "GIT_COMMON_DIR", "GIT_PREFIX", "GIT_NAMESPACE",
 }
 
-func (c Command) environ() []string {
+func (c Command) environ() []string { return Environ(c.Env...) }
+
+// Environ is this process's environment less what points git at another
+// repository than the one its folder holds (a hook's GIT_DIR, say), extra
+// added: what itos-template's own git commands run in, and the programs it
+// runs in a render, which may run git themselves.
+func Environ(extra ...string) []string {
 	var env []string
 	for _, kv := range os.Environ() {
 		name, _, _ := strings.Cut(kv, "=")
@@ -168,7 +174,7 @@ func (c Command) environ() []string {
 			env = append(env, kv)
 		}
 	}
-	return append(env, c.Env...)
+	return append(env, extra...)
 }
 
 func containsFold(list []string, s string) bool {
