@@ -288,3 +288,16 @@ items:
       scenario holds either. Settle in its scenarios what a render does with each on every system:
       git's own core.symlinks behaviour (a file holding the target) and a submodule's commit
       recorded as a gitlink are the candidates.
+  - id: template-scans
+    title: itos-template check scans every render for leftover literals and leaked credentials
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: [slice-2]
+    kind: idea
+    why: >
+      Split from template-check (slice-2), so the render-and-check loop lands first (PLAN.md, order
+      of work 3; principle 5). The leftover-literal scan looks for each literal, in each case form,
+      left in a render; it is ours, built on the case-forms package of slice-1. The
+      leaked-credential scan is a library or our own patterns, to weigh with the person by decision
+      13 when specifying: gitleaks (wide rules, a heavy dependency) against a small set of our own.
