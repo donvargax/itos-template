@@ -92,3 +92,4 @@ questions:
   - id: q-21
     item: "template-scans"
     question: "How does a template's check find leaked credentials in its renders? Recommended: the template's own checks run gitleaks, pinned and checksummed as tools/bin/pinned pins golangci-lint, on every render, so itos-template takes no dependency and the check mechanism of slice-2 does the work; itos-template check builds the leftover-literal scan itself and warns when a template's checks name no credential scan. Or: gitleaks as a Go library inside check (always runs, a heavy dependency tree in the binary); or our own small set of patterns (light, far weaker than gitleaks' rules and harder to keep current)."
+    answer: "The template's own checks run gitleaks, pinned; check scans for leftover literals itself and warns when a template's checks name no credential scan. The user's call, 2026-10-07."
