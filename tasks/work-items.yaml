@@ -75,6 +75,7 @@ items:
     kind: idea
     why: >
       PLAN.md, order of work 5: the upkeep the branch model costs (decision 2), never a rebase.
+    tags: [sync]
   - id: first-template
     title: This repository's skeleton, its domain stripped, becomes the first template's stack/go and go/cli
     phase: 1
