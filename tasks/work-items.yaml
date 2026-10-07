@@ -209,3 +209,19 @@ items:
       under --trust, never silently. Settle in its scenarios: the steps' shape in the manifest,
       their order across root, stack and features, what a refused or failed step leaves, and where
       new records what the clone command reads.
+  - id: new-picker
+    title: new picks the stack and features from lists on a terminal, with charmbracelet/huh
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [new-renders]
+    kind: idea
+    why: >
+      Decision 13, weighed with the user (2026-10-06): huh comes when it brings value, and a pick
+      list for the stack and the features is that value; new-renders asks for free-text answers
+      alone, with plain prompts behind a small prompt interface so huh can replace them. Weighed
+      then: huh v1.0.0 (2026-02-23), MIT, active, 26 modules and about 4.7 MB in a probe binary,
+      against golang.org/x/term's one. Settle here docs/CLI.md's rule 30 (no colour): huh's
+      monochrome theme, or CLIG's colour on a terminal, none under NO_COLOR or when not one. Prompts
+      are unit-tested, through huh's accessible mode, since scenarios run with no terminal (rule
+      37).
