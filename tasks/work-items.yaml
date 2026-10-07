@@ -121,6 +121,7 @@ items:
     why: >
       itos's T-071: a feat may not change an old scenario, a fix names each it changes. Needs a
       first release.
+    tags: [ci]
   - id: version-command
     title: itos-template version, and the build's commit beside its version
     phase: 1
