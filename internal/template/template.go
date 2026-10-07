@@ -79,6 +79,12 @@ func Open(name string, repo port.Repository) (*Template, error) {
 // keeps; without it the commit is the person's and git must know who they
 // are.
 func (t *Template) Render(c manifest.Combination, answers answer.Set, into project.Folder, by *port.Identity, w project.Writer) (*project.Project, error) {
+	p, _, err := t.render(c, answers, into, by, w)
+	return p, err
+}
+
+// render is Render, giving the files it wrote as well.
+func (t *Template) render(c manifest.Combination, answers answer.Set, into project.Folder, by *port.Identity, w project.Writer) (*project.Project, []port.File, error) {
 	m := t.Manifest
 	commits := map[string]string{t.root: t.rootCommit}
 	branches := []string{c.Stack.Branch()}
@@ -88,10 +94,10 @@ func (t *Template) Render(c manifest.Combination, answers answer.Set, into proje
 	for _, b := range branches {
 		sha, ok, err := t.repo.Commit(b)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		if !ok {
-			return nil, &NoBranch{Branch: b}
+			return nil, nil, &NoBranch{Branch: b}
 		}
 		commits[b] = sha
 	}
@@ -100,26 +106,27 @@ func (t *Template) Render(c manifest.Combination, answers answer.Set, into proje
 		var conflict *port.Conflict
 		if errors.As(err, &conflict) {
 			into := branches[:max(slices.Index(branches, conflict.Branch), 1)]
-			return nil, &MergeConflict{Into: into, Branch: conflict.Branch, Paths: conflict.Paths}
+			return nil, nil, &MergeConflict{Into: into, Branch: conflict.Branch, Paths: conflict.Paths}
 		}
-		return nil, err
+		return nil, nil, err
 	}
 	files, err := render.Plan(tree, func(p string) bool { return !m.IsTemplateOnly(p) }, render.NewReplacer(m.Replacements(answers)))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if slices.ContainsFunc(files, func(f port.File) bool { return f.Path == project.RecordFile }) {
-		return nil, &HoldsRecord{File: project.RecordFile}
+		return nil, nil, &HoldsRecord{File: project.RecordFile}
 	}
 	features := []string{}
 	for _, f := range c.Features {
 		features = append(features, f.Name)
 	}
-	return w.Write(into, files, project.Record{
+	p, err := w.Write(into, files, project.Record{
 		Template: t.Name,
 		Stack:    c.Stack.Name,
 		Features: features,
 		Answers:  answers,
 		Commits:  commits,
 	}, by)
+	return p, files, err
 }

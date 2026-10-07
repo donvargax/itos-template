@@ -1,8 +1,8 @@
 // Package check is the slice of itos-template check (decisions 16 and 17),
 // in two thin layers over the domain, which does the work: package
 // template's Check renders every combination the template's manifest
-// allows, each as new renders it, runs its checks and gives each its
-// result.
+// allows, each as new renders it, scans it for leftover literals, runs its
+// checks and gives each its result.
 //
 // Its UI is CLI, its flags as kong reads them, and Run, which assembles the
 // Query from them, hands it to Handle and writes the report, a block per
@@ -23,6 +23,7 @@ import (
 	"github.com/donvargax/itos-template/internal/cli"
 	"github.com/donvargax/itos-template/internal/disk"
 	"github.com/donvargax/itos-template/internal/git"
+	"github.com/donvargax/itos-template/internal/manifest"
 	"github.com/donvargax/itos-template/internal/program"
 	"github.com/donvargax/itos-template/internal/project"
 	"github.com/donvargax/itos-template/internal/tempdir"
@@ -42,11 +43,11 @@ type CLI struct {
 // Help is check's detail in its --help: its report and its exit codes
 // (docs/CLI.md, rules 10 and 14).
 func (c *CLI) Help() string {
-	return `Renders every combination the template's manifest (itos-template.yaml) allows, each stack alone and each stack with every set of its features whose needs are chosen too, less those it lists as unsupported; each as new renders it, from the template's branch heads, in a temporary folder removed after its checks. In each render it runs the checks the manifest names, the root's, then the stack's, then the features' in the manifest's order, with no shell, the answers in place of the literals in their words. A combination's checks stop at the first that fails; every combination is checked whatever failed before it.
+	return `Renders every combination the template's manifest (itos-template.yaml) allows, each stack alone and each stack with every set of its features whose needs are chosen too, less those it lists as unsupported; each as new renders it, from the template's branch heads, in a temporary folder removed after its checks. Each render is scanned for leftovers, a literal kept in a form no answer replaced ("Acme Widget" for acme-widget), each failing its combination. In each render it runs the checks the manifest names, the root's, then the stack's, then the features' in the manifest's order, with no shell, the answers in place of the literals in their words. A combination's checks stop at the first that fails; every combination is checked whatever failed before it. When no check is marked as scanning the renders for credentials (scans: [credentials]), check warns on stderr.
 
-The report, on stdout, gives each combination a line, "go + cli: passed" or "go + cli: failed", then a line for each check as it ran, indented two spaces: "passed: <words>", "failed: <words>" followed by its output, each line of it indented four spaces after a "|", or "skipped: <words>" after a failure; a render that failed shows "not rendered" and why. An empty line and the count of the combinations that passed end it. docs/manifest.md describes it whole.
+The report, on stdout, gives each combination a line, "go + cli: passed" or "go + cli: failed", then a line for each leftover, indented two spaces: "leftover: "<text>" at <path>:<line>" or "leftover: "<text>" in the path <path>"; then a line for each check as it ran, indented two spaces: "passed: <words>", "failed: <words>" followed by its output, each line of it indented four spaces after a "|", or "skipped: <words>" after a failure; a render that failed shows "not rendered" and why. An empty line and the count of the combinations that passed end it. docs/manifest.md describes it whole.
 
-Exit codes: 0 every combination rendered and every check passed; 1 a check or a render failed; 2 a usage or manifest error: an answer missing or not one its question takes, a manifest refused; 3 git cannot reach the template, or cannot run, or a render could not be written; 70 an internal error.
+Exit codes: 0 every combination rendered, kept no literal and passed every check; 1 a render, a scan or a check failed; 2 a usage or manifest error: an answer missing or not one its question takes, a manifest refused; 3 git cannot reach the template, or cannot run, or a render could not be written; 70 an internal error.
 
 Examples:
   itos-template check --answer name=blue-fox --defaults
@@ -61,7 +62,12 @@ Report issues at https://github.com/donvargax/itos-template/issues.`
 // combination is checked is reported on stderr.
 func (c *CLI) Run(ui *cli.UI) int {
 	worst, passed, all := 0, 0, 0
-	err := Handle(Query{Template: c.Template, Answers: answer.Given(c.Answer), Defaults: c.Defaults}, func(r template.Result) error {
+	warn := func(m *manifest.Manifest) {
+		if !m.Scans(manifest.Credentials) {
+			ui.Line("warning: no check of the template is marked as scanning its renders for credentials: mark the one that does with scans: [" + manifest.Credentials + "], in a check's long form (docs/manifest.md)")
+		}
+	}
+	err := Handle(Query{Template: c.Template, Answers: answer.Given(c.Answer), Defaults: c.Defaults}, warn, func(r template.Result) error {
 		all++
 		if r.Passed() {
 			passed++
@@ -94,9 +100,11 @@ func (c *CLI) Run(ui *cli.UI) int {
 }
 
 // block is a combination's block of the report: its name and whether it
-// passed, then either "not rendered" and why, or each check, passed, failed
-// or skipped, a failed one followed by its output, each line of it after
-// "    |".
+// passed, then either "not rendered" and why, or each literal its render
+// kept and each check, passed, failed or skipped, a failed one followed by
+// its output, each line of it after "    |". A leftover is the text found,
+// in double quotes, then where: " at " and the path, a colon and the line,
+// or " in the path " and the path, written as a check's word is.
 func block(r template.Result) string {
 	var b strings.Builder
 	status := "passed"
@@ -107,6 +115,14 @@ func block(r template.Result) string {
 	if r.Err != nil {
 		b.WriteString("  not rendered\n")
 		writeLines(&b, template.Lines(cli.Message(r.Err)))
+	}
+	for _, l := range r.Leftovers {
+		path := manifest.Words{l.Path}.String()
+		if l.Line == 0 {
+			fmt.Fprintf(&b, "  leftover: %q in the path %s\n", l.Text, path)
+		} else {
+			fmt.Fprintf(&b, "  leftover: %q at %s:%d\n", l.Text, path, l.Line)
+		}
 	}
 	for _, c := range r.Checks {
 		switch c.Status {
@@ -145,11 +161,12 @@ type Query struct {
 	Defaults bool
 }
 
-// Handle checks the template q names, giving each combination's result to
-// each as it is found. A failure before any combination is checked (the
-// template unreachable, its manifest refused, an answer missing) is
-// returned, nothing given to each, and so is an error each returns.
-func Handle(q Query, each func(template.Result) error) error {
+// Handle checks the template q names, giving its manifest to opened once
+// its answers are resolved, then each combination's result to each as it
+// is found. A failure before any combination is checked (the template
+// unreachable, its manifest refused, an answer missing) is returned,
+// nothing given to opened or each, and so is an error each returns.
+func Handle(q Query, opened func(*manifest.Manifest), each func(template.Result) error) error {
 	name := q.Template
 	if name == "" {
 		name = "."
@@ -171,6 +188,7 @@ func Handle(q Query, each func(template.Result) error) error {
 	if err != nil {
 		return err
 	}
+	opened(t.Manifest)
 	w := project.Writer{Disk: disk.Disk{}, Git: git.Committer{}}
 	return t.Check(answers, tempdir.Renders{}, w, program.Runner{Env: git.Environ()}, each)
 }

@@ -151,3 +151,87 @@ func TestABinaryFileIsCopiedByteForByte(t *testing.T) {
 		}
 	})
 }
+
+// A leftover's generators keep the literal's letters (a to m) apart from
+// every other text's (n to z, digits and the separators), so the only
+// spelling of the literal's words in a file is the one a property put
+// there.
+var (
+	scanLiteral = rapid.Custom(func(t *rapid.T) caseform.Words {
+		return caseform.Words(rapid.SliceOfN(rapid.StringMatching(`[a-m]{2,5}`), 2, 3).Draw(t, "words"))
+	})
+	scanAnswer = rapid.Custom(func(t *rapid.T) caseform.Words {
+		return caseform.Words(rapid.SliceOfN(rapid.StringMatching(`[n-z][n-z0-9]{0,4}`), 1, 3).Draw(t, "words"))
+	})
+	filler = rapid.StringMatching(`[n-z0-9 ./_-]{0,8}`)
+)
+
+// A render of files that hold the literal only in its five forms, among
+// other text, keeps no literal: each form is replaced by the answer's, and
+// the scan finds nothing of the answers (decision 21).
+func TestARenderOfTheFiveFormsKeepsNoLiteral(t *testing.T) {
+	rapid.Check(t, func(t *rapid.T) {
+		literal, answer := scanLiteral.Draw(t, "literal"), scanAnswer.Draw(t, "answer")
+		var pairs []string
+		for i, form := range literal.Forms() {
+			pairs = append(pairs, form, answer.Forms()[i])
+		}
+		piece := rapid.OneOf(rapid.SampledFrom(literal.Forms()), filler)
+		var tree []port.File
+		for i := range rapid.IntRange(1, 4).Draw(t, "files") {
+			path := fmt.Sprintf("%s/f%d", piece.Draw(t, "folder")+"x", i)
+			var b strings.Builder
+			for range rapid.IntRange(0, 5).Draw(t, "lines") {
+				for range rapid.IntRange(0, 3).Draw(t, "pieces") {
+					b.WriteString(piece.Draw(t, "piece"))
+				}
+				b.WriteString(rapid.SampledFrom(lineEndings).Draw(t, "line ending"))
+			}
+			tree = append(tree, port.File{Path: path, Mode: 0o644, Data: []byte(b.String())})
+		}
+		files, err := Plan(tree, func(string) bool { return true }, NewReplacer(pairs))
+		if err != nil {
+			t.Skip(err) // the answers named two files one name: not this property's
+		}
+		if got := NewScan([]caseform.Words{literal}, nil).Leftovers(files); len(got) != 0 {
+			t.Fatalf("the render keeps %v", got)
+		}
+	})
+}
+
+// Any spelling of a literal's words, in order, in any case, joined by
+// nothing, a space, ".", "-", "_" or "/", is found where it is: on its
+// line, or in its path, with the text as it is written.
+func TestAnySpellingOfALiteralIsFoundWhereItIs(t *testing.T) {
+	rapid.Check(t, func(t *rapid.T) {
+		literal := scanLiteral.Draw(t, "literal")
+		var spelling strings.Builder
+		for i, word := range literal {
+			if i > 0 {
+				spelling.WriteString(rapid.SampledFrom([]string{"", " ", ".", "-", "_", "/"}).Draw(t, "join"))
+			}
+			for _, r := range word {
+				if rapid.Bool().Draw(t, "upper") {
+					r -= 'a' - 'A'
+				}
+				spelling.WriteRune(r)
+			}
+		}
+		text := spelling.String()
+		lines := rapid.SliceOfN(filler, 1, 5).Draw(t, "lines")
+		var want Leftover
+		path := "x" + filler.Draw(t, "path")
+		if rapid.Bool().Draw(t, "in the path") {
+			path += text + "x"
+			want = Leftover{Path: path, Line: 0, Text: text}
+		} else {
+			at := rapid.IntRange(0, len(lines)-1).Draw(t, "line")
+			lines[at] += text + filler.Draw(t, "after")
+			want = Leftover{Path: path, Line: at + 1, Text: text}
+		}
+		file := port.File{Path: path, Mode: 0o644, Data: []byte(strings.Join(lines, rapid.SampledFrom(lineEndings[:3]).Draw(t, "line ending")))}
+		if got := NewScan([]caseform.Words{literal}, nil).Leftovers([]port.File{file}); !slices.Equal(got, []Leftover{want}) {
+			t.Fatalf("Leftovers = %v, not %v", got, []Leftover{want})
+		}
+	})
+}

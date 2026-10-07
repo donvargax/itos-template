@@ -8,6 +8,7 @@ import (
 	"testing/fstest"
 
 	"github.com/donvargax/itos-template/internal/project"
+	"github.com/donvargax/itos-template/internal/render"
 	"github.com/donvargax/itos-template/internal/template/port/porttest"
 )
 
@@ -194,5 +195,29 @@ func TestAResultPassesOnlyWhenRenderedAndEveryCheckPassed(t *testing.T) {
 	}
 	if (Result{Err: &HoldsRecord{File: project.RecordFile}}).Passed() {
 		t.Error("a combination not rendered passed")
+	}
+}
+
+// A literal a render keeps in a form no answer replaces fails its
+// combination, where it is found named, the combination's checks still
+// run; the other combinations pass.
+func TestCheckFailsACombinationWhoseRenderKeepsALiteral(t *testing.T) {
+	repo := acme()
+	for _, branch := range []string{"stack/py", "py/tool"} {
+		repo.Branches[branch]["docs/Acme Widget.md"] = &fstest.MapFile{Data: []byte("# Acme Widget\nby acme-widget\n")}
+	}
+	results, _, _ := checked(t, open(t, repo), nil)
+	want := []render.Leftover{
+		{Path: "docs/Acme Widget.md", Line: 0, Text: "Acme Widget"},
+		{Path: "docs/Acme Widget.md", Line: 1, Text: "Acme Widget"},
+	}
+	for _, r := range results {
+		py := r.Combination.Stack.Name == "py"
+		switch {
+		case py && (r.Passed() || !slices.Equal(r.Leftovers, want) || len(r.Checks) != 1 || r.Checks[0].Status != Passed):
+			t.Errorf("%s: passed %v, leftovers %v, checks %v", r.Combination.Name(), r.Passed(), r.Leftovers, r.Checks)
+		case !py && (!r.Passed() || r.Leftovers != nil):
+			t.Errorf("%s: passed %v, leftovers %v", r.Combination.Name(), r.Passed(), r.Leftovers)
+		}
 	}
 }

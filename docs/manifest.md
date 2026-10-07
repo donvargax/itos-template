@@ -52,7 +52,7 @@ template_only:
 
 | Key             | What it holds                                                                               |
 | --------------- | ------------------------------------------------------------------------------------------- |
-| `version`       | `2`, the format this page describes, or `1`, the same less the keys of version 2. Required. |
+| `version`       | `3`, this page's format: `2` lacks a check's long form, `1` checks too. Required.           |
 | `stacks`        | The stacks, at least one, each a `name` and its `checks`, if any.                           |
 | `features`      | The features: each a `name`, its `stack`, the features it `needs` and its `checks`, if any. |
 | `questions`     | The literals the answers replace, and the questions asked for them.                         |
@@ -71,7 +71,8 @@ and the reader takes what is only spelling, as quotes, comments and flow style a
 A key the format does not list is refused, so a misspelt key never passes for an option. Version 2
 adds `checks` (on the top, on a stack and on a feature) and `unsupported`; a manifest of version 1
 is read as it always was, a template with no checks, and refuses those keys, so a manifest written
-for version 2 is never misread as one without them.
+for version 2 is never misread as one without them. Version 3 adds a check's long form, which says
+what the check scans a render for ([Checks](#checks)); version 2 refuses it.
 
 ### Branches
 
@@ -139,6 +140,23 @@ have, so `[go, run, ./cmd/acme-widget]` runs `./cmd/blue-fox` in a render whose 
 `blue-fox`. A check passes when it exits 0. A combination's checks stop at its first failure, as
 a CI job's steps do; the checks after it are reported skipped.
 
+From version 3 a check may be written in its long form, `{run: [words…], scans: [what it scans]}`,
+which runs `run` as the list of words runs, and says what the check scans each render for. The list
+of words stays a check in every version. `scans` takes one value for now, `credentials`: the check
+scans the render for leaked credentials (decision 21). Any other value is refused.
+
+```yaml
+version: 3
+checks:
+  - [go, test, ./...]
+  - {run: [gitleaks, dir, ., --redact], scans: [credentials]}
+```
+
+itos-template scans no render for credentials itself, and knows no tool that does: a template marks
+its own check, and `check` warns when no check of the template is marked. One way is
+[gitleaks](https://github.com/gitleaks/gitleaks), pinned to a version and checksum as a template
+pins its other tools, run as the root's check so every render is scanned.
+
 ### Questions
 
 | Key          | What it holds                                                                          |
@@ -193,17 +211,27 @@ is the usual one. The manifest itself is always left out.
 ## What check reports
 
 `itos-template check [<template>]` renders every combination the manifest allows, each as `new`
-renders it, in a temporary folder of its own, runs its checks there and removes the folder. The
+renders it, in a temporary folder of its own, scans it for leftover literals, runs its checks there
+and removes the folder. The
 template is anything git clone takes, the folder `check` runs in when none is named. `check` never
 asks: every answer comes from `--answer`, or with `--defaults` from its question's default, and a
 missing one is refused, exit 2, each named, before anything is rendered. Each render's first commit
 is made as `itos-template check`, so a CI that sets no git identity can run it.
 
+A **leftover** is a literal a render kept in a form no answer replaced: a case-forms literal's words,
+in order and in any case, joined by nothing, a space, `.`, `-`, `_` or `/` (`Acme Widget` in a
+heading, `acmewidget` in a host name), or a literal without case forms as it is written, found in a
+text file's contents, a link's target or a path. A binary file is not read, as no answer replaces
+anything in it. Each leftover fails its combination: write that spot in one of the five forms, so
+the answer replaces it, or name it otherwise. The combination's checks still run.
+
 Its report, on standard output, is a block per combination, in the order of
 [Combinations](#combinations), then an empty line and a count:
 
 ```text
-go: passed
+go: failed
+  leftover: "acme.widget" in the path docs/acme.widget.md
+  leftover: "Acme Widget" at docs/title.md:1
   passed: git ls-files --error-unmatch README.md
   passed: git ls-files --error-unmatch cmd/blue-fox/main.go
 go + cli + web: failed
@@ -222,6 +250,10 @@ python + cli: failed
 ```
 
 - A combination's line is its name, a colon and `passed` or `failed`, at the start of the line.
+- Each leftover follows, indented two spaces: `leftover:`, the text found in double quotes as Go
+  writes a string, then where: ` at ` and the path, a colon and the line (from 1), for one in a
+  file, or ` in the path ` and the path, for one in a path. The path is written as a check's word
+  is. A render's leftovers come in the order of its files, a file's path before its lines.
 - Each check follows, indented two spaces: `passed:`, `failed:` or `skipped:` and the check as it
   ran, the answers in place. A word is written as it is, unless it is empty or holds a space, a
   quote, a backslash or a character that does not print: then it is in double quotes, as Go writes
@@ -232,8 +264,16 @@ python + cli: failed
 - A render that failed is `not rendered`, indented two spaces, followed by why in the same way.
 - The last line is `<passed> of <all> combinations passed.`
 
-`check` exits 0 when every combination rendered and every check passed, 1 when any check or render
-failed, 2 for a missing answer or a manifest refused, and 3 when git cannot reach the template.
+`check` exits 0 when every combination rendered, kept no literal and passed every check, 1 when
+any render, scan or check failed, 2 for a missing answer or a manifest refused, and 3 when git cannot
+reach the template.
+
+When no check of the template is marked `scans: [credentials]`, `check` warns on its error output,
+before its report, and the warning changes no exit code:
+
+```text
+itos-template: warning: no check of the template is marked as scanning its renders for credentials: mark the one that does with scans: [credentials], in a check's long form (docs/manifest.md)
+```
 
 ### Checking a template in its CI
 

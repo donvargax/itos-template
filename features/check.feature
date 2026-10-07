@@ -39,8 +39,8 @@ Feature: check renders every combination a template allows and runs its checks
   any check or render failed, 0 when all passed. Each render is made in a
   temporary folder and removed after its checks.
 
-  The scans of a render for leftover literals and leaked credentials are the
-  item template-scans, after this slice.
+  A render's scan for leftover literals, and the mark of a check that scans
+  it for credentials, are slice-4's, below.
 
   The fixture "acme" (new.feature) takes manifest version 2 and these
   checks, each passing on every render of it:
@@ -152,7 +152,7 @@ Feature: check renders every combination a template allows and runs its checks
   # gitleaks. scans takes credentials alone for now; any other value is
   # refused. The warning goes to the error output, never fails the run, and
   # names no tool.
-  @ID-CHECK-10 @slice-4 @wip
+  @ID-CHECK-10 @slice-4
   Scenario: a literal left in a form no answer replaces fails its combination, naming where
     Given the template "acme" whose branch "stack/go" holds the file "docs/title.md" with the line "# Acme Widget"
     When itos-template runs with "check {template} --answer name=blue-fox --defaults"
@@ -160,14 +160,14 @@ Feature: check renders every combination a template allows and runs its checks
     And its report says "go" failed with the leftover "Acme Widget" at "docs/title.md:1"
     And its report says "python" passed
 
-  @ID-CHECK-11 @slice-4 @wip
+  @ID-CHECK-11 @slice-4
   Scenario: a literal left in a path fails its combination, naming the path
     Given the template "acme" whose branch "stack/go" holds the file "docs/acme.widget.md" with the line "notes"
     When itos-template runs with "check {template} --answer name=blue-fox --defaults"
     Then it exits with code 1
     And its report says "go" failed with the leftover "acme.widget" at "docs/acme.widget.md"
 
-  @ID-CHECK-12 @slice-4 @wip
+  @ID-CHECK-12 @slice-4
   Scenario: check warns when no check is marked as scanning for credentials, and still passes
     Given the template "acme"
     When itos-template runs with "check {template} --answer name=blue-fox --defaults"
@@ -175,7 +175,7 @@ Feature: check renders every combination a template allows and runs its checks
     And its error output says "warning"
     And its error output says "scans: [credentials]"
 
-  @ID-CHECK-13 @slice-4 @wip
+  @ID-CHECK-13 @slice-4
   Scenario: a check marked as scanning for credentials runs as any check, and check gives no warning
     Given the template "acme" whose root has, after its own, the check "git ls-files" marked as scanning "credentials"
     When itos-template runs with "check {template} --answer name=blue-fox --defaults"
@@ -183,7 +183,7 @@ Feature: check renders every combination a template allows and runs its checks
     And its report shows the checks of "go" in order: "git ls-files --error-unmatch README.md", "git ls-files", "git ls-files --error-unmatch cmd/blue-fox/main.go"
     And its error output does not say "warning"
 
-  @ID-CHECK-14 @slice-4 @wip
+  @ID-CHECK-14 @slice-4
   Scenario: check refuses a check marked as scanning something the format does not know with exit 2
     Given the template "acme" whose root has, after its own, the check "git ls-files" marked as scanning "licences"
     When itos-template runs with "check {template} --answer name=blue-fox --defaults"

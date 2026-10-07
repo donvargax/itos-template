@@ -111,33 +111,39 @@ func TestReplacementsPutTheLongestLiteralFirst(t *testing.T) {
 
 func TestParseRefuses(t *testing.T) {
 	cases := map[string]string{
-		"an unknown key":            "version: 1\nstacks: [{name: go}]\nsetup: []\n",
-		"a later version":           "version: 3\nstacks: [{name: go}]\n",
-		"no version":                "stacks: [{name: go}]\n",
-		"checks in version 1":       "version: 1\nstacks: [{name: go}]\nchecks: [[go, test]]\n",
-		"empty checks in version 1": "version: 1\nstacks: [{name: go, checks: []}]\n",
-		"unsupported in version 1":  "version: 1\nstacks: [{name: go}]\nfeatures: [{name: cli, stack: go}]\nunsupported: [{stack: go, features: [cli]}]\n",
-		"a check as one string":     "version: 2\nstacks: [{name: go}]\nchecks: [go test ./...]\n",
-		"a check with no program":   "version: 2\nstacks: [{name: go, checks: [[]]}]\n",
-		"a check's empty program":   "version: 2\nstacks: [{name: go}]\nfeatures: [{name: cli, stack: go, checks: [['', x]]}]\n",
-		"unsupported, no stack":     "version: 2\nstacks: [{name: go}]\nunsupported: [{stack: rust}]\n",
-		"unsupported, no feature":   "version: 2\nstacks: [{name: go}]\nunsupported: [{stack: go, features: [cli]}]\n",
-		"unsupported, a need left":  "version: 2\nstacks: [{name: go}]\nfeatures: [{name: cli, stack: go}, {name: web, stack: go, needs: [cli]}]\nunsupported: [{stack: go, features: [web]}]\n",
-		"unsupported, one twice":    "version: 2\nstacks: [{name: go}]\nfeatures: [{name: cli, stack: go}]\nunsupported: [{stack: go, features: [cli, cli]}]\n",
-		"no stack":                  "version: 1\n",
-		"a feature of no stack":     "version: 1\nstacks: [{name: go}]\nfeatures: [{name: cli, stack: rust}]\n",
-		"a need of another stack":   "version: 1\nstacks: [{name: go}, {name: py}]\nfeatures: [{name: cli, stack: py}, {name: web, stack: go, needs: [cli]}]\n",
-		"a one-word case literal":   "version: 1\nstacks: [{name: go}]\nquestions: [{name: n, literal: acme, question: Q, case_forms: true}]\n",
-		"a case literal, 2fa-code":  "version: 1\nstacks: [{name: go}]\nquestions: [{name: n, literal: 2fa-code, question: Q, case_forms: true}]\n",
-		"a case literal, 1-2":       "version: 1\nstacks: [{name: go}]\nquestions: [{name: n, literal: 1-2, question: Q, case_forms: true}]\n",
-		"a literal not in kebab":    "version: 1\nstacks: [{name: go}]\nquestions: [{name: n, literal: AcmeWidget, question: Q, case_forms: true}]\n",
-		"two questions, one form":   "version: 1\nstacks: [{name: go}]\nquestions: [{name: a, literal: acme-widget, question: Q, case_forms: true}, {name: b, literal: acmeWidget, question: Q}]\n",
-		"a default it refuses":      "version: 1\nstacks: [{name: go}]\nquestions: [{name: a, literal: x-y, question: Q, pattern: '[a-z]+', default: '1'}]\n",
-		"a pattern that is no RE2":  "version: 1\nstacks: [{name: go}]\nquestions: [{name: a, literal: x, question: Q, pattern: '(a'}]\n",
-		"an absolute template path": "version: 1\nstacks: [{name: go}]\ntemplate_only: [/ci.yml]\n",
-		"a path out of the tree":    "version: 1\nstacks: [{name: go}]\ntemplate_only: [../ci.yml]\n",
-		"no question text":          "version: 1\nstacks: [{name: go}]\nquestions: [{name: a, literal: x}]\n",
-		"an empty default":          "version: 1\nstacks: [{name: go}]\nquestions: [{name: a, literal: x, question: Q, default: ''}]\n",
+		"an unknown key":                "version: 1\nstacks: [{name: go}]\nsetup: []\n",
+		"a later version":               "version: 4\nstacks: [{name: go}]\n",
+		"a long check in version 2":     "version: 2\nstacks: [{name: go}]\nchecks: [{run: [gitleaks], scans: [credentials]}]\n",
+		"a scan not known":              "version: 3\nstacks: [{name: go}]\nchecks: [{run: [x], scans: [licences]}]\n",
+		"a long check, a key not known": "version: 3\nstacks: [{name: go}]\nchecks: [{run: [x], with: [y]}]\n",
+		"a long check, run a string":    "version: 3\nstacks: [{name: go}]\nchecks: [{run: go test}]\n",
+		"a long check, scans a string":  "version: 3\nstacks: [{name: go}]\nchecks: [{run: [x], scans: credentials}]\n",
+		"a long check with no run":      "version: 3\nstacks: [{name: go}]\nchecks: [{scans: [credentials]}]\n",
+		"no version":                    "stacks: [{name: go}]\n",
+		"checks in version 1":           "version: 1\nstacks: [{name: go}]\nchecks: [[go, test]]\n",
+		"empty checks in version 1":     "version: 1\nstacks: [{name: go, checks: []}]\n",
+		"unsupported in version 1":      "version: 1\nstacks: [{name: go}]\nfeatures: [{name: cli, stack: go}]\nunsupported: [{stack: go, features: [cli]}]\n",
+		"a check as one string":         "version: 2\nstacks: [{name: go}]\nchecks: [go test ./...]\n",
+		"a check with no program":       "version: 2\nstacks: [{name: go, checks: [[]]}]\n",
+		"a check's empty program":       "version: 2\nstacks: [{name: go}]\nfeatures: [{name: cli, stack: go, checks: [['', x]]}]\n",
+		"unsupported, no stack":         "version: 2\nstacks: [{name: go}]\nunsupported: [{stack: rust}]\n",
+		"unsupported, no feature":       "version: 2\nstacks: [{name: go}]\nunsupported: [{stack: go, features: [cli]}]\n",
+		"unsupported, a need left":      "version: 2\nstacks: [{name: go}]\nfeatures: [{name: cli, stack: go}, {name: web, stack: go, needs: [cli]}]\nunsupported: [{stack: go, features: [web]}]\n",
+		"unsupported, one twice":        "version: 2\nstacks: [{name: go}]\nfeatures: [{name: cli, stack: go}]\nunsupported: [{stack: go, features: [cli, cli]}]\n",
+		"no stack":                      "version: 1\n",
+		"a feature of no stack":         "version: 1\nstacks: [{name: go}]\nfeatures: [{name: cli, stack: rust}]\n",
+		"a need of another stack":       "version: 1\nstacks: [{name: go}, {name: py}]\nfeatures: [{name: cli, stack: py}, {name: web, stack: go, needs: [cli]}]\n",
+		"a one-word case literal":       "version: 1\nstacks: [{name: go}]\nquestions: [{name: n, literal: acme, question: Q, case_forms: true}]\n",
+		"a case literal, 2fa-code":      "version: 1\nstacks: [{name: go}]\nquestions: [{name: n, literal: 2fa-code, question: Q, case_forms: true}]\n",
+		"a case literal, 1-2":           "version: 1\nstacks: [{name: go}]\nquestions: [{name: n, literal: 1-2, question: Q, case_forms: true}]\n",
+		"a literal not in kebab":        "version: 1\nstacks: [{name: go}]\nquestions: [{name: n, literal: AcmeWidget, question: Q, case_forms: true}]\n",
+		"two questions, one form":       "version: 1\nstacks: [{name: go}]\nquestions: [{name: a, literal: acme-widget, question: Q, case_forms: true}, {name: b, literal: acmeWidget, question: Q}]\n",
+		"a default it refuses":          "version: 1\nstacks: [{name: go}]\nquestions: [{name: a, literal: x-y, question: Q, pattern: '[a-z]+', default: '1'}]\n",
+		"a pattern that is no RE2":      "version: 1\nstacks: [{name: go}]\nquestions: [{name: a, literal: x, question: Q, pattern: '(a'}]\n",
+		"an absolute template path":     "version: 1\nstacks: [{name: go}]\ntemplate_only: [/ci.yml]\n",
+		"a path out of the tree":        "version: 1\nstacks: [{name: go}]\ntemplate_only: [../ci.yml]\n",
+		"no question text":              "version: 1\nstacks: [{name: go}]\nquestions: [{name: a, literal: x}]\n",
+		"an empty default":              "version: 1\nstacks: [{name: go}]\nquestions: [{name: a, literal: x, question: Q, default: ''}]\n",
 	}
 	for name, text := range cases {
 		if _, err := Parse([]byte(text)); err == nil {
@@ -227,7 +233,7 @@ features:
 	b, _ := m.combination("go", []string{"b", "a"})
 	var got []string
 	for _, c := range m.ChecksOf(b) {
-		got = append(got, strings.Join(c, " "))
+		got = append(got, strings.Join(c.Run, " "))
 	}
 	want := []string{"root", "stack one", "stack two", "a", "b"}
 	if !slices.Equal(got, want) {
@@ -255,7 +261,7 @@ func TestParseSaysACheckIsAListOfWords(t *testing.T) {
 }
 
 func TestACheckIsWrittenQuotingAWordOnlyWhenItMustBe(t *testing.T) {
-	got := Check{"sh", "-c", "go test ./...", "", `a"b`, "tab\there", "it's", `back\slash`, "bell\a", "plain/path.go"}.String()
+	got := Words{"sh", "-c", "go test ./...", "", `a"b`, "tab\there", "it's", `back\slash`, "bell\a", "plain/path.go"}.String()
 	want := `sh -c "go test ./..." "" "a\"b" "tab\there" "it's" "back\\slash" "bell\a" plain/path.go`
 	if got != want {
 		t.Errorf("the check is written\n%s, not\n%s", got, want)
@@ -331,5 +337,62 @@ func TestParseReadsStrictly(t *testing.T) {
 	}
 	if _, err := Parse([]byte("version: 2\nstacks: [{name: go}]\nsetup: []\n")); !errors.As(err, &invalid) || !strings.Contains(err.Error(), "setup") {
 		t.Errorf("Parse takes an unknown key: %v", err)
+	}
+}
+
+// Version 3 adds a check's long form, saying what the check scans the
+// render for; its words run as a check written as a list's do, and the
+// list stays valid.
+func TestParseReadsACheckInItsLongFormFromVersion3(t *testing.T) {
+	m, err := Parse([]byte("version: 3\nchecks: [[git, ls-files], {run: [gitleaks, dir, .], scans: [credentials]}]\nstacks: [{name: go}]\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	c, _ := m.combination("go", nil)
+	checks := m.ChecksOf(c)
+	if len(checks) != 2 || checks[0].Run.String() != "git ls-files" || checks[0].Scans != nil ||
+		checks[1].Run.String() != "gitleaks dir ." || !slices.Equal(checks[1].Scans, []string{Credentials}) {
+		t.Errorf("the checks are %+v", checks)
+	}
+	if !m.Scans(Credentials) {
+		t.Error("a check marked as scanning credentials is not found")
+	}
+	if acme(t).Scans(Credentials) {
+		t.Error("acme, whose checks are marked as scanning nothing, scans credentials")
+	}
+}
+
+// Any check of the template may be the one marked: a stack's or a
+// feature's as well as the root's.
+func TestScansFindsAMarkedCheckOfAStackOrAFeature(t *testing.T) {
+	for _, text := range []string{
+		"version: 3\nstacks: [{name: go, checks: [{run: [x], scans: [credentials]}]}]\n",
+		"version: 3\nstacks: [{name: go}]\nfeatures: [{name: cli, stack: go, checks: [{run: [x], scans: [credentials]}]}]\n",
+	} {
+		m, err := Parse([]byte(text))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !m.Scans(Credentials) {
+			t.Errorf("%s: no check scans credentials", text)
+		}
+	}
+}
+
+func TestParseNamesTheScanItDoesNotKnow(t *testing.T) {
+	_, err := Parse([]byte("version: 3\nstacks: [{name: go}]\nchecks: [[x], {run: [y], scans: [credentials, licences]}]\n"))
+	var invalid *Invalid
+	want := []string{`the root's check 2 scans "licences", which the format does not know: scans takes credentials`}
+	if !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, want) {
+		t.Errorf("Parse = %v", err)
+	}
+}
+
+func TestParseSaysALongCheckIsOfVersion3(t *testing.T) {
+	_, err := Parse([]byte("version: 2\nstacks: [{name: go, checks: [{run: [x], scans: [credentials]}]}]\n"))
+	var invalid *Invalid
+	want := []string{"the stack go's check 1 is in the long form, {run, scans}, of version 3: write version: 3"}
+	if !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, want) {
+		t.Errorf("Parse = %v", err)
 	}
 }

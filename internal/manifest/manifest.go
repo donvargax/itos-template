@@ -1,15 +1,17 @@
 // Package manifest reads a template's manifest, itos-template.yaml at the
 // top of its root branch and merged down into every branch (decision 8):
 // its stacks, its features, the questions whose answers replace its
-// literals, the paths only the template keeps, and from version 2 the checks
+// literals, the paths only the template keeps, from version 2 the checks
 // check runs in each render and the combinations the template cannot
-// support. docs/manifest.md is its format, for template authors.
+// support, and from version 3 a check's long form, saying what it scans the
+// render for. docs/manifest.md is its format, for template authors.
 //
 // A stack's branch is stack/<stack> and a feature's <stack>/<feature>, so the
 // manifest names branches by convention alone. Unknown keys are refused, so
 // a typo never passes for an option, and the keys later items add come with
 // a version that names them: version 1 refuses checks and unsupported, so a
-// manifest written for version 2 is never misread as one with no checks.
+// manifest written for version 2 is never misread as one with no checks, and
+// version 2 refuses a check's long form.
 package manifest
 
 import (
@@ -32,7 +34,7 @@ const File = "itos-template.yaml"
 
 // Version is the newest manifest version this itos-template reads; it
 // reads every one from 1.
-const Version = 2
+const Version = 3
 
 // Manifest is a template's itos-template.yaml.
 type Manifest struct {
@@ -46,35 +48,87 @@ type Manifest struct {
 }
 
 // Check is a command check runs in a render: its words, the program first,
-// run with no shell, so it means the same on every system.
-type Check []string
+// run with no shell, so it means the same on every system, and from
+// version 3 what it scans the render for. It is written as its words, a
+// list, or from version 3 in its long form, {run: [words…], scans: [what
+// it scans]}.
+type Check struct {
+	Run   Words
+	Scans []string
 
-// UnmarshalYAML reads a check, refusing a string with a sentence saying
-// why: a shell would read one, and none runs a check.
+	long bool // written in the long form
+}
+
+// Credentials is what a check scanning a render for leaked credentials is
+// marked as scanning: scans: [credentials]. It is the one value scans
+// takes.
+const Credentials = "credentials"
+
+// UnmarshalYAML reads a check, in either form, refusing a string with a
+// sentence saying why: a shell would read one, and none runs a check.
 func (c *Check) UnmarshalYAML(n *yaml.Node) error {
-	if n.Kind != yaml.SequenceNode {
-		return fmt.Errorf("line %d: a check is a list of words, the program first, as [go, test, ./...]: no shell runs it, so it is never one string", n.Line)
+	words := func(n *yaml.Node, what string) ([]string, error) {
+		if n.Kind != yaml.SequenceNode {
+			return nil, fmt.Errorf("line %d: %s is a list of words, the program first, as [go, test, ./...]: no shell runs it, so it is never one string", n.Line, what)
+		}
+		var w []string
+		err := n.Decode(&w)
+		return w, err
 	}
-	var words []string
-	if err := n.Decode(&words); err != nil {
+	if n.Kind != yaml.MappingNode {
+		w, err := words(n, "a check")
+		c.Run = w
 		return err
 	}
-	*c = words
+	c.long = true
+	for i := 0; i+1 < len(n.Content); i += 2 {
+		k, v := n.Content[i], n.Content[i+1]
+		var err error
+		switch k.Value {
+		case "run":
+			c.Run, err = words(v, "a check's run")
+		case "scans":
+			if v.Kind != yaml.SequenceNode {
+				return fmt.Errorf("line %d: a check's scans is a list, as [credentials]", v.Line)
+			}
+			err = v.Decode(&c.Scans)
+		default:
+			return fmt.Errorf("line %d: a check has no key %s: its long form is {run: [words…], scans: [what it scans]}", k.Line, k.Value)
+		}
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
+
+// MarshalYAML writes a check as it was written: its words, or its long
+// form.
+func (c Check) MarshalYAML() (any, error) {
+	if !c.long && c.Scans == nil {
+		return []string(c.Run), nil
+	}
+	return struct {
+		Run   []string `yaml:"run,flow"`
+		Scans []string `yaml:"scans,flow,omitempty"`
+	}{c.Run, c.Scans}, nil
+}
+
+// Words are a check's words, the program first.
+type Words []string
 
 // String is the check as check's report writes it: its words joined by
 // spaces, a word written as it is unless it is empty or holds a space, a
 // quote, a backslash or a character that does not print, which is written
 // in double quotes as Go writes a string.
-func (c Check) String() string {
-	shown := make([]string, len(c))
-	for i, w := range c {
-		shown[i] = w
-		if w == "" || strings.ContainsFunc(w, func(r rune) bool {
+func (w Words) String() string {
+	shown := make([]string, len(w))
+	for i, word := range w {
+		shown[i] = word
+		if word == "" || strings.ContainsFunc(word, func(r rune) bool {
 			return unicode.IsSpace(r) || r == '"' || r == '\'' || r == '\\' || !unicode.IsPrint(r)
 		}) {
-			shown[i] = strconv.Quote(w)
+			shown[i] = strconv.Quote(word)
 		}
 	}
 	return strings.Join(shown, " ")
@@ -315,12 +369,21 @@ func (m *Manifest) version2Keys() []string {
 	return keys
 }
 
-// checkChecks refuses a check with no program.
+// checkChecks refuses a check with no program, a check in the long form
+// in version 2, and a scan the format does not know.
 func (m *Manifest) checkChecks(add func(string, ...any)) {
 	each := func(where string, checks []Check) {
 		for i, c := range checks {
-			if len(c) == 0 || c[0] == "" {
+			if len(c.Run) == 0 || c.Run[0] == "" {
 				add("%s check %d names no program: a check is a list of words, the program first", where, i+1)
+			}
+			if c.long && m.Version == 2 {
+				add("%s check %d is in the long form, {run, scans}, of version 3: write version: 3", where, i+1)
+			}
+			for _, scan := range c.Scans {
+				if scan != Credentials {
+					add("%s check %d scans %q, which the format does not know: scans takes %s", where, i+1, scan, Credentials)
+				}
 			}
 		}
 	}
@@ -331,6 +394,22 @@ func (m *Manifest) checkChecks(add func(string, ...any)) {
 	for _, f := range m.Features {
 		each("the feature "+f.Branch()+"'s", f.Checks)
 	}
+}
+
+// Words are a case-forms literal's words, none when q has no case forms.
+func (q *Question) Words() caseform.Words { return q.words }
+
+// Scans is whether a check of the manifest, the root's, a stack's or a
+// feature's, is marked as scanning renders for what.
+func (m *Manifest) Scans(what string) bool {
+	checks := slices.Clone(m.Checks)
+	for _, s := range m.Stacks {
+		checks = append(checks, s.Checks...)
+	}
+	for _, f := range m.Features {
+		checks = append(checks, f.Checks...)
+	}
+	return slices.ContainsFunc(checks, func(c Check) bool { return slices.Contains(c.Scans, what) })
 }
 
 // Check is whether answer is an answer q takes: never empty, the pattern
