@@ -53,3 +53,4 @@ questions:
   - id: q-12
     item: "new-renders"
     question: "Where does new write the project? Recommended: into a folder that does not exist or is empty, which it makes a git repository with the render as its first commit, so update has a base to merge onto from day one; a folder with files in it is refused, exit 1, naming it. Or: render into any folder and leave committing to the person (copier's way; works over an existing project, but update then has no known base); or render without git and let setup steps init it (decision 7; leaves the most to each template)."
+    answer: "Into a folder that does not exist or is empty, which new makes a git repository with the render as its first commit, so update has a base to merge onto from day one; a folder with files in it is refused, exit 1, naming it. The user's call, 2026-10-06."
