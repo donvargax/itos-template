@@ -533,7 +533,7 @@ items:
     title: "The manifest and the record are read strictly: no tags, documents, anchors, aliases, merge keys or duplicate keys"
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: []
     kind: slice
     why: >
