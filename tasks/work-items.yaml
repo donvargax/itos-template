@@ -434,20 +434,9 @@ items:
     title: Scenarios for what only a test outside the domain holds after T-9
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: slice
-    why: >
-      Was scenario-gaps.
-      Decision 18 leaves the UI, the application and infra to the scenarios, and T-9 kept a test
-      outside the domain only where no scenario holds it yet: --json's rule IDs and every kind's
-      code and sentence (internal/cli's test); a merge of two features changing one file, a
-      conflict, a symbolic link and a submodule read from a template, and a commit's modes and
-      author (internal/git's); a file's execute bit, a symbolic link, a write that fails half way
-      (internal/disk's); a check whose program cannot be started (internal/program's). Scenarios for
-      these let those tests go, but the ones no scenario can reach: an itos linked as git and a
-      caller's GIT_DIR, which the harness hides, asking on a terminal, and removing a folder windows
-      holds.
     refs: [T-9]
   - id: asker-words
     title: Word the stack question in the UI, not the domain
