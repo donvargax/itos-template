@@ -24,3 +24,20 @@
     lands.
   done_when:
     - run: grep -q 'GNU AFFERO GENERAL PUBLIC LICENSE' LICENSE
+- id: T-3
+  type: build
+  title: The Go module, a kong command skeleton with --version, and the acceptance harness running the built binary
+  why: >
+    Bootstrap, first of three (PLAN.md; decision 4). The module github.com/donvargax/itos-template;
+    cmd/itos-template on kong, its --version printing the version stamped at build and a dev version
+    otherwise; a godog harness in features/ that builds the binary once and runs it, harvested from
+    itos's (features/steps_test.go and its suite setup in
+    /home/yorch/tmp/llms-safe/gamedev/svg-art/itos, hiding claude, itos and itos-* from the PATH as
+    itos's T-087 does, git resolved past any itos linked as git as its T-104 does), not rewritten.
+    itos.yaml gains the scenario test kind as itos's has it (tests.scenario, the Scenarios footer
+    feat and fix need, features/smoke.yaml), and the first live scenario, --version, lands in a feat
+    naming it. golangci-lint and govulncheck pinned, run by the pre-commit hook.
+  done_when:
+    - run: go build ./... && go vet ./...
+    - run: go test ./features -count=1
+    - run: grep -q 'scenario' itos.yaml
