@@ -490,7 +490,7 @@ items:
     title: Property-based tests of the domain with rapid, one case per push (decision 20)
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: []
     kind: task
     why: >
