@@ -576,3 +576,19 @@ items:
       docs/CONFIG.md rule 16 (decision 22): an editor checks and completes a file, and a tool or
       configuration language that writes one has its contract.
     tags: [new, check]
+  - id: literal-line-endings
+    title: The manifest refuses a literal holding a line ending
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Found writing T-12's line-ending property. A render replaces within lines and never touches a
+      line ending (decision 3, package render), but the manifest takes a literal of any text, so a
+      literal written in YAML with a line ending in it ("Acme\nCorp") would be replaced across a
+      line ending, and match in an LF file and not in its CRLF twin. The property holds over
+      literals of one line, as every real one is; refusing a literal with \n or \r, as a manifest
+      problem with its fix, would make that the manifest's promise. An answer with a line ending (a
+      question with no pattern takes one from a command line) adds lines rather than changing one,
+      and may want the same refusal.
