@@ -51,7 +51,7 @@ items:
     title: itos-template check renders every combination a template allows and runs the checks its manifest names
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: [slice-1]
     kind: slice
     why: >
