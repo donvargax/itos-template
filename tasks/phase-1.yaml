@@ -56,3 +56,16 @@
   done_when:
     - run: test -f .github/workflows/ci.yml && grep -q windows-latest .github/workflows/ci.yml
     - run: grep -q 'ci:' itos.yaml
+- id: T-5
+  type: ci
+  title: "Releases cut by CI: a green push with a feat or a fix releases itself, built by GoReleaser and attested"
+  why: >
+    Bootstrap, third (PLAN.md). Harvested from itos's T-069 (its release workflow, .goreleaser.yaml
+    and tools/bin/release-notes in /home/yorch/tmp/llms-safe/gamedev/svg-art/itos): the version from
+    the commits, archives for the three systems with checksums, attested, notes generated quoting
+    each Upgrading and BREAKING-CHANGE footer; nothing done by hand, a tag never moved. itos's
+    previous-release check (the last release's scenarios against the new binary) comes once there is
+    a release to compare with: an idea, not this task.
+  done_when:
+    - run: test -f .goreleaser.yaml
+    - run: grep -rq goreleaser .github/workflows
