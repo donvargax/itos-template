@@ -344,7 +344,7 @@ items:
     title: "Work items carry tags: the command they change, or a concern across commands"
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: []
     kind: task
     why: >
