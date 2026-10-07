@@ -527,10 +527,7 @@ items:
     title: A render's refusal of a file named as a folder names every clash, in path order, the same on every run
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: slice
-    why: >
-      Found by T-12's property TestRenderIsDeterministic (seed 5487491238662855652): render.Plan
-      walks a map, so which clash it names varies from run to run.
     tags: [new, check]
