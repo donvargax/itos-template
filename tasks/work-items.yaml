@@ -420,7 +420,7 @@ items:
     title: Thin UI and application layers over a domain that does the work, through ports (decision 17)
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: []
     kind: task
     why: >
