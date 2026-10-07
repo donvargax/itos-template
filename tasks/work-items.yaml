@@ -384,16 +384,9 @@ items:
     title: A Go file is at most 600 lines of code, revive's file-length-limit
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: [T-9]
     kind: task
-    why: >
-      Was file-length-limit.
-      Decision 16 keeps a slice in one file until it grows large or complex; a limit says when.
-      After T-8, so the number comes from the reshaped code, and so the person can see whether
-      slices want a file per layer before one is set. revive, bundled in the pinned golangci-lint
-      2.14.0, has file-length-limit (a maximum, comments and blank lines skippable); funlen limits
-      functions if wanted too.
   - id: git-missing-wording
     title: check's git-missing error names check, not new
     phase: 1
