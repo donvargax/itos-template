@@ -90,6 +90,21 @@ items:
       PLAN.md, order of work 6; decision 4: the generator is the proof that a template made to
       docs/template-contents.md works. Which repository holds the template (its own, beside this
       one) is settled then.
+
+      The owner's calls, 2026-10-07 (decision 24: its own repository, adopted here after): the
+      repository donvargax/go-template-itos; the literals go-template-itos (the project's name, in
+      its five case forms), itos-corp (the owner, in the copyright line and the README) and
+      github.com/itos-corp/go-template-itos (the module path); the MIT license, for its attribution,
+      the owner a literal; this repository's machinery kept whole (Renovate through the owner's
+      presets, CI on three systems, releases, itos, every gate, rapid, the scenario harness) and its
+      code minimal but setting the rules: one command, count (a file's lines and words), through
+      every layer (a kong UI with --json and the sealed error switch, a thin handler, the domain's
+      counting and its errors, a Files port, a disk adapter, an in-memory fake, a property that
+      counting joined pieces sums their counts, a scenario); the made project's docs written by the
+      coordinator (a quick start, an architecture overview of the layers and why, a security and
+      trust-boundary guide, an upgrade guide); built in four pieces: the root, stack/go, go/cli,
+      then the template's CI running check with gitleaks marked scans: [credentials]. Waits for
+      slice-6, check-ci-branches, asker-words and the CLI items before it.
     tags: [new, check]
   - id: T-14
     title: Renovate keeps the Go modules and the workflows' actions current, landing on main once CI is green
