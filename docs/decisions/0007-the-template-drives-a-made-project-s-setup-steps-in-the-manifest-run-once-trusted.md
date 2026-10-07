@@ -26,4 +26,4 @@ new-setup builds the steps, new running them and itos template setup. Decisions 
 
 ## More Information
 
-Supersedes ADR-0006.
+Supersedes ADR-0005 and ADR-0006.
