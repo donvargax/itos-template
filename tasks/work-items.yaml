@@ -665,3 +665,17 @@ items:
       modules or toolchain. itos picks its version with the same release-version, so this would part
       from itos.
     tags: [ci]
+  - id: renovate-check-pin
+    title: T-14's checks run a pinned Renovate, not the newest npx finds
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      docs/template-contents.md: explicit versions, never latest. T-14's checks run npx --package
+      renovate, which takes the newest release the runner's Node meets: on Node 22 it took an old
+      one and turned main red once (7c53c70 added Node 24). Pin the version in the checks, with a #
+      renovate: comment the presets' customManagers:githubActionsVersions can move, or a pinned
+      tool.
+    tags: [ci]
