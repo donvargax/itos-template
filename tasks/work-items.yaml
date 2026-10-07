@@ -145,3 +145,13 @@ items:
     why: >
       docs/template-contents.md lists it for every project; itos's T-108 builds and proves one (sudo
       removed, the egress allowlist, the git shim first). Copy it once that lands, not before.
+  - id: previous-release
+    title: CI runs the last release scenarios against a new binary, as itos does
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: [T-5]
+    kind: idea
+    why: >
+      itos's T-071: a feat may not change an old scenario, a fix names each it changes. Needs a
+      first release.
