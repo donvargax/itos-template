@@ -9,6 +9,14 @@
 // acronym rules could change a render between its releases, and an update
 // needs renders reproduced byte for byte (decision 3), so this is our own
 // (decision 13; the item slice-1's why).
+//
+// Two forms can be one string. One word makes its kebab, snake and camel
+// forms the same; a first word starting with a digit makes camel and Pascal
+// the same (2fa-code is 2faCode in both), and words of digits alone make
+// snake and upper snake the same too (1-2 is 1_2 in both). The manifest
+// refuses a case-forms literal whose five forms are not five different
+// strings, as it would map one string to two answers; an answer's forms
+// may coincide, only rendering two forms of the literal alike.
 package caseform
 
 import (
@@ -66,9 +74,12 @@ func (w Words) Pascal() string {
 // UpperSnake is the words in capitals joined by underscores: ACME_WIDGET.
 func (w Words) UpperSnake() string { return strings.ToUpper(w.Snake()) }
 
+// FormNames are the forms' names, in the order Forms gives them.
+var FormNames = []string{"kebab", "snake", "camel", "Pascal", "upper snake"}
+
 // Forms are the five forms, in the order kebab, snake, camel, Pascal and
-// upper snake. Two words or more make five different strings; one word
-// makes its kebab, snake and camel forms the same.
+// upper snake. They are not always five different strings: the package's
+// comment says when two are one.
 func (w Words) Forms() []string {
 	return []string{w.Kebab(), w.Snake(), w.Camel(), w.Pascal(), w.UpperSnake()}
 }

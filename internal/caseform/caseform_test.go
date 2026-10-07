@@ -12,6 +12,7 @@ func TestForms(t *testing.T) {
 		"my-http-server": {"my-http-server", "my_http_server", "myHttpServer", "MyHttpServer", "MY_HTTP_SERVER"},
 		"acme-v2":        {"acme-v2", "acme_v2", "acmeV2", "AcmeV2", "ACME_V2"},
 		"2fa-code":       {"2fa-code", "2fa_code", "2faCode", "2faCode", "2FA_CODE"},
+		"1-2":            {"1-2", "1_2", "12", "12", "1_2"},
 		"acme":           {"acme", "acme", "acme", "Acme", "ACME"},
 	}
 	for kebab, want := range cases {

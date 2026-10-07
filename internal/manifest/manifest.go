@@ -232,6 +232,10 @@ func (m *Manifest) check() []string {
 				add("the question %s has case forms, so its literal needs two words or more, to make five different forms", q.Name)
 				continue
 			}
+			if collide := collidingForms(q.words); collide != "" {
+				add("the question %s has case forms, so the five forms of its literal %q must be five different strings: %s", q.Name, q.Literal, collide)
+				continue
+			}
 			forms = q.words.Forms()
 		}
 		for _, form := range forms {
@@ -257,6 +261,43 @@ func (m *Manifest) check() []string {
 		}
 	}
 	return problems
+}
+
+// collidingForms says which forms of a case-forms literal's words are one
+// string, and how to tell them apart, or is "" when the five are five
+// different strings. Two forms as one string would map it to two answers,
+// the first winning, so the manifest holds every form to the promise, a
+// form added later too, rather than narrowing what a literal may be.
+func collidingForms(words caseform.Words) string {
+	forms := words.Forms()
+	var groups []string
+	counted := map[int]bool{}
+	for i, form := range forms {
+		if counted[i] {
+			continue
+		}
+		names := []string{caseform.FormNames[i]}
+		for j := i + 1; j < len(forms); j++ {
+			if forms[j] == form {
+				names = append(names, caseform.FormNames[j])
+				counted[j] = true
+			}
+		}
+		switch {
+		case len(names) == 2:
+			groups = append(groups, fmt.Sprintf("its %s and %s forms are both %s", names[0], names[1], form))
+		case len(names) > 2:
+			groups = append(groups, fmt.Sprintf("its %s and %s forms are all %s", strings.Join(names[:len(names)-1], ", "), names[len(names)-1], form))
+		}
+	}
+	if len(groups) == 0 {
+		return ""
+	}
+	fix := "rename it so they differ"
+	if first := words[0][0]; first >= '0' && first <= '9' {
+		fix = "start its first word with a letter"
+	}
+	return strings.Join(groups, "; ") + ": " + fix
 }
 
 // version2Keys are the keys of version 2 the manifest gives, each where it

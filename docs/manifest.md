@@ -145,7 +145,7 @@ a CI job's steps do; the checks after it are reported skipped.
 An answer is never empty. A `default` must be an answer its question takes.
 
 **Case forms.** With `case_forms: true` the literal is written in kebab case, lowercase words of
-letters and digits joined by dashes, two words or more, so its five forms are five different
+letters and digits joined by dashes, two words or more, and its five forms must be five different
 strings. The answer is written the same way. Each form of the literal is replaced by the same form
 of the answer:
 
@@ -159,6 +159,13 @@ of the answer:
 
 The dashes are the only word breaks: nothing is guessed, so `http-server` is `HttpServer`, never
 `HTTPServer`, and a render is the same whatever version of itos-template makes it.
+
+Two forms are one string when the first word starts with a digit: `2fa-code` is `2faCode` in both
+camel and Pascal case. When every word is digits alone, snake and upper snake are one too: `1-2` is
+`1_2` in both. One string cannot be replaced by two answers, so the manifest refuses such a
+literal, naming the forms that collide; start its first word with a letter (`code-2fa`,
+`v1-2`). An answer is not held to this: the answer `2fa-code` only renders the literal's camel and
+Pascal forms alike.
 
 **Where literals are replaced.** In every text file's contents (a file with no NUL byte in its
 first 8000 bytes, as git tells text from binary; any other file is copied as it is), in each

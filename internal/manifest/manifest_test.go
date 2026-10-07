@@ -1,6 +1,7 @@
 package manifest
 
 import (
+	"errors"
 	"os"
 	"path/filepath"
 	"slices"
@@ -126,6 +127,8 @@ func TestParseRefuses(t *testing.T) {
 		"a feature of no stack":     "version: 1\nstacks: [{name: go}]\nfeatures: [{name: cli, stack: rust}]\n",
 		"a need of another stack":   "version: 1\nstacks: [{name: go}, {name: py}]\nfeatures: [{name: cli, stack: py}, {name: web, stack: go, needs: [cli]}]\n",
 		"a one-word case literal":   "version: 1\nstacks: [{name: go}]\nquestions: [{name: n, literal: acme, question: Q, case_forms: true}]\n",
+		"a case literal, 2fa-code":  "version: 1\nstacks: [{name: go}]\nquestions: [{name: n, literal: 2fa-code, question: Q, case_forms: true}]\n",
+		"a case literal, 1-2":       "version: 1\nstacks: [{name: go}]\nquestions: [{name: n, literal: 1-2, question: Q, case_forms: true}]\n",
 		"a literal not in kebab":    "version: 1\nstacks: [{name: go}]\nquestions: [{name: n, literal: AcmeWidget, question: Q, case_forms: true}]\n",
 		"two questions, one form":   "version: 1\nstacks: [{name: go}]\nquestions: [{name: a, literal: acme-widget, question: Q, case_forms: true}, {name: b, literal: acmeWidget, question: Q}]\n",
 		"a default it refuses":      "version: 1\nstacks: [{name: go}]\nquestions: [{name: a, literal: x-y, question: Q, pattern: '[a-z]+', default: '1'}]\n",
@@ -140,6 +143,29 @@ func TestParseRefuses(t *testing.T) {
 			t.Errorf("%s: Parse took it", name)
 		} else if strings.TrimSpace(err.Error()) == "" {
 			t.Errorf("%s: no problem named", name)
+		}
+	}
+}
+
+// A case-forms literal whose forms are not five different strings would
+// map one string to two answers; the manifest refuses it, saying which
+// forms collide and how to fix the literal (bug-1).
+func TestParseSaysWhichCaseFormsOfALiteralCollide(t *testing.T) {
+	cases := map[string]string{
+		"2fa-code":    `the question name has case forms, so the five forms of its literal "2fa-code" must be five different strings: its camel and Pascal forms are both 2faCode: start its first word with a letter`,
+		"1-2":         `the question name has case forms, so the five forms of its literal "1-2" must be five different strings: its snake and upper snake forms are both 1_2; its camel and Pascal forms are both 12: start its first word with a letter`,
+		"acme-2fa":    "",
+		"acme-widget": "",
+	}
+	for literal, want := range cases {
+		_, err := Parse([]byte("version: 1\nstacks: [{name: go}]\nquestions: [{name: name, literal: " + literal + ", question: Q, case_forms: true}]\n"))
+		var invalid *Invalid
+		switch {
+		case want == "" && err != nil:
+			t.Errorf("%s: Parse = %v", literal, err)
+		case want == "":
+		case !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, []string{want}):
+			t.Errorf("%s: Parse = %v, want the problem\n%s", literal, err, want)
 		}
 	}
 }

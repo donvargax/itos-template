@@ -356,7 +356,7 @@ Feature: new makes a project from a template
   # one string; words of digits alone make snake and upper snake one too.
   # The manifest checks the promise itself, so a later form is held to it
   # as well, and says which forms collide and how to fix the literal.
-  @ID-NEW-32 @bug-1 @wip
+  @ID-NEW-32 @bug-1
   Scenario Outline: new refuses a case-forms literal whose forms are not five different strings with exit 2, naming them
     Given the template "acme" whose question "name" has the literal "<literal>"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
