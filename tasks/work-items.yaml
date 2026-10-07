@@ -496,3 +496,14 @@ items:
     why: >
       The ledger's T-12 says why.
     tags: [new, check]
+  - id: bug-1
+    title: The manifest refuses a case-forms literal whose five forms are not five different strings
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: slice
+    why: >
+      Found by T-12's first property, TestCaseFormsAreDistinct (seed 16460451316476317720, shrunk to
+      0-0).
+    tags: [new, check]
