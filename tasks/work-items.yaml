@@ -425,14 +425,15 @@ items:
     depends_on: []
     kind: task
     tags: [new, check]
-  - id: domain-coverage
-    title: A gate on the domain packages' unit-test coverage
+  - id: T-13
+    title: Each domain package keeps at least 80% unit-test coverage
     phase: 1
     owner: donvargax
     status: todo
     depends_on: [T-9]
-    kind: idea
+    kind: task
     why: >
+      Was domain-coverage.
       Decision 18 has the domain unit-tested in full. A coverage floor on the domain packages, read
       from go test -coverprofile in the CI plan, holds it. After T-9, so the number comes from the
       reshaped code.
