@@ -52,11 +52,7 @@ func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
 	// Split before {template} is expanded, so a path with a space stays one
 	// argument.
 	sc.Step(`^itos-template runs with "([^"]*)"$`, func(args string) error {
-		fields := strings.Fields(args)
-		for i, f := range fields {
-			fields[i] = w.expand(f)
-		}
-		return w.run(w.dir, w.bin, fields...)
+		return w.runWith(w.env(), args)
 	})
 
 	sc.Step(`^it exits with code (\d+)$`, w.exitsWith)
@@ -248,9 +244,59 @@ func (w *world) gitIn(dir string, args ...string) error {
 // A program run in the folder dir, its exit code and output what the Then
 // steps read.
 func (w *world) run(dir, program string, args ...string) error {
+	return w.runEnv(dir, w.env(), program, args...)
+}
+
+// runWith runs itos-template in the scratch repository with args, split
+// before {template} is expanded, in the environment env.
+func (w *world) runWith(env []string, args string) error {
+	fields := strings.Fields(args)
+	for i, f := range fields {
+		fields[i] = w.expand(f)
+	}
+	return w.runEnv(w.dir, env, w.bin, fields...)
+}
+
+// noGit is the scenarios' environment with no git on the PATH: every folder
+// holding one replaced by a folder of links to the rest, or left out, as
+// callerPath does for what it hides.
+func (w *world) noGit() []string {
+	return setEnv(w.env(), "PATH", pathHiding(append(slices.Clone(hiddenAlways), "git")...))
+}
+
+// knowingNoOne is the scenarios' environment with no identity for git: no
+// GIT_AUTHOR_* or GIT_COMMITTER_* variable, and user.useConfigOnly set
+// (through GIT_CONFIG_COUNT, which outranks every config file), so git
+// refuses to guess one from the machine, which it would do differently on
+// each system.
+func (w *world) knowingNoOne() []string {
+	var env []string
+	for _, kv := range w.env() {
+		name, _, _ := strings.Cut(kv, "=")
+		if !strings.HasPrefix(name, "GIT_AUTHOR_") && !strings.HasPrefix(name, "GIT_COMMITTER_") {
+			env = append(env, kv)
+		}
+	}
+	return append(env, "GIT_CONFIG_COUNT=1", "GIT_CONFIG_KEY_0=user.useConfigOnly", "GIT_CONFIG_VALUE_0=true")
+}
+
+// setEnv is env with the variable name, in any case, set to value.
+func setEnv(env []string, name, value string) []string {
+	var out []string
+	for _, kv := range env {
+		if n, _, _ := strings.Cut(kv, "="); !strings.EqualFold(n, name) {
+			out = append(out, kv)
+		}
+	}
+	return append(out, name+"="+value)
+}
+
+// runEnv runs program in the folder dir in the environment env, its exit
+// code and output what the Then steps read.
+func (w *world) runEnv(dir string, env []string, program string, args ...string) error {
 	cmd := exec.Command(program, args...)
 	cmd.Dir = dir
-	cmd.Env = w.env()
+	cmd.Env = env
 	var stdout, stderr strings.Builder
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr

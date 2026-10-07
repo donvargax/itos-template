@@ -1,0 +1,18 @@
+# The tangle fixture's manifest (docs/manifest.md): one stack, three
+# features needing none, and acme's question name.
+version: 2
+stacks:
+  - name: go
+features:
+  - name: a
+    stack: go
+  - name: b
+    stack: go
+  - name: c
+    stack: go
+questions:
+  - name: name
+    literal: acme-widget
+    question: What is the project's name?
+    pattern: "[a-z][a-z0-9]*(-[a-z0-9]+)*"
+    case_forms: true

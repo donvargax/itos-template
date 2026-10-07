@@ -1,13 +1,14 @@
-// The steps of new.feature: the fixture templates, built as git repositories
-// from testdata, and what a made project holds. A made project is judged by
+// The steps of new.feature: the fixture templates a scenario names (built in
+// templates_test.go), what a made project holds, and --json's failure
+// object, parsed, never searched. A made project is judged by
 // its files, its git history and its record, .itos-template.yaml, read as
 // YAML: the files itos-template writes are part of its contract
 // (docs/CLI.md).
 package features
 
 import (
-	"bufio"
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -19,7 +20,6 @@ import (
 	"slices"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/cucumber/godog"
 	"go.yaml.in/yaml/v3"
@@ -30,6 +30,30 @@ func (w *world) newSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^the template "([^"]*)" whose question "([^"]*)" has the literal "([^"]*)"$`, w.templateWithLiteral)
 	sc.Step(`^the template "([^"]*)" whose branch "([^"]*)" holds the files (".*")$`, w.templateWithFiles)
 	sc.Step(`^the template "([^"]*)" whose manifest is acme's (.+)$`, w.templateWithManifest)
+	sc.Step(`^the template "([^"]*)" whose branch "([^"]*)" holds a submodule at "([^"]*)"$`, w.templateWithSubmodule)
+	sc.Step(`^the template "([^"]*)" whose root branch holds no itos-template\.yaml$`, w.templateWithoutManifest)
+	sc.Step(`^the template "([^"]*)" whose manifest has the key "([^"]*)"$`, w.templateWithKey)
+	sc.Step(`^the template "([^"]*)" whose branch "([^"]*)" is missing$`, w.templateWithoutBranch)
+	sc.Step(`^the template "([^"]*)" whose branch "([^"]*)" holds the file "([^"]*)"$`, func(name, branch, file string) error {
+		return w.templateWithFiles(name, branch, `"`+file+`"`)
+	})
+	sc.Step(`^the template "([^"]*)" whose branch "([^"]*)" holds (".*")$`, w.templateWithFiles)
+	sc.Step(`^an empty git repository "([^"]*)"$`, func(dir string) error {
+		if err := os.MkdirAll(w.path(dir), 0o755); err != nil {
+			return err
+		}
+		return w.gitIn(w.path(dir), "init", "-q", "-b", "main")
+	})
+	sc.Step(`^a file "([^"]*)"$`, func(file string) error {
+		return os.WriteFile(w.path(file), []byte("kept\n"), 0o644)
+	})
+
+	sc.Step(`^itos-template runs with no git on the PATH with "([^"]*)"$`, func(args string) error {
+		return w.runWith(w.noGit(), args)
+	})
+	sc.Step(`^itos-template runs with git knowing no one with "([^"]*)"$`, func(args string) error {
+		return w.runWith(w.knowingNoOne(), args)
+	})
 	sc.Step(`^an empty folder "([^"]*)"$`, func(dir string) error {
 		return os.MkdirAll(w.path(dir), 0o755)
 	})
@@ -69,6 +93,9 @@ func (w *world) newSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^no text file of the project in "([^"]*)" contains (".*")$`, w.noTextFileContains)
 	sc.Step(`^the file "([^"]*)" is the same as the template's "([^"]*)"$`, w.sameAsTemplates)
 	sc.Step(`^the folder "([^"]*)" holds only "([^"]*)"$`, w.holdsOnly)
+	sc.Step(`^its JSON output names the problems? (".*")$`, w.jsonNamesProblems)
+	sc.Step(`^the first commit of "([^"]*)" records "([^"]*)" as (executable|not executable)$`, w.firstCommitRecordsMode)
+	sc.Step(`^the first commit of "([^"]*)" is by "([^"]*)"$`, w.firstCommitIsBy)
 	sc.Step(`^the folder "([^"]*)" is a git repository with exactly (\d+) commits?$`, w.repositoryWithCommits)
 	sc.Step(`^the working tree of "([^"]*)" has no changes$`, w.noChanges)
 
@@ -100,212 +127,6 @@ func quotedList(list string) []string {
 		found = append(found, m[1])
 	}
 	return found
-}
-
-// The fixture templates.
-
-var (
-	templatesMu  sync.Mutex
-	templates    = map[string]string{}
-	templatesDir string
-)
-
-// removeTemplates removes the fixture templates the run built.
-func removeTemplates() {
-	if templatesDir != "" {
-		_ = os.RemoveAll(templatesDir)
-	}
-}
-
-// theTemplate builds the fixture template name from testdata, once a run:
-// no command a scenario runs changes it, as new and check only clone it.
-func (w *world) theTemplate(name string) error {
-	return w.useTemplate(name, func(dir string) error {
-		return w.buildTemplate(filepath.Join(w.root, "features", "testdata", name), dir)
-	})
-}
-
-// templateWithLiteral is the fixture template name, its manifest on the root
-// branch giving the question named question the literal literal, the rest
-// of the question as the fixture has it.
-func (w *world) templateWithLiteral(name, question, literal string) error {
-	key := fmt.Sprintf("%s whose question %s has the literal %q", name, question, literal)
-	return w.changedTemplate(name, key, func(top *yaml.Node) error {
-		questions := mappingValue(top, "questions")
-		if questions == nil || questions.Kind != yaml.SequenceNode {
-			return errors.New("the manifest lists no questions")
-		}
-		for _, q := range questions.Content {
-			if scalarValue(q, "name") != question {
-				continue
-			}
-			value := mappingValue(q, "literal")
-			if value == nil {
-				return fmt.Errorf("the question %s has no literal", question)
-			}
-			*value = *scalar(literal)
-			return nil
-		}
-		return fmt.Errorf("the manifest has no question %s", question)
-	})
-}
-
-// templateWithFiles is the fixture template name with one more commit on its
-// branch branch, adding the files listed (with /), each holding its own path
-// and a line ending.
-func (w *world) templateWithFiles(name, branch, files string) error {
-	var added [][2]string
-	for _, file := range quotedList(files) {
-		added = append(added, [2]string{file, file + "\n"})
-	}
-	return w.templateWithBranchFiles(name, branch, fmt.Sprintf("the files %q", quotedList(files)), added)
-}
-
-// templateWithFileLine is the fixture template name with one more commit on
-// its branch branch, adding the file file (with /) holding the line line.
-func (w *world) templateWithFileLine(name, branch, file, line string) error {
-	return w.templateWithBranchFiles(name, branch, fmt.Sprintf("the file %q with the line %q", file, line), [][2]string{{file, line + "\n"}})
-}
-
-// templateWithBranchFiles is the fixture template name with one more commit
-// on its branch branch, adding each file of files, its path (with /) and
-// its contents; what names the files in the template's key. The root
-// branch is checked out again after, so it stays the template's default
-// branch.
-func (w *world) templateWithBranchFiles(name, branch, what string, files [][2]string) error {
-	key := fmt.Sprintf("%s whose branch %s holds %s", name, branch, what)
-	return w.useTemplate(key, func(dir string) error {
-		if err := w.buildTemplate(filepath.Join(w.root, "features", "testdata", name), dir); err != nil {
-			return err
-		}
-		root, err := w.gitOut(dir, "symbolic-ref", "--short", "HEAD")
-		if err != nil {
-			return err
-		}
-		if err := w.gitIn(dir, "checkout", "-q", branch); err != nil {
-			return err
-		}
-		for _, file := range files {
-			p := filepath.Join(dir, filepath.FromSlash(file[0]))
-			if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
-				return err
-			}
-			if err := os.WriteFile(p, []byte(file[1]), 0o644); err != nil {
-				return err
-			}
-			if err := w.gitIn(dir, "add", "--", file[0]); err != nil {
-				return err
-			}
-		}
-		if err := w.gitIn(dir, "commit", "-q", "-m", "Add "+what); err != nil {
-			return err
-		}
-		return w.gitIn(dir, "checkout", "-q", root)
-	})
-}
-
-// manifestVariants are the files of testdata/acme-manifests, each acme's
-// manifest with the one change its step names.
-var manifestVariants = map[string]string{
-	"with the custom tag !foo before the literal of the question name":         "custom-tag.yaml",
-	"with the anchor &shared on the stack go's checks and *shared in python's": "anchor.yaml",
-	"with a merge key, <<, bringing the stack go's keys into python's":         "merge-key.yaml",
-	"followed by a second document, after a line ---":                          "second-document.yaml",
-	"with the key stacks given twice":                                          "key-twice.yaml",
-	"written as JSON":                                                          "written-as-json.json",
-}
-
-// templateWithManifest is the fixture template name with one more commit
-// on its root branch, its manifest there replaced by the variant of acme's
-// the change names, as it is, byte for byte.
-func (w *world) templateWithManifest(name, change string) error {
-	file, ok := manifestVariants[change]
-	if !ok {
-		return fmt.Errorf("no variant of acme's manifest %s in testdata/acme-manifests", change)
-	}
-	key := fmt.Sprintf("%s whose manifest is acme's %s", name, change)
-	return w.useTemplate(key, func(dir string) error {
-		if err := w.buildTemplate(filepath.Join(w.root, "features", "testdata", name), dir); err != nil {
-			return err
-		}
-		data, err := os.ReadFile(filepath.Join(w.root, "features", "testdata", "acme-manifests", file))
-		if err != nil {
-			return err
-		}
-		if err := os.WriteFile(filepath.Join(dir, "itos-template.yaml"), data, 0o644); err != nil {
-			return err
-		}
-		return w.gitIn(dir, "commit", "-q", "-a", "-m", "Change the manifest: "+key)
-	})
-}
-
-// useTemplate makes the template the scenario's: the one built for key, or
-// one build makes in a new folder, once a run for each key.
-func (w *world) useTemplate(key string, build func(dir string) error) error {
-	templatesMu.Lock()
-	defer templatesMu.Unlock()
-	dir, ok := templates[key]
-	if !ok {
-		if templatesDir == "" {
-			var err error
-			if templatesDir, err = os.MkdirTemp("", "itos-template-features-templates-"); err != nil {
-				return err
-			}
-		}
-		dir = filepath.Join(templatesDir, strconv.Itoa(len(templates)))
-		if err := build(dir); err != nil {
-			return fmt.Errorf("building the template %s: %w", key, err)
-		}
-		templates[key] = dir
-	}
-	w.templateDir = dir
-	w.template = filepath.ToSlash(dir)
-	return nil
-}
-
-// buildTemplate makes the git repository dir from the testdata folder src:
-// its branches.txt lists each branch and the one it starts from, and each
-// branch's files are the folder of its name, laid over what it starts from.
-// The root branch is checked out at the end, so it is the template's
-// default branch.
-func (w *world) buildTemplate(src, dir string) error {
-	list, err := os.ReadFile(filepath.Join(src, "branches.txt"))
-	if err != nil {
-		return err
-	}
-	if err := os.MkdirAll(dir, 0o755); err != nil {
-		return err
-	}
-	root := ""
-	lines := bufio.NewScanner(bytes.NewReader(list))
-	for lines.Scan() {
-		fields := strings.Fields(lines.Text())
-		if len(fields) == 0 || strings.HasPrefix(fields[0], "#") {
-			continue
-		}
-		branch := fields[0]
-		if root == "" {
-			root = branch
-			if err := w.gitIn(dir, "init", "-q", "-b", branch); err != nil {
-				return err
-			}
-		} else if err := w.gitIn(dir, "checkout", "-q", "-b", branch, fields[1]); err != nil {
-			return err
-		}
-		if err := os.CopyFS(dir, os.DirFS(filepath.Join(src, filepath.FromSlash(branch)))); err != nil {
-			return err
-		}
-		if err := w.gitIn(dir, "add", "-A"); err != nil {
-			return err
-		}
-		if err := w.gitIn(dir, "commit", "-q", "-m", "Make "+branch); err != nil {
-			return err
-		}
-	}
-	if err := lines.Err(); err != nil {
-		return err
-	}
-	return w.gitIn(dir, "checkout", "-q", root)
 }
 
 // Then steps.
@@ -396,6 +217,98 @@ func (w *world) holdsOnly(dir, list string) error {
 	slices.Sort(want)
 	if !slices.Equal(names, want) {
 		return fmt.Errorf("%s holds %q, not %q", dir, names, want)
+	}
+	return nil
+}
+
+// jsonNamesProblems reads standard output as --json's failure object
+// (docs/CLI.md, rule 29), parsed, never searched: schema 1, ok false, and
+// a problem of its own for each rule ID listed, a rule listed twice two
+// problems. Other problems may come with them: an answer with no = is
+// also an answer missing.
+func (w *world) jsonNamesProblems(list string) error {
+	var failure struct {
+		Schema   int   `json:"schema"`
+		OK       *bool `json:"ok"`
+		Problems []struct {
+			Rule    string `json:"rule"`
+			Message string `json:"message"`
+		} `json:"problems"`
+	}
+	dec := json.NewDecoder(strings.NewReader(w.stdout))
+	if err := dec.Decode(&failure); err != nil {
+		return fmt.Errorf("standard output is no JSON object: %v\n%s", err, w.report())
+	}
+	if dec.More() {
+		return fmt.Errorf("standard output holds more than one JSON value\n%s", w.report())
+	}
+	if failure.Schema != 1 || failure.OK == nil || *failure.OK {
+		return fmt.Errorf("the JSON output is not a failure of schema 1\n%s", w.report())
+	}
+	var rules []string
+	for _, p := range failure.Problems {
+		if p.Message == "" {
+			return fmt.Errorf("the problem %s has no message\n%s", p.Rule, w.report())
+		}
+		rules = append(rules, p.Rule)
+	}
+	left := slices.Clone(rules)
+	for _, want := range quotedList(list) {
+		i := slices.Index(left, want)
+		if i < 0 {
+			return fmt.Errorf("the JSON output names the problems %q, not %q\n%s", rules, list, w.report())
+		}
+		left = slices.Delete(left, i, i+1)
+	}
+	return nil
+}
+
+// firstCommit is the first commit of the repository dir, the one with no
+// parent.
+func (w *world) firstCommit(dir string) (string, error) {
+	out, err := w.gitOut(w.path(dir), "rev-list", "--max-parents=0", "HEAD")
+	if err != nil {
+		return "", fmt.Errorf("%v\n%s", err, w.report())
+	}
+	if first := strings.Fields(out); len(first) == 1 {
+		return first[0], nil
+	}
+	return "", fmt.Errorf("%s has no one first commit: %q", dir, out)
+}
+
+// firstCommitRecordsMode reads the mode the first commit of dir records for
+// file (with /), as git's tree holds it, whatever the file system says:
+// 100755 is executable, 100644 not.
+func (w *world) firstCommitRecordsMode(dir, file, mode string) error {
+	first, err := w.firstCommit(dir)
+	if err != nil {
+		return err
+	}
+	out, err := w.gitOut(w.path(dir), "ls-tree", "-r", first, "--", file)
+	if err != nil {
+		return err
+	}
+	got, _, _ := strings.Cut(out, " ")
+	want := map[string]string{"executable": "100755", "not executable": "100644"}[mode]
+	if got != want {
+		return fmt.Errorf("the first commit of %s records %s as %q, not %s\n%s", dir, file, out, want, w.report())
+	}
+	return nil
+}
+
+// firstCommitIsBy is whether the first commit of dir names who as its author
+// and its committer.
+func (w *world) firstCommitIsBy(dir, who string) error {
+	first, err := w.firstCommit(dir)
+	if err != nil {
+		return err
+	}
+	out, err := w.gitOut(w.path(dir), "log", "-1", "--format=%an%n%cn", first)
+	if err != nil {
+		return err
+	}
+	if names := strings.Split(strings.ReplaceAll(out, "\r\n", "\n"), "\n"); !slices.Equal(names, []string{who, who}) {
+		return fmt.Errorf("the first commit of %s is by %q, not %s", dir, names, who)
 	}
 	return nil
 }

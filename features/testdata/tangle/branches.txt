@@ -1,0 +1,11 @@
+# The fixture template "tangle"'s branches, in the order they are made, as
+# acme's: each line a branch and the branch it starts from, the first the
+# root, a branch's files the folder of its name beside this file laid over
+# what it starts from; a branch with no folder adds no file
+# (features/new.feature, slice-3's scenarios). executables.txt lists the
+# files every branch records as executable.
+main
+stack/go main
+go/a stack/go
+go/b stack/go
+go/c stack/go

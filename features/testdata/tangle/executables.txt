@@ -1,0 +1,3 @@
+# The files the fixture's branches record as executable, whatever the
+# checkout's file system says: windows has no execute bit.
+run.sh

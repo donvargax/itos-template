@@ -44,6 +44,7 @@ func (w *world) checkSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^its report shows the checks of "([^"]*)" in order: (".*")$`, w.reportShowsChecks)
 	sc.Step(`^its report says "([^"]*)" failed with the leftover "([^"]*)" at "([^"]*)"$`, w.reportSaysLeftover)
 	sc.Step(`^its report does not name "([^"]*)"$`, w.reportDoesNotName)
+	sc.Step(`^its report says "([^"]*)"$`, w.reportSays)
 	sc.Step(`^its report names no other combination$`, w.reportNamesNoOther)
 	sc.Step(`^its report names no combination$`, w.reportNamesNone)
 }
@@ -441,6 +442,18 @@ func (w *world) reportShowsChecks(name, list string) error {
 	}
 	if want := quotedList(list); !slices.Equal(got, want) {
 		return fmt.Errorf("the report shows the checks of %s as %q, not %q\n%s", name, got, want, w.report())
+	}
+	return nil
+}
+
+// reportSays is whether check's report, read as the format gives it, says
+// text, a check's output included.
+func (w *world) reportSays(text string) error {
+	if _, err := parseReport(w.stdout); err != nil {
+		return fmt.Errorf("%v\n%s", err, w.report())
+	}
+	if !strings.Contains(w.stdout, text) {
+		return fmt.Errorf("the report does not say %q\n%s", text, w.report())
 	}
 	return nil
 }
