@@ -13,6 +13,7 @@ phases:
 queue:
   - T-12
   - template-scans
+  - first-template
   - slice-3
   - T-13
 items:
