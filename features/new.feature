@@ -78,7 +78,8 @@ Feature: new makes a project from a template
   Scenario: new leaves the manifest and the template's own files out of the project
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"
-    Then the path "made/itos-template.yaml" does not exist
+    Then it exits with code 0
+    And the path "made/itos-template.yaml" does not exist
     And the path "made/.github/workflows/template.yml" does not exist
 
   @ID-NEW-06 @slice-1
