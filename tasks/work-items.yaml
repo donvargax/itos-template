@@ -433,8 +433,8 @@ items:
   - id: slice-3
     title: Scenarios for what only a test outside the domain holds after T-9
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: slice
     why: >
