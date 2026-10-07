@@ -328,6 +328,7 @@ items:
       is the exit code and --json, never the plain output. slice-2 shipped check with its plain
       report only, since no scenario described a --json one: a combination each, its checks with
       their words, status and output, as new prints its result.
+    tags: [check, cli]
   - id: check-ci-branches
     title: itos-template check renders a CI checkout without a fetch recipe
     phase: 1
