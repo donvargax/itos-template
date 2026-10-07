@@ -36,3 +36,8 @@ Each lesson names its exit and its two dates; at most ten.
   alone (itos#20). Briefs say to add ideas before the last commit that touches more, and the
   coordinator closes an item only once a push ending on such a commit has run. Exit: itos#20
   fixed and pinned.
+- **A task is pushed once `itos task <id>` passes** (2026-10-07). CI runs the static checks of
+  every task a push's commits name, while the commit hook only prints them before the item is
+  done: T-9's first push, its build commit not yet made, turned main red (run 37668940941) until
+  its second. Briefs say to push a task's commits together once its checks pass. Exit: CI judges
+  a task's checks as the hook does.
