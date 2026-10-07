@@ -57,7 +57,11 @@
     names), and platform jobs running every test on the three systems, since what touches paths and
     line endings breaks on Windows first. Needs the GitHub repository donvargax/itos-template to
     exist. Byte caps on AGENTS.md and docs/ORCHESTRATING.md from the start (itos learned late that
-    always-read docs grow: its T-110), checked in the plan and on docs-only pushes.
+    always-read docs grow: its T-110), checked in the plan and on docs-only pushes. ci.watch's
+    provider becomes github, as itos's, so itos push waits for the run and itos status reads it.
+    golangci-lint and govulncheck run in the plan at the pins T-3 set (tools/bin/pinned, go.mod's
+    tool block): the pre-commit hook that runs them is declared per clone (itos's decision 37), so
+    CI is where they hold for every commit. No nightly yet: the whole suite is the smoke set's size.
   done_when:
     - run: test -f .github/workflows/ci.yml && grep -q windows-latest .github/workflows/ci.yml
     - run: grep -q 'ci:' itos.yaml
