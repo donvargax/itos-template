@@ -431,3 +431,41 @@ Feature: new makes a project from a template
     And the file "made/cmd/blue-fox/main.go" exists
     And the file "made/cli.txt" exists
     And the record in "made" names the stack "go" and the features "cli"
+
+  # slice-6 (new-first-commit-rules): new commits the render as the made
+  # project's first commit, and a template that holds its projects to commit
+  # rules (itos, or any commit lint) judges that commit on the project's
+  # first push, when its CI has no green run to start from: today's message,
+  # a chore with no footer, fails a rule that asks a chore for a Task footer.
+  # The template knows its own rules, so its manifest gives the message, from
+  # version 4: first_commit, the whole message (its header, a body and its
+  # footers), the literals in it replaced by the answers as a file's contents
+  # are. The person's call, 2026-10-07, over itos starting a project's rules
+  # after its root commit, which would need itos to change and would help
+  # itos's rules alone. A message with no header line refuses the manifest.
+  # Without first_commit the message stays today's, so a template written
+  # for an earlier version renders as it did.
+  @ID-NEW-37 @slice-6 @wip
+  Scenario: the manifest's first commit message, its literals replaced, is the made project's first commit's
+    Given the template "acme" whose manifest gives the first commit the message "chore: start acme-widget" with the footer "Task: T-1"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And the first commit of "made" has the header "chore: start blue-fox"
+    And the first commit of "made" has the footer "Task: T-1"
+
+  # The message today's slice-1 gives; it holds before slice-6, and stays so
+  # a template without first_commit keeps rendering as it did.
+  @ID-NEW-38 @slice-6 @wip
+  Scenario: without a first commit message in the manifest the made project's first commit keeps its message
+    Given the template "acme"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And the first commit of "made" has the header "chore: make the project from its template"
+
+  @ID-NEW-39 @slice-6 @wip
+  Scenario: new refuses a manifest whose first commit message has no header with exit 2
+    Given the template "acme" whose manifest gives the first commit the message "" with the footer "Task: T-1"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 2
+    And its error output says "first_commit"
+    And the path "made" does not exist
