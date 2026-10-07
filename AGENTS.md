@@ -131,7 +131,8 @@ CI runs its plan, `itos ci run`, on every push, in this order, stopping at the f
 - `tools/bin/pinned golangci-lint run ./...`
 - The static checks of the tasks the push's commits name.
 - `go tool govulncheck -test ./...`
-- `go test ./cmd/... ./internal/...`
+- `RAPID_CHECKS=1 go test ./cmd/... ./internal/...`
+- `tools/bin/domain-coverage`
 - The `scenario` tests of the smoke set and those the push's commits name, in one run.
 - The other checks of the tasks the push's commits name.
 

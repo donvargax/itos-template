@@ -109,6 +109,10 @@ ci:
     # The unit tests, the Go packages'. RAPID_CHECKS=1 runs each property of the domain on one random
     # case (decision 20), as fast as an example test, each push trying a new one.
     - { run: "RAPID_CHECKS=1 go test ./cmd/... ./internal/...", cost: late }
+    # Each domain package keeps 80% of its statements covered by its unit tests (T-13), the
+    # packages read from .golangci.yml's depguard domain rule. Its properties count, on a new random
+    # case each run: a package that falls under with no change names a branch to pin with a test.
+    - { run: tools/bin/domain-coverage, cost: late }
     # The one merged run of the scenarios: the smoke set and those the range names, the whole suite
     # when there is no green run to start from. No nightly yet: the whole suite is the smoke set's
     # size.
