@@ -80,3 +80,4 @@ questions:
   - id: q-18
     question: "How is the code tested across its layers? Recommended: the domain unit-tested in full, its ports faked; the UI, the application and infra held by the scenarios (godog against the built binary, on Linux, macOS and Windows); a test outside the domain only for what a scenario cannot reach (asking on a terminal, removing a folder on Windows), its comment saying which. No integration-test layer. Or: unit tests in every package; or an integration layer for infra against the real git."
     answer: "The domain unit-tested in full with fakes of its ports; everything else held by the scenarios; a test outside the domain only where a scenario cannot reach, saying so. No integration-test layer: the scenarios already run the real git on three systems. The user's call, 2026-10-07."
+    decision: 18

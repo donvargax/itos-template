@@ -19,5 +19,6 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0014: check renders every combination the manifest allows, less those it lists as unsupported](0014-check-renders-every-combination-the-manifest-allows-less-those-it-lists-as-unsupported.md)
 - [ADR-0015: A template's checks are lists of words run with no shell](0015-a-template-s-checks-are-lists-of-words-run-with-no-shell.md)
 - [ADR-0017: Thin UI and application layers over a domain that does the work, through ports](0017-thin-ui-and-application-layers-over-a-domain-that-does-the-work-through-ports.md)
+- [ADR-0018: The domain is unit-tested in full; the scenarios hold the rest](0018-the-domain-is-unit-tested-in-full-the-scenarios-hold-the-rest.md)
 
 <!-- itos:decisions:end -->
