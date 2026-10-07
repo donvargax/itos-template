@@ -14,6 +14,7 @@ queue:
   - bug-1
   - T-12
   - slice-3
+  - T-13
 items:
   - id: T-2
     title: License itos-template under the AGPL-3.0, as itos is
