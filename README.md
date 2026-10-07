@@ -8,7 +8,15 @@ are git branches merged in, not conditionals in the files; updates are 3-way mer
 new renders, as copier does them. It is an [itos](https://github.com/donvargax/itos) extension,
 `itos template`, and runs on its own as `itos-template`.
 
-Not usable yet: `PLAN.md` says what is planned and in what order.
+`itos-template new` makes a project from a template's branch heads:
+
+```sh
+itos-template new ../acme made --stack go --feature cli --answer name=blue-fox --defaults
+```
+
+A template says what it offers in its manifest, `itos-template.yaml` (`docs/manifest.md`). Updating
+a made project, checking a template and syncing its branches come next: `PLAN.md` says what is
+planned and in what order.
 
 ## Working on it
 
