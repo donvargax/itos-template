@@ -313,16 +313,9 @@ items:
     title: itos-template check fails a render that keeps a literal, and warns when no check scans for credentials
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: [slice-2]
     kind: slice
-    why: >
-      Was template-scans.
-      Split from template-check (slice-2), so the render-and-check loop lands first (PLAN.md, order
-      of work 3; principle 5). The leftover-literal scan looks for each literal, in each case form,
-      left in a render; it is ours, built on the case-forms package of slice-1. The
-      leaked-credential scan is a library or our own patterns, to weigh with the person by decision
-      13 when specifying: gitleaks (wide rules, a heavy dependency) against a small set of our own.
     tags: [check]
   - id: check-json
     title: itos-template check --json prints the report as one object, for scripts
