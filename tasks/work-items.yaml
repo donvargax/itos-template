@@ -584,3 +584,19 @@ items:
       problem with its fix, would make that the manifest's promise. An answer with a line ending (a
       question with no pattern takes one from a command line) adds lines rather than changing one,
       and may want the same refusal.
+  - id: answer-holds-literal
+    title: check names an answer holding a literal's words, rather than a leftover at every replacement
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Found while building slice-4 (decision 21). check's leftover scan looks for a literal's words
+      in any spelling in a render, after the answers replaced its five forms. An answer that itself
+      holds the literal's words (the literal acme-widget answered acme-widget-2, or my-acme-widget)
+      puts them back at every place the literal was replaced, so every replacement reads as a
+      leftover and the report drowns the author in false ones. check could refuse or flag such an
+      answer once, before rendering, or leave the answer's own text out of the scan; which is the
+      person's call.
+    tags: [check]
