@@ -301,6 +301,7 @@ items:
       scenario holds either. Settle in its scenarios what a render does with each on every system:
       git's own core.symlinks behaviour (a file holding the target) and a submodule's commit
       recorded as a gitlink are the candidates.
+    tags: [new, windows]
   - id: template-scans
     title: itos-template check scans every render for leftover literals and leaked credentials
     phase: 1
