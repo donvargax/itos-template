@@ -420,11 +420,9 @@ items:
     title: Thin UI and application layers over a domain that does the work, through ports (decision 17)
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      The ledger's T-9 says why.
     tags: [new, check]
   - id: domain-coverage
     title: A gate on the domain packages' unit-test coverage
