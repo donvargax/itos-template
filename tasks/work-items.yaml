@@ -20,12 +20,9 @@ items:
     title: License itos-template under the AGPL-3.0, as itos is
     phase: 1
     owner: null
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      The user's call (2026-10-06): the AGPL-3.0, the license itos itself carries, before any code
-      lands.
   - id: T-3
     title: The Go module, a kong command skeleton with --version, and the acceptance harness running the built binary
     phase: 1
