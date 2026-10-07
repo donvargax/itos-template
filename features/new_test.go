@@ -29,6 +29,7 @@ func (w *world) newSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^the template "([^"]*)"$`, w.theTemplate)
 	sc.Step(`^the template "([^"]*)" whose question "([^"]*)" has the literal "([^"]*)"$`, w.templateWithLiteral)
 	sc.Step(`^the template "([^"]*)" whose branch "([^"]*)" holds the files (".*")$`, w.templateWithFiles)
+	sc.Step(`^the template "([^"]*)" whose manifest is acme's (.+)$`, w.templateWithManifest)
 	sc.Step(`^an empty folder "([^"]*)"$`, func(dir string) error {
 		return os.MkdirAll(w.path(dir), 0o755)
 	})
@@ -177,6 +178,41 @@ func (w *world) templateWithFiles(name, branch, files string) error {
 			return err
 		}
 		return w.gitIn(dir, "checkout", "-q", root)
+	})
+}
+
+// manifestVariants are the files of testdata/acme-manifests, each acme's
+// manifest with the one change its step names.
+var manifestVariants = map[string]string{
+	"with the custom tag !foo before the literal of the question name":         "custom-tag.yaml",
+	"with the anchor &shared on the stack go's checks and *shared in python's": "anchor.yaml",
+	"with a merge key, <<, bringing the stack go's keys into python's":         "merge-key.yaml",
+	"followed by a second document, after a line ---":                          "second-document.yaml",
+	"with the key stacks given twice":                                          "key-twice.yaml",
+	"written as JSON":                                                          "written-as-json.json",
+}
+
+// templateWithManifest is the fixture template name with one more commit
+// on its root branch, its manifest there replaced by the variant of acme's
+// the change names, as it is, byte for byte.
+func (w *world) templateWithManifest(name, change string) error {
+	file, ok := manifestVariants[change]
+	if !ok {
+		return fmt.Errorf("no variant of acme's manifest %s in testdata/acme-manifests", change)
+	}
+	key := fmt.Sprintf("%s whose manifest is acme's %s", name, change)
+	return w.useTemplate(key, func(dir string) error {
+		if err := w.buildTemplate(filepath.Join(w.root, "features", "testdata", name), dir); err != nil {
+			return err
+		}
+		data, err := os.ReadFile(filepath.Join(w.root, "features", "testdata", "acme-manifests", file))
+		if err != nil {
+			return err
+		}
+		if err := os.WriteFile(filepath.Join(dir, "itos-template.yaml"), data, 0o644); err != nil {
+			return err
+		}
+		return w.gitIn(dir, "commit", "-q", "-a", "-m", "Change the manifest: "+key)
 	})
 }
 

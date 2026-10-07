@@ -1,0 +1,30 @@
+{
+  "version": 2,
+  "checks": [["git", "ls-files", "--error-unmatch", "README.md"]],
+  "stacks": [
+    {"name": "go", "checks": [["git", "ls-files", "--error-unmatch", "cmd/acme-widget/main.go"]]},
+    {"name": "python", "checks": [["git", "ls-files", "--error-unmatch", "pyproject.toml"]]}
+  ],
+  "features": [
+    {"name": "cli", "stack": "go", "checks": [["git", "ls-files", "--error-unmatch", "cli.txt"]]},
+    {"name": "web", "stack": "go", "needs": ["cli"]},
+    {"name": "cli", "stack": "python"}
+  ],
+  "questions": [
+    {
+      "name": "name",
+      "literal": "acme-widget",
+      "question": "What is the project's name?",
+      "pattern": "[a-z][a-z0-9]*(-[a-z0-9]+)*",
+      "case_forms": true
+    },
+    {
+      "name": "module",
+      "literal": "example.com/acme/widget",
+      "question": "What is the project's module path?",
+      "pattern": "[a-z0-9.-]+(/[a-z0-9._-]+)+",
+      "default": "example.com/you/project"
+    }
+  ],
+  "template_only": [".github/workflows/template.yml"]
+}
