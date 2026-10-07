@@ -612,3 +612,19 @@ items:
       above the floor now, but the branches are behaviour an author meets (an empty or broken
       itos-template.yaml): example tests should pin what each says, so the figure stops depending on
       the case drawn.
+  - id: renovate-testdata
+    title: Renovate leaves the scenarios' fixtures in features/testdata alone
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      T-14's dry run (2026-10-07) found features/testdata/acme's go.mod and its workflow,
+      template.yml, among the files Renovate reads: config:recommended's ignorePaths name test/,
+      tests/ and __fixtures__, not testdata/. Neither holds a dependency Renovate would move today
+      (the go directive is raised by hand; the workflow names only its runner), but a fixture that
+      gains one would get updates of its own, changing what a scenario checks. Whether
+      features/testdata/** goes into ignorePaths, which replaces the presets' list and so repeats
+      it, is the owner's call.
+    tags: [ci]
