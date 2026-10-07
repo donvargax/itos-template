@@ -692,3 +692,17 @@ items:
       is built from what moved, each module old to new and the toolchain, as release-version's
       stderr line names them (internal/release's Moved), the build commits under What changed
       already listing the updates.
+  - id: template-beside-project
+    title: The template's branches live beside main in the project's own repository, main taking their improvements by merges
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: [adopt]
+    kind: idea
+    why: >
+      Decision 24's end goal, the owner's: itos-template is its own template, its branches (a root,
+      stack/go, go/cli) beside main, main descending from go/cli. Needs itos's branch-aware rules
+      and sanctioned merges (the follow-up itos-template-branches), itos-cc's per-branch baselines,
+      and here a manifest naming its root and sync into main. Until then: two repositories, adopt
+      and update.
+    tags: [new, update, sync]
