@@ -83,3 +83,34 @@ tests:
 
 hooks:
   bin: itos # the hooks call the global itos, which runs the release pinned
+
+# What CI runs on a push (.github/workflows/ci.yml): itos ci run over the range from the last green
+# run, these steps in cost order, then the checks of the tasks the range names. Harvested from
+# itos's (github.com/donvargax/itos, itos.yaml's ci). The platform jobs, every test on Linux, macOS
+# and Windows, are the workflow's, not this plan's.
+ci:
+  steps: # every step of CI, in order; each states its cost
+    - { run: "! gofmt -l cmd internal features | grep .", cost: static } # names each file gofmt would change
+    - { run: go vet ./..., cost: static }
+    - { run: itos tests smoke check scenario, cost: static }
+    - { run: itos config check, cost: static } # the config, the ledger, the registry, the smoke set
+    - { run: tools/bin/doc-caps, cost: static } # AGENTS.md and docs/ORCHESTRATING.md held to a size
+    # The linters and the vulnerability check, the commands tools/hooks/pre-commit runs, so the
+    # versions are pinned in one place each (tools/bin/pinned, go.mod's tool block). That hook is
+    # declared per clone (itos's decision 37), so CI is where they hold for every commit.
+    # govulncheck asks the vulnerability database, so it is late.
+    - { run: tools/bin/pinned golangci-lint run ./..., cost: static }
+    - { run: go tool govulncheck -test ./..., cost: late }
+    - { run: "go test ./cmd/... ./internal/...", cost: late } # the unit tests, the Go packages'
+    # The one merged run of the scenarios: the smoke set and those the range names, the whole suite
+    # when there is no green run to start from. No nightly yet: the whole suite is the smoke set's
+    # size.
+    - { tests: scenario }
+  prose: # a range that touches only these runs only the prose steps: what a docs commit may touch
+    paths: ["**/*.md", "docs/**", "tasks/**"]
+    steps:
+      - itos config check
+      - tools/bin/doc-caps
+  # itos push waits for the run of the commit it pushed and exits with its result, and itos status
+  # reads it. The range's start is ci.range's default: the last green run of ci.yml.
+  watch: { provider: github }

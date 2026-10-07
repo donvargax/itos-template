@@ -1,0 +1,88 @@
+name: CI
+
+# Harvested from itos's (github.com/donvargax/itos, .github/workflows/ci.yml), its TypeScript,
+# nightly, release and own-build steps left behind. Pull requests too, for the dependency updates
+# a bot proposes; people push to main.
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+  actions: read # the last green run, where a push's range starts
+
+# A newer push replaces a run still waiting for the runner; a running one finishes. The newest run
+# checks every commit since the last green one.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  TO: ${{ github.event.pull_request.head.sha || github.sha }}
+
+jobs:
+  # One job, always run, always reported: a docs-only push still gets its green check, it just has
+  # less to prove. What each range has to run is decided by itos ci run (itos.yaml's ci), so it is
+  # the same decision locally.
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      # Every action pinned to a commit, as itos pins them: actions/checkout v4.4.0,
+      # actions/setup-go v7.0.0, and itos's own action at v6.0.0, the release itos.yaml pins.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          fetch-depth: 0 # the commit re-check and the scope read the pushed range
+      # Go for the build, the linters and the scenarios' steps (godog), the version go.mod's
+      # toolchain line pins.
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+      # The global itos, the launcher, on the PATH; itos.yaml's pin chooses the itos that runs.
+      # Pinned by commit, so the version is named, as the action reads a version from its ref only.
+      - uses: donvargax/itos@c0616a19115aa933ba26601df09b1b9a82094f7c # v6.0.0
+        with:
+          version: 6.0.0
+      # Where the range starts, computed once for every step below: a pull request's base, else
+      # the last green run on main, else empty (run everything). Read from --json, since only
+      # machine output is itos's contract; jq fails the step when the output has no string "from".
+      - name: Range
+        env:
+          BASE: ${{ github.event.pull_request.base.sha }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          out=$(itos ci range --json --head "$TO" --base "$BASE")
+          from=$(jq -er '.from | strings' <<<"$out")
+          echo "FROM=$from"
+          echo "FROM=$from" >> "$GITHUB_ENV"
+      # The commit-msg hook's rules again, for commits made without hooks.
+      - run: itos verify "$FROM" "$TO"
+      # Every gate lives in one local command: itos.yaml's ci.steps, or its prose steps for a
+      # docs-only range, then the checks of the tasks the range names. Its scenarios step is one
+      # go test run over the smoke set and the scenarios the range names.
+      - run: itos ci run "$FROM" "$TO"
+
+  # Every test, the unit tests and the whole godog suite, on Linux, macOS and Windows, with each
+  # platform's git, shell and paths: what touches paths and line endings breaks on Windows first.
+  # The job's name holds the runner's OS word.
+  platform:
+    name: platform (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        shell: bash # Git for Windows' bash on windows
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+      # go test carries on past a package that fails, so one run shows a platform's every failure.
+      # The features build the binary themselves, itos-template.exe on windows.
+      - name: Tests
+        run: go test ./... -count=1
