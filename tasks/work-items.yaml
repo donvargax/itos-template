@@ -278,8 +278,8 @@ items:
   - id: slice-6
     title: The manifest gives a made project's first commit its message, so the project's own commit rules pass it
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: [slice-1]
     kind: slice
     why: >
