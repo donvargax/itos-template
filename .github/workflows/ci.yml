@@ -1,8 +1,8 @@
 name: CI
 
 # Harvested from itos's (github.com/donvargax/itos, .github/workflows/ci.yml), its TypeScript,
-# nightly, release and own-build steps left behind. Pull requests too, for the dependency updates
-# a bot proposes; people push to main.
+# nightly and own-build steps left behind; its release job calls release.yml (T-5). Pull requests
+# too, for the dependency updates a bot proposes; people push to main.
 on:
   pull_request:
   push:
@@ -86,3 +86,16 @@ jobs:
       # The features build the binary themselves, itos-template.exe on windows.
       - name: Tests
         run: go test ./... -count=1
+
+  # A push to main whose ci job and platform jobs are green cuts a release when its commits since
+  # the last tag carry a feat, a fix or a breaking change (T-5; release.yml says how), as itos's
+  # ci.yml calls its release. The only job with write access, granted here and to nothing else; a
+  # pull request never releases.
+  release:
+    needs: [ci, platform]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    uses: ./.github/workflows/release.yml
