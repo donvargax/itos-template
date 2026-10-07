@@ -247,3 +247,16 @@ items:
       commit, so adopting is writing that record from the answers that match the project, as cruft
       link does. Settle in its scenarios: how the release and answers are chosen, and how a project
       that differs from the render is shown the difference before its first update.
+  - id: template-releases
+    title: A template release tags every branch, and new renders the newest release or the one --ref names
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [new-renders]
+    kind: idea
+    why: >
+      Decision 9 has --ref pick a tag, by default the newest release; decision 10 left how one
+      release is tagged across a template's branches for later, the recorded commits being enough to
+      reproduce a render. new-renders renders the branches' heads; this item settles the tagging (a
+      tag per branch under one version, say stack/go/v1.2.0, or one tag on a commit reaching every
+      branch), then new's --ref and its default, and the record's release field.
