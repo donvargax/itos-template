@@ -94,7 +94,7 @@ items:
     title: Renovate keeps the Go modules and the workflows' actions current, landing on main once CI is green
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: [T-4]
     kind: task
     why: >
