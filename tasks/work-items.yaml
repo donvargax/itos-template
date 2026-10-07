@@ -544,3 +544,13 @@ items:
       bound is refused, as is anything JSON cannot say. Best before or with slice-4, whose manifest
       version 3 is the format's first change since the rules.
     tags: [new, check]
+  - id: config-key-paths
+    title: Every problem with a manifest names its key by path, stacks[1].checks[0]
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      docs/CONFIG.md rule 3 (decision 22): an author finds each problem without searching the file.
+    tags: [new, check]
