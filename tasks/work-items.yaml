@@ -648,3 +648,20 @@ items:
     why: >
       The ledger's T-15 says why.
     tags: [ci]
+  - id: release-version-cliff
+    title: git-cliff picks a release's version, release-version keeping only the checks git-cliff cannot make
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: [T-15]
+    kind: idea
+    why: >
+      The owner's wish, 2026-10-07, to drop code we keep: git-cliff already writes the notes
+      (tools/bin/release-notes, pinned). Its --bumped-version picks the next version from
+      Conventional Commits, but first verify it can say nothing is releasable when the range holds
+      no feat, fix or breaking change (by commit_parsers skipping the other types, or not at all);
+      if it cannot, release-version stays. What git-cliff cannot do stays ours either way: the major
+      against go.mod's /vN module path (itos's T-089) and decision 23's patch for a binary's moved
+      modules or toolchain. itos picks its version with the same release-version, so this would part
+      from itos.
+    tags: [ci]
