@@ -383,3 +383,50 @@ Feature: new makes a project from a template
     And its error output says "blue-fox/a.txt"
     And its error output says "blue-fox/b.txt"
     And the path "made" does not exist
+
+  # slice-5 (strict-yaml; docs/CONFIG.md rule 1, decision 22): a manifest is
+  # JSON data written as YAML, and comes from any template git can clone, so
+  # it is read strictly. What JSON cannot say is refused as a manifest
+  # problem, exit 2, naming what was found: a custom tag can make a reader
+  # build any object, an alias can expand without bound, a merge key's
+  # overrides surprise, a second document is not read, and a key given twice
+  # keeps one value silently. What JSON can say reads the same however it is
+  # written, so a tool may write JSON into itos-template.yaml. The record,
+  # .itos-template.yaml, is read by the same reader once a command reads it
+  # (update, adopt). Each variant is a file of features/testdata, acme's
+  # manifest with the one change its row names.
+  @ID-NEW-34 @slice-5 @wip
+  Scenario Outline: new refuses a manifest using what JSON cannot say with exit 2, naming it
+    Given the template "acme" whose manifest is acme's <change>
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 2
+    And its error output says "itos-template.yaml"
+    And its error output says "<named>"
+    And the path "made" does not exist
+
+    Examples:
+      | change                                                                   | named    |
+      | with the custom tag !foo before the literal of the question name         | !foo     |
+      | with the anchor &shared on the stack go's checks and *shared in python's | shared   |
+      | with a merge key, <<, bringing the stack go's keys into python's         | <<       |
+      | followed by a second document, after a line ---                          | document |
+
+  # yaml.v3 already refuses a key given twice, so this holds before slice-5;
+  # it stays a scenario so the strict reader keeps the rule, and is the one
+  # of the slice that shows no red first.
+  @ID-NEW-36 @slice-5 @wip
+  Scenario: new refuses a manifest giving a key twice with exit 2, naming it
+    Given the template "acme" whose manifest is acme's with the key stacks given twice
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 2
+    And its error output says "stacks"
+    And the path "made" does not exist
+
+  @ID-NEW-35 @slice-5 @wip
+  Scenario: new reads a manifest written as JSON as the same manifest
+    Given the template "acme" whose manifest is acme's written as JSON
+    When itos-template runs with "new {template} made --stack go --feature cli --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And the file "made/cmd/blue-fox/main.go" exists
+    And the file "made/cli.txt" exists
+    And the record in "made" names the stack "go" and the features "cli"
