@@ -50,7 +50,8 @@ func TestWriteMakesASymbolicLinkOrSaysWhichItCouldNot(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if target, err := os.Readlink(filepath.Join(dir, "run")); err != nil || target != "bin/run.sh" {
+	// windows writes the target with its own separator, as os.Symlink does.
+	if target, err := os.Readlink(filepath.Join(dir, "run")); err != nil || target != filepath.FromSlash("bin/run.sh") {
 		t.Errorf("run links to %q, %v", target, err)
 	}
 }
