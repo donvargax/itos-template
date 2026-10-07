@@ -348,3 +348,24 @@ Feature: new makes a project from a template
     And its JSON output names the problem "git-identity"
     And its error output says "user.name"
     And the path "made" does not exist
+
+  # bug-1, found by T-12's property TestCaseFormsAreDistinct: a case-forms
+  # literal must have five different forms, or two of them map one string to
+  # two answers and the first wins, a Pascal use rendering in camel case with
+  # no warning. A first word starting with a digit makes camel and Pascal
+  # one string; words of digits alone make snake and upper snake one too.
+  # The manifest checks the promise itself, so a later form is held to it
+  # as well, and says which forms collide and how to fix the literal.
+  @ID-NEW-32 @bug-1 @wip
+  Scenario Outline: new refuses a case-forms literal whose forms are not five different strings with exit 2, naming them
+    Given the template "acme" whose question "name" has the literal "<literal>"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 2
+    And its error output says "<literal>"
+    And its error output says "<collides>"
+    And the path "made" does not exist
+
+    Examples:
+      | literal  | collides |
+      | 2fa-code | 2faCode  |
+      | 1-2      | 1_2      |
