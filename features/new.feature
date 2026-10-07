@@ -369,3 +369,17 @@ Feature: new makes a project from a template
       | literal  | collides |
       | 2fa-code | 2faCode  |
       | 1-2      | 1_2      |
+
+  # bug-2, found by T-12's property TestRenderIsDeterministic: render.Plan
+  # walked a map, so when answers make a file's name the folder of others,
+  # which clash the refusal named varied from run to run, and decision 3
+  # needs a render, a refusal included, the same every time. It names every
+  # clash, in path order, as new names every missing answer at once.
+  @ID-NEW-33 @bug-2 @wip
+  Scenario: new refuses answers that name a file as a folder with exit 2, naming every clash
+    Given the template "acme" whose branch "stack/go" holds the files "acme-widget", "blue-fox/a.txt" and "blue-fox/b.txt"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 2
+    And its error output says "blue-fox/a.txt"
+    And its error output says "blue-fox/b.txt"
+    And the path "made" does not exist
