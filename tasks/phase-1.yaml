@@ -203,8 +203,11 @@
   why: >
     Decision 20, the person's call, 2026-10-07. pgregory.net/rapid joins go.mod for tests only.
     Properties are unit tests of the domain (decision 19) and live in the domain packages' tests
-    only; depguard refuses rapid anywhere else. The properties: a literal's five case forms are
-    five different strings and an answer's forms round-trip to it (caseform); the same template,
+    only; depguard refuses rapid anywhere else. The properties: the manifest takes a case-forms
+    literal exactly when its five forms are five different strings, so it refuses every literal
+    whose forms collide and accepts every other (manifest; caseform's forms of any words may
+    collide, bug-1, so the property is the manifest's), and an answer's forms round-trip to it
+    (caseform); the same template,
     choice and answers render the same bytes, line endings are never changed and a binary file is
     copied byte for byte (render, template, against porttest's fakes); every derived combination
     has its needs chosen and none is unsupported, and Parse never panics on any bytes (manifest);
