@@ -74,7 +74,7 @@ Feature: new makes a project from a template
     And the path "made/web.txt" does not exist
     And the path "made/pyproject.toml" does not exist
 
-  @ID-NEW-05 @slice-1 @wip
+  @ID-NEW-05 @slice-1
   Scenario: new leaves the manifest and the template's own files out of the project
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"
