@@ -26,4 +26,4 @@ new-hooks builds itos template hooks beside new's declaring them. Decision 5 hol
 
 ## More Information
 
-Supersedes ADR-0005.
+Amends ADR-0005: its consequence that a clone declares its hooks by hand; the rest of ADR-0005 stands.
