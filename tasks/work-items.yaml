@@ -45,7 +45,7 @@ items:
     title: "itos-template new renders a project from a template's branch heads: the manifest, a stack merged with its features, literals in every case form, the record and the first commit"
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: [T-3]
     kind: slice
     why: >
