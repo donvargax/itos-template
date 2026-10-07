@@ -27,6 +27,7 @@ import (
 
 func (w *world) newSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^the template "([^"]*)"$`, w.theTemplate)
+	sc.Step(`^the template "([^"]*)" whose question "([^"]*)" has the literal "([^"]*)"$`, w.templateWithLiteral)
 	sc.Step(`^an empty folder "([^"]*)"$`, func(dir string) error {
 		return os.MkdirAll(w.path(dir), 0o755)
 	})
@@ -113,6 +114,31 @@ func removeTemplates() {
 func (w *world) theTemplate(name string) error {
 	return w.useTemplate(name, func(dir string) error {
 		return w.buildTemplate(filepath.Join(w.root, "features", "testdata", name), dir)
+	})
+}
+
+// templateWithLiteral is the fixture template name, its manifest on the root
+// branch giving the question named question the literal literal, the rest
+// of the question as the fixture has it.
+func (w *world) templateWithLiteral(name, question, literal string) error {
+	key := fmt.Sprintf("%s whose question %s has the literal %q", name, question, literal)
+	return w.changedTemplate(name, key, func(top *yaml.Node) error {
+		questions := mappingValue(top, "questions")
+		if questions == nil || questions.Kind != yaml.SequenceNode {
+			return errors.New("the manifest lists no questions")
+		}
+		for _, q := range questions.Content {
+			if scalarValue(q, "name") != question {
+				continue
+			}
+			value := mappingValue(q, "literal")
+			if value == nil {
+				return fmt.Errorf("the question %s has no literal", question)
+			}
+			*value = *scalar(literal)
+			return nil
+		}
+		return fmt.Errorf("the manifest has no question %s", question)
 	})
 }
 
