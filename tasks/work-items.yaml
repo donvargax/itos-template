@@ -740,3 +740,17 @@ items:
     deferred: >
       Waits for itos to support itos-cc; the owner wants it raised again when about five items are
       left (2026-10-07).
+  - id: first-commit-cleanup
+    title: Commit the manifest's first commit message whatever the person's commit.cleanup says
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      slice-6 commits first_commit with git commit -m, which follows the person's commit.cleanup
+      config: set to strip, git drops each line starting with #, so the message the template's
+      commit rules judge can differ from the one its manifest gives, on one machine and not another.
+      Passing --cleanup=whitespace (the -m default) to that commit makes it the same everywhere;
+      docs/manifest.md's first-commit section then says so.
+    refs: [slice-6]
