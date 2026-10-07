@@ -1,6 +1,9 @@
 package release
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 // What the release cut reads of a commit: its type, and whether it is marked
 // as breaking (a ! header, or the footer in the last paragraph only).
@@ -54,6 +57,37 @@ func TestNewest(t *testing.T) {
 	for _, c := range cases {
 		if got := Newest(c.tags); got != c.want {
 			t.Errorf("Newest(%q) = %q, want %q", c.tags, got, c.want)
+		}
+	}
+}
+
+// What moved beneath the binary (decision 23): a linked module's version, a
+// module newly linked or no longer linked, and the toolchain, each named;
+// the same modules at the same versions with the same toolchain is nothing.
+func TestMoved(t *testing.T) {
+	old := Build{
+		Modules:   map[string]string{"example.com/a": "v1.0.0", "example.com/b": "v1.0.0", "example.com/r": "v1.0.0 => ./r"},
+		Toolchain: "go1.27.1",
+	}
+	cases := []struct {
+		name string
+		new  Build
+		want []string
+	}{
+		{"the same", Build{Modules: map[string]string{"example.com/a": "v1.0.0", "example.com/b": "v1.0.0", "example.com/r": "v1.0.0 => ./r"}, Toolchain: "go1.27.1"}, nil},
+		{"a version moved", Build{Modules: map[string]string{"example.com/a": "v1.1.0", "example.com/b": "v1.0.0", "example.com/r": "v1.0.0 => ./r"}, Toolchain: "go1.27.1"},
+			[]string{"example.com/a v1.0.0 to v1.1.0"}},
+		{"a replacement moved", Build{Modules: map[string]string{"example.com/a": "v1.0.0", "example.com/b": "v1.0.0", "example.com/r": "v1.0.0 => example.com/s v1.0.1"}, Toolchain: "go1.27.1"},
+			[]string{"example.com/r v1.0.0 => ./r to v1.0.0 => example.com/s v1.0.1"}},
+		{"one came and one went", Build{Modules: map[string]string{"example.com/a": "v1.0.0", "example.com/c": "v0.1.0", "example.com/r": "v1.0.0 => ./r"}, Toolchain: "go1.27.1"},
+			[]string{"example.com/b v1.0.0, no longer linked", "example.com/c v0.1.0, newly linked"}},
+		{"the toolchain moved", Build{Modules: map[string]string{"example.com/a": "v1.0.0", "example.com/b": "v1.0.0", "example.com/r": "v1.0.0 => ./r"}, Toolchain: "go1.27.2"},
+			[]string{"the toolchain go1.27.1 to go1.27.2"}},
+	}
+	for _, c := range cases {
+		got := Moved(old, c.new)
+		if strings.Join(got, "\n") != strings.Join(c.want, "\n") {
+			t.Errorf("%s: Moved = %q, want %q", c.name, got, c.want)
 		}
 	}
 }

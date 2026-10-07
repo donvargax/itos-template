@@ -1,14 +1,18 @@
 // Package release reads what the release cut counts (T-5): a commit's
-// Conventional Commits type, whether it is marked as breaking, and which tag
-// names the last release. tools/bin/release-version computes the next
-// version with it, and tools/bin/release-notes picks the range it describes
-// with it, so both read a commit and pick the last release from one copy.
+// Conventional Commits type, whether it is marked as breaking, which tag
+// names the last release, and what moved beneath the binary between two
+// commits (Build and Moved, decision 23). tools/bin/release-version computes
+// the next version with it, and tools/bin/release-notes picks the range it
+// describes with it, so both read a commit and pick the last release from
+// one copy.
 //
 // Harvested from itos's internal/release (its releasable.go, T-088 and bug
 // 20), the part its release tools import: a module cannot import another's
 // internal package. A release is the highest tag vX.Y.Z, three numbers and
 // nothing else; a commit the cut counts is a feat, a fix, or one of any type
-// marked as breaking.
+// marked as breaking. Build and Moved are this repository's own (T-15): with
+// no such commit, a binary built from other modules or another toolchain
+// still cuts a patch.
 package release
 
 import (

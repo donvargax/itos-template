@@ -105,8 +105,9 @@ jobs:
   # A push to main whose ci job and platform jobs are green cuts a release when its commits since
   # the last tag carry a feat, a fix or a breaking change (T-5; release.yml says how), as itos's
   # ci.yml calls its release. The only job with write access, granted here and to nothing else; a
-  # pull request or a Renovate branch never releases, and a dependency update fast-forwarded onto
-  # main is a build or a ci commit, which cuts none.
+  # pull request or a Renovate branch never releases. A dependency update fast-forwarded onto main
+  # is a build or a ci commit, which cuts a patch only when it moves a module the binary links or
+  # the Go toolchain (decision 23), and none otherwise.
   release:
     needs: [ci, platform]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
