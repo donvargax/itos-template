@@ -416,3 +416,13 @@ items:
       newproject. One test helper package (internal/testtemplate, say) would build the fixture once,
       as update and sync add tests that need the same template.
     tags: [new, check]
+  - id: T-9
+    title: Thin UI and application layers over a domain that does the work, through ports (decision 17)
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: task
+    why: >
+      The ledger's T-9 says why.
+    tags: [new, check]
