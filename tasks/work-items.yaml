@@ -51,13 +51,9 @@ items:
     title: itos-template check renders every combination a template allows and runs the checks its manifest names
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: [slice-1]
     kind: slice
-    why: >
-      Was template-check.
-      PLAN.md, order of work 3: the template proves itself. The combinations and each one's check
-      commands come from the manifest; a combination not listed is unsupported, never offered.
   - id: update-merges
     title: itos-template update brings a project to a newer template release by a 3-way merge of the old and new renders
     phase: 1
