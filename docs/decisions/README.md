@@ -20,5 +20,6 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0015: A template's checks are lists of words run with no shell](0015-a-template-s-checks-are-lists-of-words-run-with-no-shell.md)
 - [ADR-0017: Thin UI and application layers over a domain that does the work, through ports](0017-thin-ui-and-application-layers-over-a-domain-that-does-the-work-through-ports.md)
 - [ADR-0019: The domain is unit-tested with fakes and stubs, never mocks; the scenarios hold the rest against the real git](0019-the-domain-is-unit-tested-with-fakes-and-stubs-never-mocks-the-scenarios-hold-the-rest-against-the-real-git.md)
+- [ADR-0020: The domain gets property-based tests with rapid: one case per push, many nightly](0020-the-domain-gets-property-based-tests-with-rapid-one-case-per-push-many-nightly.md)
 
 <!-- itos:decisions:end -->
