@@ -329,3 +329,14 @@ items:
     status: done
     depends_on: []
     kind: task
+  - id: check-one-combination
+    title: itos-template check --combination checks one combination, so a template CI can split its renders across jobs
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: [slice-2]
+    kind: idea
+    why: >
+      A reminder for when a template CI gets slow: derived combinations double with each feature
+      that needs no other (q-14's record). A flag naming one combination, and a way to list them,
+      lets CI run them as a matrix of jobs.
