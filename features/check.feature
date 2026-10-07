@@ -117,3 +117,15 @@ Feature: check renders every combination a template allows and runs its checks
     When itos-template runs with "check nosuch-template --answer name=blue-fox --defaults"
     Then it exits with code 3
     And its error output says "nosuch-template"
+
+  # slice-3 (the idea scenario-gaps): a check naming a program nothing can
+  # start fails its combination as any failed check does, its output saying
+  # it cannot run.
+  @ID-CHECK-09 @slice-3 @wip
+  Scenario: a check whose program cannot be started fails its combination, saying it cannot run it
+    Given the template "acme" whose feature "web" of the stack "go" has the check "itos-template-no-such-program"
+    When itos-template runs with "check {template} --answer name=blue-fox --defaults"
+    Then it exits with code 1
+    And its report says "go + cli + web" failed at "itos-template-no-such-program"
+    And its report says "cannot run itos-template-no-such-program"
+    And its report says "go + cli" passed
