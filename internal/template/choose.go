@@ -2,9 +2,7 @@ package template
 
 import (
 	"errors"
-	"fmt"
 	"slices"
-	"strings"
 
 	"github.com/donvargax/itos-template/internal/answer"
 	"github.com/donvargax/itos-template/internal/manifest"
@@ -14,7 +12,9 @@ import (
 // Choose is the combination choice names, checked against m, and the
 // answers to m's questions: those given, with defaults a missing one's
 // default, and what is still missing asked of ask, when there is one (a
-// terminal; nil when there is none).
+// terminal; nil when there is none). What it asks is data, the stacks to
+// choose among or the manifest's question, and a stack not among them is an
+// *UnknownStack: the wording is the UI's (decision 17).
 //
 // A stack not named is asked first, as the features are named within it.
 // Then every problem is found and returned, joined: first the names the
@@ -28,11 +28,11 @@ func Choose(m *manifest.Manifest, choice manifest.Choice, given answer.Given, de
 	stackName := choice.Stack
 	if stackName == "" && ask != nil && len(m.Stacks) > 0 {
 		var err error
-		stackName, err = ask.Ask(port.Question{
-			Text: fmt.Sprintf("Which stack (%s)?", strings.Join(m.StackNames(), ", ")),
+		stackName, err = ask.Ask(port.StackChoice{
+			Stacks: m.StackNames(),
 			Check: func(a string) error {
 				if _, ok := m.Stack(a); !ok {
-					return fmt.Errorf("the stacks are %s", strings.Join(m.StackNames(), ", "))
+					return &UnknownStack{Name: a, Stacks: m.StackNames()}
 				}
 				return nil
 			},
@@ -85,23 +85,11 @@ func Choose(m *manifest.Manifest, choice manifest.Choice, given answer.Given, de
 		return manifest.Combination{}, nil, errors.Join(refused...)
 	}
 	for _, q := range missing {
-		given, err := ask.Ask(port.Question{
-			Text:       q.Question,
-			Default:    deref(q.Default),
-			HasDefault: q.Default != nil,
-			Check:      q.Check,
-		})
+		given, err := ask.Ask(port.Answer{Text: q.Question, Default: q.Default, Check: q.Check})
 		if err != nil {
 			return manifest.Combination{}, nil, &answer.NotAnswered{Question: q, Err: err}
 		}
 		answers[q.Name] = given
 	}
 	return c, answers, nil
-}
-
-func deref(s *string) string {
-	if s == nil {
-		return ""
-	}
-	return *s
 }

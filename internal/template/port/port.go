@@ -125,16 +125,35 @@ type Folders interface {
 	Remove(folder string)
 }
 
-// Asker asks a person, on a terminal, what a command line left out.
+// Asker asks a person, on a terminal, what a command line left out. What
+// is asked is data, a Question; how it is worded is the UI's.
 type Asker interface {
 	Ask(q Question) (string, error)
 }
 
-// Question is one thing to ask: its text, its default when it has one, and
-// the check an answer must pass, asked again until it does.
-type Question struct {
-	Text       string
-	Default    string
-	HasDefault bool
-	Check      func(answer string) error
+// Question is what is asked, a sealed set: the choice of a stack, or an
+// answer to one of the manifest's questions. The Asker asks again until
+// the question's check takes the answer, saying why it did not.
+//
+//sumtype:decl
+type Question interface{ question() }
+
+// StackChoice is the choice of a stack among Stacks, in the manifest's
+// order. Check refuses a stack not among them, with the domain's error
+// carrying the stacks.
+type StackChoice struct {
+	Stacks []string
+	Check  func(answer string) error
 }
+
+// Answer is an answer to one of the manifest's questions: its text, the
+// template author's, its default, nil when it has none, and the check an
+// answer must pass, nil when every answer does.
+type Answer struct {
+	Text    string
+	Default *string
+	Check   func(answer string) error
+}
+
+func (StackChoice) question() {}
+func (Answer) question()      {}

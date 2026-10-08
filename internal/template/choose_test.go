@@ -8,6 +8,7 @@ import (
 
 	"github.com/donvargax/itos-template/internal/answer"
 	"github.com/donvargax/itos-template/internal/manifest"
+	"github.com/donvargax/itos-template/internal/template/port"
 	"github.com/donvargax/itos-template/internal/template/port/porttest"
 )
 
@@ -34,8 +35,17 @@ func TestChooseAsksOnATerminalForWhatTheCommandLineLeftOut(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if want := "Which stack (sh, py)? sh\nName? blue-fox\nOwner? [Nobody] \n"; terminal.Screen.String() != want {
-		t.Errorf("the terminal shows\n%s", terminal.Screen.String())
+	if len(terminal.Asked) != 3 {
+		t.Fatalf("asked %+v", terminal.Asked)
+	}
+	stack, isStack := terminal.Asked[0].(port.StackChoice)
+	name, isName := terminal.Asked[1].(port.Answer)
+	owner, isOwner := terminal.Asked[2].(port.Answer)
+	if !isStack || !slices.Equal(stack.Stacks, []string{"sh", "py"}) {
+		t.Errorf("asked first %+v, not the choice of a stack among sh, py", terminal.Asked[0])
+	}
+	if !isName || name.Text != "Name?" || name.Default != nil || !isOwner || owner.Text != "Owner?" || owner.Default == nil || *owner.Default != "Nobody" {
+		t.Errorf("then asked %+v and %+v, not the manifest's questions", terminal.Asked[1], terminal.Asked[2])
 	}
 	if c.Name() != "sh" || answers["name"] != "blue-fox" || answers["owner"] != "Nobody" {
 		t.Errorf("chose %s, %v", c.Name(), answers)
@@ -48,8 +58,12 @@ func TestChooseAsksAgainForAStackTheTemplateLacks(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !strings.Contains(terminal.Screen.String(), `"rust" is not an answer it takes: the stacks are sh, py`) || c.Name() != "py" {
-		t.Errorf("chose %s; the terminal shows\n%s", c.Name(), terminal.Screen.String())
+	if c.Name() != "py" || len(terminal.Asked) != 2 {
+		t.Errorf("chose %s, asked %+v", c.Name(), terminal.Asked)
+	}
+	var unknown *UnknownStack
+	if len(terminal.Refused) != 1 || !errors.As(terminal.Refused[0], &unknown) || unknown.Name != "rust" || !slices.Equal(unknown.Stacks, []string{"sh", "py"}) {
+		t.Errorf("refused %v, not rust as a stack among sh, py", terminal.Refused)
 	}
 }
 
@@ -106,8 +120,8 @@ func TestChooseRefusesACombinationTheTemplateRefusesAskingNothing(t *testing.T) 
 	if other.Feature.Branch() != "py/tool" || other.Stack != "sh" || needs.Feature != "more" || needs.Need != "extra" {
 		t.Errorf("the problems are %+v, %+v", other, needs)
 	}
-	if terminal.Screen.Len() != 0 {
-		t.Errorf("something was asked:\n%s", terminal.Screen.String())
+	if len(terminal.Asked) != 0 {
+		t.Errorf("asked %+v", terminal.Asked)
 	}
 	_, _, err = choose(t, manifest.Choice{Stack: "sh", Features: []string{"tool"}}, answer.Given{"nope", "name=blue-fox"}, true, nil)
 	var malformed *answer.Malformed

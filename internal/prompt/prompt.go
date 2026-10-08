@@ -1,9 +1,9 @@
 // Package prompt is the infra that asks a person for what a command line
-// left out, on a terminal only (docs/CLI.md, rule 37; decision 11): the
-// domain's port.Asker, a plain line prompt, so the pick lists the idea
-// new-picker brings (charmbracelet/huh) can take its place without the
-// domain changing. It imports no package of ours but the ports it
-// implements (decision 17).
+// left out, on a terminal only (docs/CLI.md, rule 37; decision 11): a plain
+// line prompt asking what internal/cli worded, cli's port.Asker turning the
+// domain's question into words, so the pick lists the idea new-picker
+// brings (charmbracelet/huh) can take its place without the domain
+// changing. It imports no package of ours (decision 17).
 package prompt
 
 import (
@@ -15,8 +15,6 @@ import (
 	"strings"
 
 	"golang.org/x/term"
-
-	"github.com/donvargax/itos-template/internal/template/port"
 )
 
 // ErrNoAnswer is the input ending before an answer was given.
@@ -30,21 +28,18 @@ type Lines struct {
 	Out io.Writer
 }
 
-var _ port.Asker = (*Lines)(nil)
-
 // NewLines asks on out, reading in.
 func NewLines(in io.Reader, out io.Writer) *Lines {
 	return &Lines{In: bufio.NewReader(in), Out: out}
 }
 
-// Ask asks q until it is answered with an answer its check takes, and
-// returns that answer.
-func (l *Lines) Ask(q port.Question) (string, error) {
+// Ask asks text, with def when it is not nil, until it is answered with an
+// answer check takes (any, when check is nil), and returns that answer.
+func (l *Lines) Ask(text string, def *string, check func(answer string) error) (string, error) {
+	if def != nil {
+		text += " [" + *def + "]"
+	}
 	for {
-		text := q.Text
-		if q.HasDefault {
-			text += " [" + q.Default + "]"
-		}
 		if _, err := fmt.Fprint(l.Out, text+" "); err != nil {
 			return "", err
 		}
@@ -57,13 +52,13 @@ func (l *Lines) Ask(q port.Question) (string, error) {
 			return "", err
 		}
 		answer := strings.TrimRight(line, "\r\n")
-		if answer == "" && q.HasDefault {
-			answer = q.Default
+		if answer == "" && def != nil {
+			answer = *def
 		}
-		if q.Check == nil {
+		if check == nil {
 			return answer, nil
 		}
-		checkErr := q.Check(answer)
+		checkErr := check(answer)
 		if checkErr == nil {
 			return answer, nil
 		}

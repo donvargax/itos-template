@@ -23,8 +23,8 @@ type Error interface {
 // template's stacks.
 type NoStack struct{ Stacks []string }
 
-// UnknownStack is a stack the template does not have, and the stacks it
-// does.
+// UnknownStack is a stack the template does not have, named on the command
+// line or answered on a terminal, and the stacks it does.
 type UnknownStack struct {
 	Name   string
 	Stacks []string

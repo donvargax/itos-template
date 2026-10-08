@@ -4,7 +4,7 @@
 // an fstest.MapFS and really merges them; a Disk really holds what is
 // written to it; Git really commits what is on that Disk; Programs really
 // run, as Go functions; a Terminal really asks. A test asserts on what they
-// end up holding (the files written, the commit, what the terminal showed)
+// end up holding (the files written, the commit, what the terminal was asked)
 // and on what the domain returns, never on which calls were made.
 //
 // It is test support, imported by tests alone, and does no I/O.
@@ -265,10 +265,13 @@ func (f *Folders) Make() (string, error) {
 func (f *Folders) Remove(folder string) { delete(f.Disk.Folders, folder) }
 
 // Terminal is a person at a terminal: the lines they type, in order, and
-// the Screen they read, each question on it and each answer refused.
+// what they were asked, as data: each question, once each time it was
+// asked, and why each answer its check refused was refused. The wording is
+// the UI's, so it is not here.
 type Terminal struct {
-	Lines  []string
-	Screen strings.Builder
+	Lines   []string
+	Asked   []port.Question
+	Refused []error
 }
 
 var _ port.Asker = (*Terminal)(nil)
@@ -276,29 +279,32 @@ var _ port.Asker = (*Terminal)(nil)
 // ErrInputEnded is the person typing nothing more.
 var ErrInputEnded = errors.New("the input ended")
 
-// Ask shows q, its default in brackets, and takes the next line, an empty
-// one the default, until q's check takes one.
+// Ask takes the next line, an empty one an answer's default, until q's
+// check takes one.
 func (t *Terminal) Ask(q port.Question) (string, error) {
+	var def *string
+	var check func(string) error
+	switch q := q.(type) {
+	case port.StackChoice:
+		check = q.Check
+	case port.Answer:
+		def, check = q.Default, q.Check
+	}
 	for {
-		text := q.Text
-		if q.HasDefault {
-			text += " [" + q.Default + "]"
-		}
-		t.Screen.WriteString(text + " ")
+		t.Asked = append(t.Asked, q)
 		if len(t.Lines) == 0 {
 			return "", ErrInputEnded
 		}
 		answer := t.Lines[0]
 		t.Lines = t.Lines[1:]
-		t.Screen.WriteString(answer + "\n")
-		if answer == "" && q.HasDefault {
-			answer = q.Default
+		if answer == "" && def != nil {
+			answer = *def
 		}
-		if q.Check == nil {
+		if check == nil {
 			return answer, nil
 		}
-		if err := q.Check(answer); err != nil {
-			fmt.Fprintf(&t.Screen, "  %q is not an answer it takes: %v\n", answer, err)
+		if err := check(answer); err != nil {
+			t.Refused = append(t.Refused, err)
 			continue
 		}
 		return answer, nil

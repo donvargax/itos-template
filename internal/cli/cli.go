@@ -53,7 +53,30 @@ func (u *UI) Asker() port.Asker {
 	if !u.Terminal {
 		return nil
 	}
-	return prompt.NewLines(u.In, u.Stderr)
+	return asker{prompt.NewLines(u.In, u.Stderr)}
+}
+
+// asker words what the domain asks, which it gives as data (decision 17),
+// and prompt asks it: the choice of a stack as a question naming them all,
+// a stack not among them refused by naming them again, and a manifest's
+// question in its author's words.
+type asker struct{ lines *prompt.Lines }
+
+func (a asker) Ask(q port.Question) (string, error) {
+	switch q := q.(type) {
+	case port.StackChoice:
+		return a.lines.Ask(fmt.Sprintf("Which stack (%s)?", strings.Join(q.Stacks, ", ")), nil, func(answer string) error {
+			err := q.Check(answer)
+			var unknown *template.UnknownStack
+			if errors.As(err, &unknown) {
+				return fmt.Errorf("the stacks are %s", strings.Join(unknown.Stacks, ", "))
+			}
+			return err
+		})
+	case port.Answer:
+		return a.lines.Ask(q.Text, q.Default, q.Check)
+	}
+	return "", fmt.Errorf("nothing to ask: %v", q)
 }
 
 // Problem is one thing wrong, as --json gives it: its rule ID and its

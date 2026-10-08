@@ -82,3 +82,38 @@ func TestEachKindNoScenarioReadsHasItsCodeRuleAndSentence(t *testing.T) {
 		}
 	}
 }
+
+// Asking happens only on a terminal, which no scenario has: the wording of
+// what the domain asks, held whole here, byte for byte, through the domain
+// asking it and prompt asking what this words.
+func TestTheAskerWordsWhatTheDomainAsks(t *testing.T) {
+	m, err := manifest.Parse([]byte(`version: 2
+stacks:
+  - name: go
+  - name: python
+questions:
+  - name: owner
+    literal: Acme Corp
+    question: Owner?
+    default: Nobody
+`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var stderr strings.Builder
+	ui := &UI{In: strings.NewReader("rust\ngo\n\n"), Stderr: &stderr, Terminal: true}
+	c, answers, err := template.Choose(m, manifest.Choice{}, nil, false, ui.Asker())
+	if err != nil || c.Name() != "go" || answers["owner"] != "Nobody" {
+		t.Fatalf("Choose = %s, %v, %v", c.Name(), answers, err)
+	}
+	want := "Which stack (go, python)? " +
+		"  \"rust\" is not an answer it takes: the stacks are go, python\n" +
+		"Which stack (go, python)? " +
+		"Owner? [Nobody] "
+	if stderr.String() != want {
+		t.Errorf("asked\n%q, not\n%q", stderr.String(), want)
+	}
+	if (&UI{Terminal: false}).Asker() != nil {
+		t.Error("an asker with no terminal")
+	}
+}
