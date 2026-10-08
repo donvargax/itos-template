@@ -734,7 +734,7 @@ items:
     title: A made project's first commit keeps its message whatever git's commit.cleanup says
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: []
     kind: slice
     why: >
