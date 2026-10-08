@@ -315,3 +315,21 @@
   done_when:
     - run: go test ./tools/bin/release-version/... ./internal/release/...
     - run: grep -q 'toolchain' tools/bin/release-version/main.go
+- id: T-16
+  type: build
+  title: "A release's notes say why a patch with no fix was cut, naming what moved beneath the binary"
+  why: >
+    Found with T-15, 2026-10-07: tools/bin/release-version cuts a patch when the modules the
+    binary links or its Go toolchain moved (decision 23), but tools/bin/release-notes' opening
+    line still counts feats, fixes and breaking changes and says a fix makes a patch, so such a
+    release reads 0 feats, 0 fixes and 0 breaking changes with no reason given, and Renovate's Go
+    updates (T-14) will cut such releases weekly. The notes' opening line says the binary is built
+    from what moved, each module old to new and the toolchain, from internal/release's Moved, as
+    release-version's stderr line names them, one source for both, never computed twice; the
+    build commits under What changed already list the updates. A release cut for a feat, a fix
+    or a breaking change reads as it does today. Its Upgrading section says there is nothing to
+    change when no footer asks for anything. Tests with example repositories, as release-version's
+    (decision 19).
+  done_when:
+    - run: go test ./tools/bin/release-notes/... ./internal/release/...
+    - run: grep -q 'Moved' tools/bin/release-notes/main.go
