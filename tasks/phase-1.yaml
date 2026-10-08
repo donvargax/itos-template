@@ -424,3 +424,66 @@
     - run: grep -q 'itos-cc mutation run --since' AGENTS.md
     - run: grep -q 'runtime.GOOS' AGENTS.md
     - run: tools/bin/pinned itos-cc mutation check --since HEAD --fail-uncovered --json
+- id: T-21
+  type: ci
+  title: "CI checks the locked install: go mod verify, and go.mod and go.sum tidy"
+  why: >
+    Was the idea locked-installs-check (docs/template-contents.md, Every project: locked installs
+    everywhere, the lockfile committed and checked). Tried 2026-10-08: the idea's -mod=readonly is
+    already go's own default with no vendor folder (go help build: "Otherwise, the go command acts
+    as if -mod=readonly were set"), so builds and tests refuse a go.mod they would have to change
+    and need no flag. What is not checked: that the module cache holds what go.sum says (go mod
+    verify), and that go.mod and go.sum are complete and hold nothing the code does not use (go mod
+    tidy -diff, go 1.23 and later, printing what tidy would change and exiting 1). Both pass today.
+    Two static steps in itos.yaml's CI plan, after go vet, so the modules are downloaded already;
+    the platform jobs run go test alone and need neither, one system judging the lock. The tools
+    are locked elsewhere already: tools/bin/pinned by hash, govulncheck in go.mod's tool block, the
+    actions by commit.
+  done_when:
+    - run: grep -q 'go mod verify' itos.yaml
+    - run: grep -q 'go mod tidy -diff' itos.yaml
+    - run: go mod verify
+    - run: go mod tidy -diff
+- id: T-22
+  type: build
+  title: "A SAST baseline: gosec, bundled in the pinned golangci-lint, in the gates"
+  why: >
+    Was the idea sast-gosec (docs/template-contents.md, Quality: a SAST baseline). gosec is one of
+    golangci-lint's linters, so the pinned binary, the pre-commit hook and CI's lint step run it
+    once .golangci.yml enables it; no new tool. Tried 2026-10-08: 21 findings. Most are rules
+    whose finding is this tool's job, each turned off in .golangci.yml with its reason beside it:
+    G204 (a program run with variable words: itos-template runs git and a template's checks as
+    lists of words, never a shell, decision 15), G304 (a file read by a variable path: the files a
+    template and a made project hold), and G301, G302 and G306 (folder and file modes wider than
+    owner-only: a made project's files keep the modes a person shares a project with, 0755 and
+    0644). Test code is left out of gosec (_test.go files, features/, and the test-support packages
+    releasetest and porttest): it writes fixtures where the test says. What remains is fixed or
+    excepted where it stands: G122 in internal/tempdir's writable, a chmod by path inside a
+    WalkDir callback, a symlink swapped in mid-walk redirecting it, is fixed with os.Root, its
+    Chmod scoped to the folder (go 1.25), the behaviour unchanged and held by tempdir's tests and
+    the code proof; G602 in tools/bin/release-notes (listed[i] with i from range over listed) is a
+    false positive, a //nolint:gosec on its line saying so. Any other finding the pinned version
+    reports is fixed, or excepted on its line with its reason; never a rule turned off for one
+    finding.
+  done_when:
+    - run: grep -q 'gosec' .golangci.yml
+    - run: tools/bin/pinned golangci-lint run ./...
+    - run: "! grep -n 'os.Chmod' internal/tempdir/tempdir.go"
+- id: T-23
+  type: test
+  title: "A unit test holds itos-template's logs: JSON to a non-terminal, text to a terminal, nothing below a warning"
+  why: >
+    Was the idea structured-logs (docs/template-contents.md, CLI: structured logs, JSON when not on
+    a terminal, quiet by default). Found 2026-10-08: it is built already, since the first skeleton
+    (e49afbb): cmd/itos-template's logger sends log/slog to stderr, JSON when stderr is not a
+    terminal, text when it is, warnings and errors only; nothing holds it. The person's call,
+    2026-10-08: a unit test holds what is built, and no verbosity flag until there is an info or
+    debug log worth showing (nothing logs below a warning yet: internal/tempdir's two warnings).
+    The test, in cmd/itos-template: a warning written to a buffer comes out as one JSON object
+    with its level, message and attributes; an info line comes out as nothing; a terminal (a
+    character device, os.DevNull on unix) gets the text handler. If the terminal test needs the
+    terminal's detection apart from os.File, the detection becomes a value logger takes (decision
+    26's way), cmd's main reading it.
+  done_when:
+    - run: "go test ./cmd/itos-template -count=1 -run 'Log'"
+    - run: "grep -q 'func Test.*Log' cmd/itos-template/*_test.go"
