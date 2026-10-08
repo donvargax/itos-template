@@ -771,14 +771,15 @@ items:
       (decision 17): the handler chosen in cmd or internal/cli. Before first-template, so the
       template carries it.
     tags: [cli]
-  - id: check-detached-head
-    title: a scenario for check in a checkout with a detached HEAD
+  - id: slice-8
+    title: check's root lookup in a detached or bare checkout is held by scenarios
     phase: 1
     owner: null
     status: todo
     depends_on: []
-    kind: idea
+    kind: slice
     why: >
+      Was check-detached-head.
       slice-7 reads the root of a checkout whose HEAD is detached (actions/checkout on a pull
       request) from the branch origin's HEAD names, recorded by git clone or else asked of origin
       with git ls-remote, and names it no root when neither answers (exit 2). No scenario holds any
