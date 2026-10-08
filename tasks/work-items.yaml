@@ -690,18 +690,9 @@ items:
     title: A release's notes say why a patch with no fix was cut, naming what moved beneath the binary
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      Was release-notes-moved.
-      Found with T-15, 2026-10-07: release-version now cuts a patch when the modules the binary
-      links or its Go toolchain moved (decision 23), but tools/bin/release-notes' opening line still
-      counts feats, fixes and breaking changes and says a fix makes a patch, so such a release reads
-      0 feats, 0 fixes and 0 breaking changes with no reason given. The notes would say the binary
-      is built from what moved, each module old to new and the toolchain, as release-version's
-      stderr line names them (internal/release's Moved), the build commits under What changed
-      already listing the updates.
   - id: template-beside-project
     title: The template's branches live beside main in the project's own repository, main taking their improvements by merges
     phase: 1
