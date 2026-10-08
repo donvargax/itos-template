@@ -119,3 +119,4 @@ questions:
     item: "T-20"
     question: "Is the code proof (itos's proof.code through itos-cc's mutation check) a gate from the start, or advice first? Recommended: a gate from the start: itos work done refuses an item touching cmd or internal until mutation check --since {base} --fail-uncovered passes over cmd and internal, results recorded with --all-tests and committed in .metrics/mutate/, survivors killed by a test or excepted with a reason for the person, an uncovered mutant needing a test. Or: advisory first, agents reporting survivors with no gate."
     answer: "A gate from the start, judged by function, as T-20 built it. Until itos runs the proof in CI (donvargax/itos#28) it runs at work done only, with no CI step of our own. The user's calls, 2026-10-08."
+    decision: 27

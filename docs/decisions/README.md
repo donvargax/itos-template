@@ -27,5 +27,6 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0024: A template lives in its own repository, and the project it came from adopts it and takes its updates](0024-a-template-lives-in-its-own-repository-and-the-project-it-came-from-adopts-it-and-takes-its-updates.md)
 - [ADR-0025: Shell completion is our own: a hidden __complete command answering every shell from the command line's model](0025-shell-completion-is-our-own-a-hidden-complete-command-answering-every-shell-from-the-command-line-s-model.md)
 - [ADR-0026: Code that differs by OS takes the OS as a value; build-tagged files only for a call one OS lacks](0026-code-that-differs-by-os-takes-the-os-as-a-value-build-tagged-files-only-for-a-call-one-os-lacks.md)
+- [ADR-0027: The code proof is a gate from the start: itos-cc's mutation check over the functions an item changes](0027-the-code-proof-is-a-gate-from-the-start-itos-cc-s-mutation-check-over-the-functions-an-item-changes.md)
 
 <!-- itos:decisions:end -->
