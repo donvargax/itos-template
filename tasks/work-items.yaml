@@ -85,7 +85,7 @@ items:
     phase: 1
     owner: donvargax
     status: todo
-    depends_on: [slice-4, T-14]
+    depends_on: [slice-4, T-14, slice-7, bug-3, T-17, shell-completion, locked-installs-check, sast-gosec, structured-logs, version-command, usage-errors]
     kind: idea
     why: >
       PLAN.md, order of work 6; decision 4: the generator is the proof that a template made to
