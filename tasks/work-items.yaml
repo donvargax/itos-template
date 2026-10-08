@@ -734,11 +734,9 @@ items:
     title: A made project's first commit keeps its message whatever git's commit.cleanup says
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: slice
-    why: >
-      Found with slice-6 (the idea first-commit-cleanup, which this replaces).
     tags: [new]
   - id: shell-completion
     title: itos-template completes on bash, zsh, fish and PowerShell through a hidden __complete command
