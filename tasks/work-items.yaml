@@ -776,16 +776,9 @@ items:
     title: check's root lookup in a detached or bare checkout is held by scenarios
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: slice
-    why: >
-      Was check-detached-head.
-      slice-7 reads the root of a checkout whose HEAD is detached (actions/checkout on a pull
-      request) from the branch origin's HEAD names, recorded by git clone or else asked of origin
-      with git ls-remote, and names it no root when neither answers (exit 2). No scenario holds any
-      of it: it was checked by hand. A scenario could detach a clone's HEAD and drop origin/HEAD, so
-      origin is asked.
     refs: [slice-7]
   - id: check-pull-request
     title: check a pull request's change, not only its base's branches
