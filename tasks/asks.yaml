@@ -120,3 +120,6 @@ questions:
     question: "Is the code proof (itos's proof.code through itos-cc's mutation check) a gate from the start, or advice first? Recommended: a gate from the start: itos work done refuses an item touching cmd or internal until mutation check --since {base} --fail-uncovered passes over cmd and internal, results recorded with --all-tests and committed in .metrics/mutate/, survivors killed by a test or excepted with a reason for the person, an uncovered mutant needing a test. Or: advisory first, agents reporting survivors with no gate."
     answer: "A gate from the start, judged by function, as T-20 built it. Until itos runs the proof in CI (donvargax/itos#28) it runs at work done only, with no CI step of our own. The user's calls, 2026-10-08."
     decision: 27
+  - id: q-28
+    item: "T-20"
+    question: "Does tools/bin/pinned's rule that a pinned version is at least 7 days old hold for the owner's own tools, itos and itos-cc? Recommended: no: the rule guards against a supply-chain attack on others' releases, found within days; the owner's own are pinned when out, as itos 6.4.0 was. Or: the same 7 days for every tool, itos's own repository waiting so for itos-cc."
