@@ -747,14 +747,9 @@ items:
     title: "CI checks the locked install: go mod verify, and go.mod and go.sum tidy"
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      Was locked-installs-check.
-      docs/template-contents.md (Every project: locked installs everywhere, the lockfile committed
-      and checked). Small: a step in itos.yaml's CI plan and the platform jobs. Before
-      first-template, so the template carries it.
     tags: [ci]
   - id: T-22
     title: "A SAST baseline: gosec, bundled in the pinned golangci-lint, in the gates"
