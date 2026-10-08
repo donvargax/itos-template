@@ -93,11 +93,13 @@ work:
 # the check exits 0, {base} the parent of the item's first commit. It runs no test: it reads the
 # results itos-cc mutation run recorded in .metrics/mutate/, committed with the code, so each
 # function the item changed has fresh results, no survivor itos-cc.yaml does not except, and no
-# uncovered mutant (AGENTS.md, Finishing).
+# uncovered mutant (AGENTS.md, Finishing). The check names cmd and internal, so it judges exactly
+# the paths that make it run: paths decides whether it runs, not what it judges (itos#24), and
+# without them a change elsewhere (a comment in tools/bin) would need mutation results too.
 proof:
   code:
     paths: ["{cmd,internal}/**/*.go"]
-    check: "tools/bin/pinned itos-cc mutation check --since {base} --fail-uncovered --json"
+    check: "tools/bin/pinned itos-cc mutation check --since {base} --fail-uncovered --json cmd internal"
 
 # What CI runs on a push (.github/workflows/ci.yml): itos ci run over the range from the last green
 # run, these steps in cost order, then the checks of the tasks the range names. Harvested from
