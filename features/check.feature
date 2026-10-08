@@ -189,3 +189,29 @@ Feature: check renders every combination a template allows and runs its checks
     When itos-template runs with "check {template} --answer name=blue-fox --defaults"
     Then it exits with code 2
     And its error output says "licences"
+
+  # slice-7 (check-ci-branches): a template's CI checks out its repository
+  # as git clone does, its default branch local and the others only as
+  # origin's remote-tracking branches, and a step may run in any folder of
+  # it. check with no template named reads the repository it runs in, from
+  # its top whatever folder it runs in, and each branch the manifest names
+  # from the local branch of that name, else from origin's, so no fetch
+  # recipe is needed. The person's call, 2026-10-07. Before slice-7, check
+  # in such a clone said the template has no branch stack/go (exit 1), and
+  # in a subfolder that git cannot reach the template "." (exit 3).
+  @ID-CHECK-15 @slice-7 @wip
+  Scenario: check in a clone holding only its default branch reads the others from origin
+    Given the template "acme"
+    And a clone "ci" of the template, only its default branch local
+    When itos-template runs in the folder "ci" with "check --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And its report says "go + cli + web" passed
+    And its report says "python + cli" passed
+
+  @ID-CHECK-16 @slice-7 @wip
+  Scenario: check run in a folder below the template's top checks the whole template
+    Given the template "acme"
+    And a clone "ci" of the template, only its default branch local
+    When itos-template runs in the folder "ci/.github" with "check --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And its report says "go + cli" passed
