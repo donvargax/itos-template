@@ -11,7 +11,9 @@ teaches, in the guide's lesson format.
   repository harvests its infrastructure (workflows, the godog harness, release tooling, the CLI
   rules) rather than rewriting it; a brief that copies from it names the files.
 - A gap in itos found here goes to itos as an issue through its consumer-report form, never fixed
-  here around it.
+  here around it; one in itos-cc (github.com/donvargax/itos-cc, the code proof's mutation check)
+  goes to itos-cc as an issue. The person wants both filed as they are found, after trying the
+  tool to be sure. The idea upstream-fixes lists those open and what each changes here.
 
 ## What a brief adds here
 
