@@ -775,8 +775,8 @@ items:
   - id: slice-8
     title: check's root lookup in a detached or bare checkout is held by scenarios
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: slice
     why: >
