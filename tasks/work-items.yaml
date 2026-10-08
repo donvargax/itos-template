@@ -818,8 +818,8 @@ items:
   - id: T-19
     title: The features build the itos-template under test with -cover when GOCOVERDIR is set, so itos-cc sees what the scenarios run
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: task
     why: >
