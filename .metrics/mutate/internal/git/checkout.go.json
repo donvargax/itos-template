@@ -1,0 +1,212 @@
+{
+  "version": 1,
+  "file": "internal/git/checkout.go",
+  "language": "go",
+  "tests": {
+    "internal/cli/cli_test.go": "94f672872f685eadc6bccac62ce19685f1c5a260b4474c103f3dfb63ff2aaf5d",
+    "internal/git/git_test.go": "a383ea8d67169fc2f089ebfc50c4e22f17bfada8aac0517ba32c48a7cca61e02"
+  },
+  "units": [
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/git",
+      "name": "CloneHere",
+      "hash": "f277cf654e8876b2",
+      "start_line": 24,
+      "end_line": 52,
+      "killed": 7,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 7,
+      "mutants": [
+        {
+          "line": 26,
+          "column": 9,
+          "offset": 76,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 29,
+          "column": 62,
+          "offset": 167,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 39,
+          "column": 36,
+          "offset": 555,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 44,
+          "column": 5,
+          "offset": 638,
+          "original": "!",
+          "replacement": "",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 45,
+          "column": 14,
+          "offset": 657,
+          "original": "true",
+          "replacement": "false",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 48,
+          "column": 58,
+          "offset": 738,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 48,
+          "column": 70,
+          "offset": 750,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/git",
+      "name": "topLevel",
+      "hash": "d539b2f98447d4bc",
+      "start_line": 57,
+      "end_line": 66,
+      "killed": 2,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 2,
+      "mutants": [
+        {
+          "line": 58,
+          "column": 62,
+          "offset": 95,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 62,
+          "column": 9,
+          "offset": 216,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/git",
+      "name": "rootOf",
+      "hash": "1720d54feb51aed5",
+      "start_line": 71,
+      "end_line": 97,
+      "killed": 9,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 9,
+      "mutants": [
+        {
+          "line": 72,
+          "column": 66,
+          "offset": 106,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 74,
+          "column": 14,
+          "offset": 213,
+          "original": "true",
+          "replacement": "false",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 77,
+          "column": 86,
+          "offset": 310,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 79,
+          "column": 14,
+          "offset": 426,
+          "original": "true",
+          "replacement": "false",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 84,
+          "column": 9,
+          "offset": 638,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 85,
+          "column": 14,
+          "offset": 660,
+          "original": "false",
+          "replacement": "true",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 89,
+          "column": 11,
+          "offset": 797,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 93,
+          "column": 14,
+          "offset": 901,
+          "original": "true",
+          "replacement": "false",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 96,
+          "column": 13,
+          "offset": 925,
+          "original": "false",
+          "replacement": "true",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    }
+  ]
+}

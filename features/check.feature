@@ -228,7 +228,7 @@ Feature: check renders every combination a template allows and runs its checks
   # bare repository is read as a checkout is. The behaviour is slice-7's:
   # these scenarios pass from the start, and itos-cc's mutation run shows each
   # can fail.
-  @ID-CHECK-17 @slice-8 @wip
+  @ID-CHECK-17 @slice-8
   Scenario: check in a clone whose HEAD is detached reads the root from the branch origin's HEAD names
     Given the template "acme"
     And a clone "ci" of the template, only its default branch local
@@ -237,7 +237,7 @@ Feature: check renders every combination a template allows and runs its checks
     Then it exits with code 0
     And its report says "go + cli + web" passed
 
-  @ID-CHECK-18 @slice-8 @wip
+  @ID-CHECK-18 @slice-8
   Scenario: check in a checkout as actions/checkout leaves a pull request's asks origin for the root
     Given the template "acme"
     And a clone "ci" of the template, only its default branch local
@@ -246,7 +246,7 @@ Feature: check renders every combination a template allows and runs its checks
     Then it exits with code 0
     And its report says "python + cli" passed
 
-  @ID-CHECK-19 @slice-8 @wip
+  @ID-CHECK-19 @slice-8
   Scenario: check refuses with exit 2 a detached checkout whose origin cannot say its root
     Given the template "acme"
     And a clone "ci" of the template, only its default branch local
@@ -256,7 +256,7 @@ Feature: check renders every combination a template allows and runs its checks
     Then it exits with code 2
     And its error output says "no default branch"
 
-  @ID-CHECK-20 @slice-8 @wip
+  @ID-CHECK-20 @slice-8
   Scenario: check in a bare clone of the template checks the whole template
     Given the template "acme"
     And a bare clone "ci.git" of the template
@@ -266,7 +266,7 @@ Feature: check renders every combination a template allows and runs its checks
 
   # What git clone recorded is read before origin is asked: a detached
   # checkout whose origin cannot be reached still has its root.
-  @ID-CHECK-21 @slice-8 @wip
+  @ID-CHECK-21 @slice-8
   Scenario: check in a clone whose HEAD is detached reads the root git clone recorded, never asking origin
     Given the template "acme"
     And a clone "ci" of the template, only its default branch local
@@ -278,7 +278,7 @@ Feature: check renders every combination a template allows and runs its checks
 
   # An origin that answers but whose HEAD names no branch (a detached HEAD
   # there) says no root either.
-  @ID-CHECK-22 @slice-8 @wip
+  @ID-CHECK-22 @slice-8
   Scenario: check refuses with exit 2 a detached checkout whose origin's HEAD names no branch
     Given the template "acme"
     And a clone "ci" of the template, only its default branch local
