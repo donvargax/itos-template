@@ -749,7 +749,7 @@ items:
     title: "A unit test holds itos-template's logs: JSON to a non-terminal, text to a terminal, nothing below a warning"
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: []
     kind: task
     why: >
