@@ -11,7 +11,7 @@
 phases:
   1: donvargax # the ledger's phase 1: a handle, or null
 queue:
-  - release-notes-moved
+  - T-16
   - first-template
 items:
   - id: T-2
@@ -686,14 +686,15 @@ items:
       renovate: comment the presets' customManagers:githubActionsVersions can move, or a pinned
       tool.
     tags: [ci]
-  - id: release-notes-moved
+  - id: T-16
     title: A release's notes say why a patch with no fix was cut, naming what moved beneath the binary
     phase: 1
     owner: null
     status: todo
     depends_on: []
-    kind: idea
+    kind: task
     why: >
+      Was release-notes-moved.
       Found with T-15, 2026-10-07: release-version now cuts a patch when the modules the binary
       links or its Go toolchain moved (decision 23), but tools/bin/release-notes' opening line still
       counts feats, fixes and breaking changes and says a fix makes a patch, so such a release reads
