@@ -259,6 +259,12 @@ items:
       later update, not files adopt installs. Initial migration is adopt an older matching baseline
       then update to a newer version; adopting latest alone imports no changes. Baseline selection
       and the remaining safety/preview details still need specification.
+
+      The person accepted 2026-10-08: adopt requires an explicit --ref baseline; it never guesses a
+      version from project files or silently defaults to latest. Stack, features and answers follow
+      new's conventions. The preview names the exact resolved branch commits. The baseline is a
+      reproducible rendered template version; adopting latest treats current differences as project
+      customizations rather than importing those changes.
     tags: [update]
   - id: template-releases
     title: A template release tags every branch, and new renders the newest release or the one --ref names
