@@ -854,4 +854,8 @@ items:
       makes (6.5.1 ordering a pre-release below its release) never reaches CI. Either the version
       input moves with the action, a stable one when the action is at a pre-release (the action's
       ref regex takes no pre-release), or the comment says why it stays.
+
+      donvargax/itos#23 (2026-10-08) asks the action to install the launcher of the release it is,
+      from a pre-release tag or a commit too; once it does, CI drops the version input and pins the
+      action by commit alone.
     tags: [ci]
