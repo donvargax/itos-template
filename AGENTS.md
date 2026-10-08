@@ -1,83 +1,67 @@
 # Working rules
 
-Read `PLAN.md` first: what itos-template is, its model and the order of work. The decisions behind
-it are records in `docs/decisions/`; what a made project contains is `docs/template-contents.md`; the
-command line follows `docs/CLI.md`.
+Read `PLAN.md` first: what itos-template is and the order of work. Decisions are records in
+`docs/decisions/`; what a made project holds is `docs/template-contents.md`; the command line
+follows `docs/CLI.md`. The hooks and CI enforce every rule a command can decide (the block at the
+end); this file holds what none can check. Keep it short: every session reads it.
 
-This repository is held to its rules by itos (`itos.yaml`, the block at the end of this file): the
-hooks and CI enforce every rule a command can decide, on every commit, whoever made it. This file
-holds what no command can check. Where a rule has a gate, this file names the gate and does not
-restate it. Keep it short: every session reads it.
+**Which session are you?** Handed an item to implement: run `itos guide work`, then follow this
+file; do the work yourself and start no subagents. The session the person talks to coordinates:
+`itos go` is yours. Anything that needs a scenario is a slice, for an implementing agent.
 
-**Which session are you?** If you were handed an item to implement, you are an implementing
-session: run `itos guide work`, then follow this file; do the work yourself and start no
-subagents. If you are the session the person talks to, you coordinate: `itos go` is yours (the
-generic guide, then `docs/ORCHESTRATING.md`, then `itos status`). Anything that needs a scenario
-is a slice, and a slice goes to an implementing agent.
-
-**Who works what.** `tasks/work-items.yaml` says who owns each item and what it waits on; `itos
-work` shows what you can start. Take an item with `itos work take <id>` and push that first; close
-it with `itos work done <id>` once its work is pushed and CI is green. Never edit an owner or a
-status by hand.
+**Who works what.** `tasks/work-items.yaml`, read with `itos work`. Take an item with `itos work
+take <id>` and push that first; close it with `itos work done <id>` once CI is green. Never edit an
+owner or a status by hand.
 
 ## What drives a change
 
-- **`feat` / `fix`:** scenarios in `features/`. Remove `@wip` from the ones you implement (or add a
-  `@bug-<n>` scenario for a fix), implement until they pass, commit with `--scenarios` and
-  `--upgrading` (what a user of itos-template must change, or `none`). If the behaviour you need
-  is not described, stop and propose the scenario; never bend a scenario to fit the code.
-- **Everything else:** a task in `tasks/`, named with `--task`. `itos task <id>` says when it is
+- **`feat` / `fix`:** scenarios in `features/`. Remove `@wip` from the ones you implement (a fix
+  adds a `@bug-<n>` one), commit with `--scenarios` and `--upgrading` (what a user must change, or
+  `none`). Behaviour not described: stop and propose the scenario; never bend one to fit the code.
+- **Everything else:** a task in `tasks/`, named with `--task`; `itos task <id>` says when it is
   done.
-- **Red first:** the steps a slice's scenarios need go alone in a `test` commit, the scenarios
-  still `@wip`; run them and see each fail at the step that checks the behaviour; then build.
-- **Conventional Commits,** committed with `itos commit -F <file>`, never `git commit`. The body
-  says what changed and why: it is the changelog. No body line starts with a word and a colon
-  (git reads it as a footer).
-- **A library or our own code** for a problem one likely already solves is the person's call
-  with the coordinator (decision 13), made in the spec. Meeting one the spec did not settle,
-  stop and propose the candidates, weighed by activity, complexity, change and value; never
-  choose alone.
-- **Vertical slices, a thin UI and app, the work in the domain** (decision 17; depguard and
-  gochecksumtype hold the arrows): commands carry domain objects, and the domain stays free of UI
-  concerns, exit codes included. No other mapper: never a DTO or an options struct copying a
-  type. An anti-corruption layer only where an outside model would leak in. Unit tests are for
-  the domain, with our fakes and stubs, never mocks, asserting outcomes; the scenarios hold the
-  rest against the real git (decision 19).
-- **Decide the split before editing:** each commit type may touch only certain paths (the block
-  below). Check a split with `itos commit check-paths --type <type> <path>…`; never relabel a
-  commit to get past a rule.
-
-## The gates run themselves
-
-Every commit and push runs the checks for you. Don't run them by hand first; commit, and read what
-the gate says. When one fails, fix that cause. Never sit blocked on a push: run `itos push` in the
-background and watch its output with a Monitor, never a wait loop of your own.
+- **Red first:** a slice's steps go alone in a `test` commit, its scenarios still `@wip`; see each
+  fail at the step that checks the behaviour; then build.
+- **Commit with `itos commit -F <file>`,** never `git commit`. The body says what changed and why:
+  it is the changelog. No body line starts with a word and a colon (git reads a footer), nor with
+  `with #,` (itos#21).
+- **A library or our own code** where one likely exists is the person's call, made in the spec
+  (decision 13). Meeting one the spec did not settle, stop and propose candidates; never choose
+  alone.
+- **Vertical slices, a thin UI, the work in the domain** (decision 17): commands carry domain
+  objects; the domain knows no UI, exit codes included. No DTO or options struct copying a type; an
+  anti-corruption layer only where an outside model would leak in. Unit tests are the domain's,
+  with our fakes, never mocks, asserting outcomes; scenarios hold the rest on the real git
+  (decision 19).
+- **Code that differs by OS takes the OS as a value** (decision 26): no `runtime.GOOS` branch in
+  logic; a build-tagged file only for a call one OS lacks, holding no mutation site.
+- **Decide the split before editing:** each commit type touches only its paths (the block);
+  `itos commit check-paths --type <type> <path>…` checks one. Never relabel a commit.
 
 ## Never
 
-- Bypass a hook (`--no-verify`, `-n`, `-c core.hooksPath`), force-push, or rewrite what is on the
-  remote.
-- Pipe `itos commit` or `itos push` into anything; write the output to a file and read it.
-- Stage with `git add -A`, `.`, `-u` or a directory: stage your own files by path, and read `git
-  status --short` before committing.
-- Weaken a gate to get green. If the gate is wrong, stop and say so.
-- Use a template language. Templates here are real projects; see `PLAN.md`.
+- Bypass a hook (`--no-verify`, `-n`, `-c core.hooksPath`), force-push, or rewrite the remote.
+- Pipe `itos commit` or `itos push`; write the output to a file and read it.
+- Stage with `git add -A`, `.`, `-u` or a folder: stage your files by path, read `git status
+  --short` first.
+- Weaken a gate to get green, or reshape code only so it holds nothing to mutate. A wrong gate:
+  stop and say so.
+- Use a template language: templates here are real projects (`PLAN.md`).
 
 ## Finishing
 
-An item whose commits touch `cmd` or `internal` closes only on its code proof (itos.yaml's
-`proof`). Before its last push, run `tools/bin/pinned itos-cc mutation run --since <the parent of
-the item's first commit> --fail-uncovered --all-tests --no-annotate`, commit `.metrics/mutate/`,
-and kill each survivor with a test; a truly equivalent one is excepted (`itos-cc mutation except`)
-with its reason, for the person to review. An uncovered mutant needs a test, never an exception.
-Code that differs by OS takes the OS as a value (decision 26): no `runtime.GOOS` branch in logic,
-and a build-tagged file only for a call one OS lacks, with no mutation site in it.
+The gates run themselves: commit and read what they say, never run them by hand first. An item
+touching `cmd` or `internal` closes only on its code proof (itos.yaml's `proof`). Before its last
+push run `tools/bin/pinned itos-cc mutation run --since <the parent of its first commit>
+--fail-uncovered --all-tests --no-annotate cmd internal` (an item about code it does not change
+names that code's files, without `--since`), commit `.metrics/mutate/`, and kill each survivor
+with a test. A truly equivalent one is excepted (`itos-cc mutation except`) with its reason, for
+the person to review; an uncovered one needs a test, never an exception.
 
-Push with `itos push` (it rebases onto `main`, pushes, and waits for CI). Done is that run green;
-report its URL. A gap the work leaves goes into the registry as an idea (`itos work add`), never
-into a commit body. A reason worth keeping goes where a reader looks: a scenario's above it, a
-task's in its why, a decision in `docs/decisions/`, how the code is put together in a package's
-doc comment.
+Push with `itos push` in the background, watched with a Monitor, never a wait loop. Done is its
+run green; report its URL. A gap the work leaves is an idea (`itos work add`), never a commit
+body. A reason worth keeping goes where a reader looks: above a scenario, in a task's why, in
+`docs/decisions/`, in a package's doc comment.
 
 <!-- itos:begin -->
 
