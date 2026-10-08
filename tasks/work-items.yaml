@@ -864,3 +864,16 @@ items:
       stack's and a feature's names come from the template's manifest, which __complete would have
       to read (a clone, or a local folder named before them).
     tags: [cli]
+  - id: nolint-explained
+    title: golangci-lint's nolintlint holds every exception to its reason and its linter
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      T-22 (2026-10-08) made every lint exception carry its reason on its line (//nolint:gosec //
+      why); no gate holds it. nolintlint, in the pinned golangci-lint, with require-explanation and
+      require-specific refuses a //nolint without a reason or naming no linter, and allow-unused
+      false one that excepts nothing. Found by T-22's agent.
+    tags: [ci]
