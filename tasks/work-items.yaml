@@ -867,3 +867,27 @@ items:
     tags: [ci]
     deferred: >
       Waits for donvargax/itos#28: itos ci run running proof.code.
+  - id: upstream-fixes
+    title: Take up the itos and itos-cc fixes filed from here as their releases land
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Filed 2026-10-08, each with what it changes here once released and pinned. itos: #21 the lint
+      misreads a body line starting with a hash (drop the lesson); #22 itos tests list in the form
+      itos-cc reads (the idea listed-tests); #23 the action installs the launcher its ref names (the
+      idea launcher-version); #24 proof.code.paths and the check can drift (drop cmd internal from
+      the check if a placeholder comes); #25 work done says what a passing proof judged; #26 the
+      proof judges other items' commits; #27 the generated AGENTS.md block grows with each CI step
+      (an option to shorten it); #28 the proof runs in itos ci run (the idea proof-in-ci). itos-cc:
+      #15 a failing listed-tests coverage run reads as uncovered; #16 leave test support (porttest)
+      out of mutation; #17 release notes; #18 code only another OS builds is uncovered; #19 version
+      prints 0.5.0 or v0.5.0 (T-20's check greps the release form); #20 an --all-tests kill stays
+      fresh when its scenarios change; #21 a passing sample reads as an error annotation; #22 a
+      comment-only change makes a function changed; #23 a statement no test runs passes when it
+      holds no site (decision 27's main gap: run()'s untested error paths then need tests); #24
+      return-value and call mutators. Check them with gh issue list -R donvargax/itos --author @me
+      and the same for itos-cc.
+    tags: [ci]
