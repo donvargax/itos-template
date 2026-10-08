@@ -718,7 +718,7 @@ items:
     title: itos-template completes on bash, zsh, fish and PowerShell through a hidden __complete command
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: []
     kind: slice
     why: >
