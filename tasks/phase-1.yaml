@@ -412,10 +412,15 @@
     slice-7's rootOf has 9 uncovered mutants and topLevel a survivor, the idea check-detached-head's.
     itos-cc mutates test support outside _test.go files (internal/template/port/porttest) like code,
     with no way to leave it out (donvargax/itos-cc#16): until then a change to a fake needs it
-    covered.
+    covered. A line only another OS builds or runs is uncovered wherever the proof runs, and no
+    exception excuses it (tried 2026-10-08: a _windows.go file's sites listed and uncovered on
+    Linux; donvargax/itos-cc#18). So decision 26 (q-26) holds: knowledge that differs by OS is a
+    function taking the OS as a value, a build-tagged file holds only a call one OS lacks and no
+    mutation site, and AGENTS.md says so beside the proof's step.
   done_when:
     - run: tools/bin/pinned itos-cc version | grep -qx 'itos-cc v0.5.0'
     - run: "grep -qF 'tools/bin/pinned itos-cc mutation check --since {base} --fail-uncovered --json' itos.yaml"
     - run: grep -q 'itos-cc mutation sample' itos.yaml
     - run: grep -q 'itos-cc mutation run --since' AGENTS.md
+    - run: grep -q 'runtime.GOOS' AGENTS.md
     - run: tools/bin/pinned itos-cc mutation check --since HEAD --fail-uncovered --json
