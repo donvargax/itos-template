@@ -280,6 +280,15 @@ func (w *world) knowingNoOne() []string {
 	return append(env, "GIT_CONFIG_COUNT=1", "GIT_CONFIG_KEY_0=user.useConfigOnly", "GIT_CONFIG_VALUE_0=true")
 }
 
+// withGitConfig is the scenarios' environment with git's config key set to
+// value for this run alone, as a person's own config would set it: through
+// GIT_CONFIG_COUNT, which every git the run starts reads and which outranks
+// every config file, so no config of the person's (global or system) is
+// written or read.
+func (w *world) withGitConfig(key, value string) []string {
+	return append(w.env(), "GIT_CONFIG_COUNT=1", "GIT_CONFIG_KEY_0="+key, "GIT_CONFIG_VALUE_0="+value)
+}
+
 // setEnv is env with the variable name, in any case, set to value.
 func setEnv(env []string, name, value string) []string {
 	var out []string

@@ -218,13 +218,27 @@ func (w *world) templateWithKey(name, key string) error {
 // whole message, as first_commit holds it (docs/manifest.md).
 func (w *world) templateWithFirstCommit(name, header, footer string) error {
 	key := fmt.Sprintf("%s whose manifest gives the first commit the message %q with the footer %q", name, header, footer)
+	return w.templateWithMessage(name, key, header+"\n\n"+footer+"\n")
+}
+
+// templateWithFirstCommitBody is templateWithFirstCommit with the body line
+// body, a paragraph of its own between the header and the footer.
+func (w *world) templateWithFirstCommitBody(name, header, body, footer string) error {
+	key := fmt.Sprintf("%s whose manifest gives the first commit the message %q with the body line %q and the footer %q", name, header, body, footer)
+	return w.templateWithMessage(name, key, header+"\n\n"+body+"\n\n"+footer+"\n")
+}
+
+// templateWithMessage is the fixture template name, built once a run for
+// key, its manifest on the root branch of version 4 and giving the first
+// commit the message message.
+func (w *world) templateWithMessage(name, key, message string) error {
 	return w.changedTemplate(name, key, func(top *yaml.Node) error {
 		version := mappingValue(top, "version")
 		if version == nil {
 			return errors.New("the manifest has no version")
 		}
 		*version = yaml.Node{Kind: yaml.ScalarNode, Tag: "!!int", Value: "4"}
-		top.Content = append(top.Content, scalar("first_commit"), scalar(header+"\n\n"+footer+"\n"))
+		top.Content = append(top.Content, scalar("first_commit"), scalar(message))
 		return nil
 	})
 }

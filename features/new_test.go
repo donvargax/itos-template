@@ -34,6 +34,7 @@ func (w *world) newSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^the template "([^"]*)" whose root branch holds no itos-template\.yaml$`, w.templateWithoutManifest)
 	sc.Step(`^the template "([^"]*)" whose manifest has the key "([^"]*)"$`, w.templateWithKey)
 	sc.Step(`^the template "([^"]*)" whose manifest gives the first commit the message "([^"]*)" with the footer "([^"]*)"$`, w.templateWithFirstCommit)
+	sc.Step(`^the template "([^"]*)" whose manifest gives the first commit the message "([^"]*)" with the body line "([^"]*)" and the footer "([^"]*)"$`, w.templateWithFirstCommitBody)
 	sc.Step(`^the template "([^"]*)" whose branch "([^"]*)" is missing$`, w.templateWithoutBranch)
 	sc.Step(`^the template "([^"]*)" whose branch "([^"]*)" holds the file "([^"]*)"$`, func(name, branch, file string) error {
 		return w.templateWithFiles(name, branch, `"`+file+`"`)
@@ -54,6 +55,9 @@ func (w *world) newSteps(sc *godog.ScenarioContext) {
 	})
 	sc.Step(`^itos-template runs with git knowing no one with "([^"]*)"$`, func(args string) error {
 		return w.runWith(w.knowingNoOne(), args)
+	})
+	sc.Step(`^itos-template runs with git's commit\.cleanup set to ([a-z-]+) with "([^"]*)"$`, func(mode, args string) error {
+		return w.runWith(w.withGitConfig("commit.cleanup", mode), args)
 	})
 	sc.Step(`^an empty folder "([^"]*)"$`, func(dir string) error {
 		return os.MkdirAll(w.path(dir), 0o755)
@@ -99,6 +103,7 @@ func (w *world) newSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^the first commit of "([^"]*)" is by "([^"]*)"$`, w.firstCommitIsBy)
 	sc.Step(`^the first commit of "([^"]*)" has the header "([^"]*)"$`, w.firstCommitHasHeader)
 	sc.Step(`^the first commit of "([^"]*)" has the footer "([^"]*)"$`, w.firstCommitHasFooter)
+	sc.Step(`^the first commit of "([^"]*)" has the body line "([^"]*)"$`, w.firstCommitHasBodyLine)
 	sc.Step(`^the folder "([^"]*)" is a git repository with exactly (\d+) commits?$`, w.repositoryWithCommits)
 	sc.Step(`^the working tree of "([^"]*)" has no changes$`, w.noChanges)
 
@@ -329,6 +334,24 @@ func (w *world) firstCommitHasHeader(dir, header string) error {
 	}
 	if got, _, _ := strings.Cut(strings.ReplaceAll(out, "\r\n", "\n"), "\n"); got != header {
 		return fmt.Errorf("the first commit of %s has the header %q, not %q\n%s", dir, got, header, out)
+	}
+	return nil
+}
+
+// firstCommitHasBodyLine is whether line is a line of the first commit of
+// dir's message after its header, exactly as written there.
+func (w *world) firstCommitHasBodyLine(dir, line string) error {
+	first, err := w.firstCommit(dir)
+	if err != nil {
+		return err
+	}
+	out, err := w.gitOut(w.path(dir), "log", "-1", "--format=%B", first)
+	if err != nil {
+		return err
+	}
+	lines := strings.Split(strings.ReplaceAll(out, "\r\n", "\n"), "\n")
+	if !slices.Contains(lines[1:], line) {
+		return fmt.Errorf("the first commit of %s has no body line %q: its message is\n%s", dir, line, out)
 	}
 	return nil
 }
