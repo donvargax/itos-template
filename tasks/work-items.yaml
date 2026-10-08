@@ -819,23 +819,9 @@ items:
     title: The features build the itos-template under test with -cover when GOCOVERDIR is set, so itos-cc sees what the scenarios run
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      For T-20's code proof (the person's call, 2026-10-08: a gate from the start). The scenarios
-      run the built itos-template as another process, so Go records their coverage only for a binary
-      built with -cover writing to GOCOVERDIR (go.dev/doc/build-cover); without it they add 0.0%,
-      and itos-cc called all of slice-7's checkout.go and check.go uncovered (23 mutants). Tried on
-      2026-10-08 in a scratch worktree: building with -cover -covermode=atomic -coverpkg=./... when
-      GOCOVERDIR is set let itos-cc mutation run --all-tests kill 13 of them, the scenarios'
-      coverage merged with go test's; w.env() already passes GOCOVERDIR to every command a scenario
-      runs. The trap: a -cover binary with no GOCOVERDIR writes a warning to stderr, which broke
-      @ID-CHECK-13 (no warning); itos-cc's listed tests set only ITOS_CC_TEST_COVERDIR for their
-      first coverage run, so the build keys on GOCOVERDIR alone, never on that variable. Splitting
-      the coverage per scenario under ITOS_CC_TEST_COVERDIR, as itos's T-121 does, is not needed
-      while --all-tests is cheap (the idea listed-tests). Without GOCOVERDIR nothing changes. As
-      itos's T-121 does it (6377a0d, df80cd9 in donvargax/itos).
   - id: listed-tests
     title: "itos-cc runs only the scenarios that reach a mutant: listed tests, the coverage split per scenario"
     phase: 1
