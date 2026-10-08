@@ -15,6 +15,7 @@ type completionModel struct {
 		Path    string `arg:""`
 		Target  string `arg:"" optional:""`
 		Mode    string `name:"mode" enum:"fast,slow" short:"m" required:""`
+		Output  string `name:"output" short:"o"`
 		Enabled bool   `name:"enabled" negatable:""`
 		Secret  bool   `name:"secret" hidden:""`
 	} `cmd:""`
@@ -50,8 +51,10 @@ func TestCompleteUsesKongCommandAndFlagModel(t *testing.T) {
 		{name: "top-level commands omit hidden commands", want: []string{"inspect", "search", "shell", ":none"}},
 		{name: "command prefix", words: []string{"s"}, want: []string{"search", "shell", ":none"}},
 		{name: "command flags", words: []string{"search", "src", "dst", "--mo"}, want: []string{"--mode", ":none"}},
+		{name: "short flags", words: []string{"search", "src", "dst", "-m"}, want: []string{"-m", ":none"}},
 		{name: "enum flag value after equals", words: []string{"search", "src", "dst", "--mode=f"}, want: []string{"fast", ":none"}},
 		{name: "non-enum switch value is not treated as enum completion", words: []string{"search", "src", "dst", "--enabled=x"}, want: []string{":none"}},
+		{name: "non-enum flag value in next word offers no values", words: []string{"search", "--output", ""}, want: []string{":none"}},
 		{name: "enum flag value in next word", words: []string{"search", "--mode", "f"}, want: []string{"fast", ":none"}},
 		{name: "flag awaiting a value", words: []string{"search", "--mode", ""}, want: []string{"fast", "slow", ":none"}},
 		{name: "short flag awaiting a value", words: []string{"search", "-m", ""}, want: []string{"fast", "slow", ":none"}},
