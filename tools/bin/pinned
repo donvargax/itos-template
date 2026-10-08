@@ -13,21 +13,26 @@
 #   tools/bin/pinned git-cliff <args>…       git-cliff, which lists a
 #                                            release's commits by type
 #                                            (tools/bin/release-notes)
+#   tools/bin/pinned itos-cc <args>…         itos-cc, the code proof:
+#                                            mutation testing of changed
+#                                            code (itos.yaml's proof.code)
 #   tools/bin/pinned --path <tool>           prints the binary's path,
 #                                            fetching it
 #
 # govulncheck is not here: it is a Go module, pinned in go.mod's tool block
 # and checked by go.sum, run as go tool govulncheck.
 #
-# Each version is at least 7 days old when pinned: a supply-chain attack is
-# usually found within days. To move one, change its version and its hashes
-# together, each copied from the release's own checksums
-# (golangci-lint-<version>-checksums.txt, GoReleaser's checksums.txt,
-# git-cliff's .sha512 files, the archive's SHA-256 computed after checking
-# that), in a build commit. GoReleaser and git-cliff are as itos pins them
-# (T-5). Linux and macOS on amd64 and arm64, and Windows on both under Git
-# for Windows' sh, which has unzip, for golangci-lint alone: a release is cut
-# on Linux. Exit 2 elsewhere, or when a fetch or a check fails.
+# Each version of others' tools is at least 7 days old when pinned: a
+# supply-chain attack is usually found within days. The owner's own, itos-cc
+# here as itos in itos.yaml, are pinned when out (T-20). To move one, change
+# its version and its hashes together, each copied from the release's own
+# checksums (golangci-lint-<version>-checksums.txt, GoReleaser's and
+# itos-cc's checksums.txt, git-cliff's .sha512 files, the archive's SHA-256
+# computed after checking that), in a build commit. GoReleaser and git-cliff
+# are as itos pins them (T-5). Linux and macOS on amd64 and arm64, and
+# Windows under Git for Windows' sh, which has unzip: on both for
+# golangci-lint, on amd64 for itos-cc, which releases no other; a release is
+# cut on Linux. Exit 2 elsewhere, or when a fetch or a check fails.
 set -eu
 root=$(CDPATH='' cd -- "$(dirname -- "$0")/../.." && pwd)
 
@@ -102,7 +107,25 @@ git-cliff)
 	url=https://github.com/orhun/git-cliff/releases/download/v$version/$asset
 	member=git-cliff-$version/git-cliff exe=
 	;;
-*) die "no pinned tool named $tool (golangci-lint, goreleaser, git-cliff)" ;;
+itos-cc)
+	# v0.5.0, 2026-10-08.
+	version=0.5.0
+	case "$platform" in
+	linux-amd64) sum=a94a0d17418dd4ba39e89210468beaa0b34266db317f65ecf0c4bce6a5f4db6d ;;
+	linux-arm64) sum=9fd215a9e637590c354a782d66f86e7edf5a5f1704f364bcc4597e9f7df724af ;;
+	darwin-amd64) sum=67a5dfc5ce2120f019952f58e21b7800fd28cabd8e65d74aa69d65e381304b0e ;;
+	darwin-arm64) sum=f4acdd964c9581cc94c61231f2fd39eebfc58c91c70954666bda6c139187540a ;;
+	windows-amd64) sum=ae8a0dce924ffb4b171ecbf72b04aed54b232622cd13097f68d72cee090c7483 ;;
+	*) die "no pinned $tool for $platform" ;;
+	esac
+	case "$platform" in
+	windows-*) asset=itos-cc-$version-$platform.zip exe=.exe ;;
+	*) asset=itos-cc-$version-$platform.tar.gz exe= ;;
+	esac
+	url=https://github.com/donvargax/itos-cc/releases/download/v$version/$asset
+	member=itos-cc$exe
+	;;
+*) die "no pinned tool named $tool (golangci-lint, goreleaser, git-cliff, itos-cc)" ;;
 esac
 
 dir=$root/.tools/$tool-$version
