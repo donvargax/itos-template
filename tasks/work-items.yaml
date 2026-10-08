@@ -758,3 +758,15 @@ items:
       stubs' question (the __complete command) on three systems. Before first-template, so the
       template carries it proven.
     tags: [cli]
+  - id: locked-installs-check
+    title: "CI checks the locked install: go mod verify, and builds and tests with -mod=readonly"
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      docs/template-contents.md (Every project: locked installs everywhere, the lockfile committed
+      and checked). Small: a step in itos.yaml's CI plan and the platform jobs. Before
+      first-template, so the template carries it.
+    tags: [ci]
