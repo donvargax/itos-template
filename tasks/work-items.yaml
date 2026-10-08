@@ -149,14 +149,9 @@ items:
     title: Usage errors exit 2 naming what was wrong, a once-only flag twice and a switch given a value too
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: [T-3]
     kind: slice
-    why: >
-      Was usage-errors.
-      docs/CLI.md's rules 12 and 20: an unknown command or flag, a flag with no value, exits 2 and
-      names it. T-3's skeleton maps kong's own usage code, 80, to 2 and prints itos-template: before
-      kong's message, with no scenario behind it yet; itos's @ID-CLI-01 to 06 are the model.
     tags: [cli]
   - id: shared-real-git
     title: One rule for the real git, shared by itos-template and its steps
