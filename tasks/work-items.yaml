@@ -689,8 +689,8 @@ items:
   - id: T-16
     title: A release's notes say why a patch with no fix was cut, naming what moved beneath the binary
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: task
     why: >
