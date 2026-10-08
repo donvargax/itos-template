@@ -141,8 +141,8 @@ items:
   - id: slice-9
     title: itos-template version, and the build's commit beside its version
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: [T-3]
     kind: slice
     why: >
