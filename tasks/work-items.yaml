@@ -87,7 +87,7 @@ items:
     phase: 1
     owner: donvargax
     status: todo
-    depends_on: [slice-4, T-14, slice-7, bug-3, T-17, slice-11, T-21, T-22, structured-logs, slice-9, slice-10, T-20]
+    depends_on: [slice-4, T-14, slice-7, bug-3, T-17, slice-11, T-21, T-22, T-23, slice-9, slice-10, T-20]
     kind: idea
     why: >
       PLAN.md, order of work 6; decision 4: the generator is the proof that a template made to
@@ -768,14 +768,15 @@ items:
       so no new tool; turning it on may surface findings to fix or to except with a reason. Before
       first-template, so the template carries it.
     tags: [ci]
-  - id: structured-logs
-    title: Logs go to stderr through log/slog, JSON when not on a terminal, quiet by default
+  - id: T-23
+    title: "A unit test holds itos-template's logs: JSON to a non-terminal, text to a terminal, nothing below a warning"
     phase: 1
     owner: donvargax
     status: todo
     depends_on: []
-    kind: idea
+    kind: task
     why: >
+      Was structured-logs.
       docs/template-contents.md (CLI: structured logs, JSON when not on a terminal, quiet by
       default). Go's log/slog, no library; internal/tempdir already warns through slog. A UI concern
       (decision 17): the handler chosen in cmd or internal/cli. Before first-template, so the
