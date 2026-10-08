@@ -133,6 +133,8 @@ CI runs its plan, `itos ci run`, on every push, in this order, stopping at the f
 
 - `! gofmt -l cmd internal features | grep .`
 - `go vet ./...`
+- `go mod verify`
+- `go mod tidy -diff`
 - `itos tests smoke check scenario`
 - `itos config check`
 - `tools/bin/doc-caps`

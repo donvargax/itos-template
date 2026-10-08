@@ -107,6 +107,12 @@ ci:
   steps: # every step of CI, in order; each states its cost
     - { run: "! gofmt -l cmd internal features | grep .", cost: static } # names each file gofmt would change
     - { run: go vet ./..., cost: static }
+    # The locked install (T-21), after go vet, so the modules are downloaded already. go mod verify
+    # checks the module cache against go.sum; go mod tidy -diff fails on a go.mod or go.sum that is
+    # incomplete or holds what the code does not use. No -mod=readonly: it is go's default without
+    # a vendor folder.
+    - { run: go mod verify, cost: static }
+    - { run: go mod tidy -diff, cost: static }
     - { run: itos tests smoke check scenario, cost: static }
     - { run: itos config check, cost: static } # the config, the ledger, the registry, the smoke set
     - { run: tools/bin/doc-caps, cost: static } # AGENTS.md and docs/ORCHESTRATING.md held to a size
