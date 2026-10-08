@@ -17,7 +17,6 @@ import (
 	"io/fs"
 	"log/slog"
 	"os"
-	"path/filepath"
 	"time"
 
 	"github.com/donvargax/itos-template/internal/template/port"
@@ -79,18 +78,26 @@ func (Renders) Remove(dir string) {
 
 // writable makes every file and folder under dir writable by its owner,
 // which on windows clears the read-only attribute git gives its objects.
+// It works through dir opened as an os.Root, each chmod by its path
+// relative to dir: a symlink swapped in for a folder mid-walk cannot
+// redirect it outside dir, as a chmod by a path from the walk could.
 func writable(dir string) {
-	_ = filepath.WalkDir(dir, func(p string, d fs.DirEntry, err error) error {
+	root, err := os.OpenRoot(dir)
+	if err != nil {
+		return
+	}
+	defer func() { _ = root.Close() }()
+	_ = fs.WalkDir(root.FS(), ".", func(p string, d fs.DirEntry, err error) error {
 		if err != nil || d.Type()&fs.ModeSymlink != 0 {
 			return nil
 		}
-		mode := os.FileMode(0o600)
+		mode := fs.FileMode(0o600)
 		if d.IsDir() {
 			mode = 0o700
 		} else if info, err := d.Info(); err == nil {
 			mode = info.Mode().Perm() | 0o600
 		}
-		_ = os.Chmod(p, mode)
+		_ = root.Chmod(p, mode)
 		return nil
 	})
 }

@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "file": "internal/tempdir/tempdir.go",
+  "language": "go",
+  "tests": {
+    "internal/cli/cli_test.go": "94f672872f685eadc6bccac62ce19685f1c5a260b4474c103f3dfb63ff2aaf5d",
+    "internal/tempdir/tempdir_test.go": "9c128f226e5490ad20d727b798d62440102fa02e5eff5cff213fa3586cc016fe"
+  },
+  "units": [
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/tempdir",
+      "name": "writable",
+      "hash": "3d6396fd74f0d6be",
+      "start_line": 84,
+      "end_line": 103,
+      "killed": 6,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 6,
+      "mutants": [
+        {
+          "line": 86,
+          "column": 9,
+          "offset": 67,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 91,
+          "column": 10,
+          "offset": 215,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 91,
+          "column": 17,
+          "offset": 222,
+          "original": "||",
+          "replacement": "&&",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 91,
+          "column": 44,
+          "offset": 249,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 91,
+          "column": 47,
+          "offset": 252,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 97,
+          "column": 40,
+          "offset": 375,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    }
+  ]
+}
