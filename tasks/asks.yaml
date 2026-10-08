@@ -128,3 +128,6 @@ questions:
   - id: q-29
     item: "adopt"
     question: "When adopt's rendered baseline differs from the existing project, must those differences be explicitly accepted before it writes .itos-template.yaml? Recommended: show the differing paths and refuse to write unless --force explicitly accepts them; --dry-run previews without writing. Differences include changed files, template files absent from the project (treated as project deletions during later updates), and project-only files. Alternative: confirm interactively, with --force for unattended use; or allow linking without approval. Adoption never modifies project files other than creating the record."
+  - id: q-30
+    item: "adopt"
+    question: "How does adopt choose the baseline used by later updates? Recommended: require an explicit --ref identifying a reproducible template version, with stack, features and answers supplied using the same conventions as new; never guess a matching version from project files. The preview names the resolved branch commits. Adoption of the latest version deliberately treats existing differences as project customizations and does not import those latest changes; adopting an older matching version then updating imports the intervening template changes. Alternative: default to latest with a prominent warning, or search releases for a best match."
