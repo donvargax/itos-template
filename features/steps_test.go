@@ -59,6 +59,9 @@ func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
 	sc.Step(`^the first line of its standard output is "([^"]*)" and the stamped version$`, func(name string) error {
 		return w.firstLineIs(name + " " + stampedVersion)
 	})
+	sc.Step(`^the second line of its standard output is "([^"]*)" and the stamped commit$`, func(word string) error {
+		return w.secondLineIs(word + " " + stampedCommit)
+	})
 	w.newSteps(sc)
 	w.checkSteps(sc)
 }
@@ -332,6 +335,17 @@ func (w *world) report() string {
 func (w *world) exitsWith(code int) error {
 	if w.exit != code {
 		return fmt.Errorf("itos-template exited %d, not %d\n%s", w.exit, code, w.report())
+	}
+	return nil
+}
+
+// secondLineIs is whether standard output's second line is text, a missing
+// line read as an empty one and a line ending in \r\n as one in \n.
+func (w *world) secondLineIs(text string) error {
+	_, rest, _ := strings.Cut(w.stdout, "\n")
+	second, _, _ := strings.Cut(rest, "\n")
+	if second = strings.TrimSuffix(second, "\r"); second != text {
+		return fmt.Errorf("the second line of standard output is %q, not %q\n%s", second, text, w.report())
 	}
 	return nil
 }

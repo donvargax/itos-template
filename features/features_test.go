@@ -56,8 +56,17 @@ var scenarios = flag.String("scenarios", "", "run only the live scenarios with a
 // from the version a build without one says.
 const stampedVersion = "1.2.3-features"
 
-// versionSymbol is the variable the build stamps (-ldflags -X).
-const versionSymbol = "github.com/donvargax/itos-template/internal/version.stamp"
+// stampedCommit is the commit the binary under test is stamped with, as a
+// release's build stamps the commit it was built from, so a scenario can
+// name the commit the binary says it was built from.
+const stampedCommit = "0123456789abcdef0123456789abcdef01234567"
+
+// versionSymbol and commitSymbol are the variables the build stamps
+// (-ldflags -X).
+const (
+	versionSymbol = "github.com/donvargax/itos-template/internal/version.stamp"
+	commitSymbol  = "github.com/donvargax/itos-template/internal/version.commit"
+)
 
 func TestFeatures(t *testing.T) {
 	filter, err := tagFilter(*scenarios, ".")
@@ -91,7 +100,7 @@ func TestFeatures(t *testing.T) {
 }
 
 // build builds cmd/itos-template from the module at root into dir, stamped
-// with stampedVersion, once for every scenario of the run: itos-template, or
+// with stampedVersion and stampedCommit, once for every scenario of the run: itos-template, or
 // itos-template.exe on windows, where a program is found by its extension.
 // No VCS stamping, so the build runs no git of the caller's. With GOCOVERDIR
 // set it is a -cover build (see the package's comment).
@@ -102,7 +111,7 @@ func build(root, dir string) (string, error) {
 	}
 	bin := filepath.Join(dir, name)
 	args := []string{"build", "-trimpath", "-buildvcs=false",
-		"-ldflags", "-X " + versionSymbol + "=" + stampedVersion}
+		"-ldflags", "-X " + versionSymbol + "=" + stampedVersion + " -X " + commitSymbol + "=" + stampedCommit}
 	if os.Getenv("GOCOVERDIR") != "" {
 		args = append(args, "-cover", "-covermode=atomic", "-coverpkg=./...")
 	}
