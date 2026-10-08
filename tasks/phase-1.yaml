@@ -333,3 +333,19 @@
   done_when:
     - run: go test ./tools/bin/release-notes/... ./internal/release/...
     - run: grep -q 'Moved' tools/bin/release-notes/main.go
+- id: T-17
+  type: refactor
+  title: "The stack question's wording lives in the UI, the domain giving only what is asked"
+  why: >
+    Found with T-9 (the idea asker-words): template.Choose words the stack question, Which stack
+    (go, python)?, and its terminal refusal, the stacks are go, python; that is the UI's wording in
+    the domain, which decision 17 keeps out of it, and the template will copy this code's shape.
+    The Asker port takes what is asked as data, a sealed set: the choice of a stack among these,
+    and an answer to one of the manifest's questions (its text the template author's, which is
+    domain data and stays); a stack not among them is a domain error carrying the stacks.
+    internal/cli words both, through the Asker it gives the handler, and prompt asks what cli
+    worded. Nothing a user sees changes, byte for byte: the prompt, the refusal, the exit codes;
+    prompt's tests, which no scenario can reach (asking on a terminal), hold the wording.
+  done_when:
+    - run: "! grep -rn 'Which stack' internal/template internal/answer internal/manifest"
+    - run: go build ./...
