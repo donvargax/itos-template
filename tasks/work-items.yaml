@@ -689,6 +689,9 @@ items:
       one and turned main red once (7c53c70 added Node 24). Pin the version in the checks, with a #
       renovate: comment the presets' customManagers:githubActionsVersions can move, or a pinned
       tool.
+
+      Also, 2026-10-08: the first Renovate commit's body listed actions/checkout v4.4.0 to v7.0.1
+      three times, once per place the action is used; commitBody should list each dependency once.
     tags: [ci]
   - id: T-16
     title: A release's notes say why a patch with no fix was cut, naming what moved beneath the binary
