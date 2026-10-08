@@ -216,3 +216,50 @@ Feature: check renders every combination a template allows and runs its checks
     When itos-template runs in the folder "ci/.github" with "check --answer name=blue-fox --defaults"
     Then it exits with code 0
     And its report says "go + cli" passed
+
+  # slice-8 (check-detached-head): slice-7's root lookup, checked by hand
+  # then, and found uncovered by itos-cc's code proof (T-20: rootOf's nine
+  # mutants). With no template named, check reads the manifest from the root
+  # branch: the branch the checkout's HEAD names; a detached HEAD
+  # (actions/checkout on a pull request) names none, so the branch origin's
+  # HEAD names, as git clone records it, else as origin says when asked (git
+  # ls-remote, never waiting for a password), since actions/checkout records
+  # none. When none answers, the template has no default branch (exit 2). A
+  # bare repository is read as a checkout is. The behaviour is slice-7's:
+  # these scenarios pass from the start, and itos-cc's mutation run shows each
+  # can fail.
+  @ID-CHECK-17 @slice-8 @wip
+  Scenario: check in a clone whose HEAD is detached reads the root from the branch origin's HEAD names
+    Given the template "acme"
+    And a clone "ci" of the template, only its default branch local
+    And the clone "ci" has its HEAD detached
+    When itos-template runs in the folder "ci" with "check --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And its report says "go + cli + web" passed
+
+  @ID-CHECK-18 @slice-8 @wip
+  Scenario: check in a checkout as actions/checkout leaves a pull request's asks origin for the root
+    Given the template "acme"
+    And a clone "ci" of the template, only its default branch local
+    And the clone "ci" has its HEAD detached, no local branch and no record of origin's HEAD
+    When itos-template runs in the folder "ci" with "check --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And its report says "python + cli" passed
+
+  @ID-CHECK-19 @slice-8 @wip
+  Scenario: check refuses with exit 2 a detached checkout whose origin cannot say its root
+    Given the template "acme"
+    And a clone "ci" of the template, only its default branch local
+    And the clone "ci" has its HEAD detached, no local branch and no record of origin's HEAD
+    And the clone "ci" has an origin that cannot be reached
+    When itos-template runs in the folder "ci" with "check --answer name=blue-fox --defaults"
+    Then it exits with code 2
+    And its error output says "no default branch"
+
+  @ID-CHECK-20 @slice-8 @wip
+  Scenario: check in a bare clone of the template checks the whole template
+    Given the template "acme"
+    And a bare clone "ci.git" of the template
+    When itos-template runs in the folder "ci.git" with "check --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And its report says "go + cli" passed
