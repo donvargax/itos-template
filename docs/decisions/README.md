@@ -26,5 +26,6 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0023: A release cuts a patch when the binary's linked modules or its Go toolchain changed](0023-a-release-cuts-a-patch-when-the-binary-s-linked-modules-or-its-go-toolchain-changed.md)
 - [ADR-0024: A template lives in its own repository, and the project it came from adopts it and takes its updates](0024-a-template-lives-in-its-own-repository-and-the-project-it-came-from-adopts-it-and-takes-its-updates.md)
 - [ADR-0025: Shell completion is our own: a hidden __complete command answering every shell from the command line's model](0025-shell-completion-is-our-own-a-hidden-complete-command-answering-every-shell-from-the-command-line-s-model.md)
+- [ADR-0026: Code that differs by OS takes the OS as a value; build-tagged files only for a call one OS lacks](0026-code-that-differs-by-os-takes-the-os-as-a-value-build-tagged-files-only-for-a-call-one-os-lacks.md)
 
 <!-- itos:decisions:end -->
