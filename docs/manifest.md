@@ -243,7 +243,8 @@ case forms included, within lines (the message above makes `chore: start blue-fo
 whose first line is empty or blank is refused, naming `first_commit`: git would drop that line and
 take the next for the header, a footer as likely as not. So is one holding a NUL, which no commit
 message can. git commits the message as it commits any given with `-m`: lines' trailing
-whitespace and the blank lines at its ends removed, runs of blank lines made one.
+whitespace and the blank lines at its ends removed, runs of blank lines made one, and every other
+line kept, one starting with `#` too, whatever the person's `commit.cleanup` says.
 
 `check` renders each combination through the same code, so each render's first commit carries the
 message too.

@@ -62,7 +62,11 @@ func (Committer) Commit(folder, message string, executables []string, by *port.I
 			return "", err
 		}
 	}
-	if _, err := g.output("commit", "-q", "-m", message); err != nil {
+	// git cleans the message as it cleans any given with -m, whatever the
+	// person's commit.cleanup says: set to strip, it would drop each line
+	// starting with #, and the message the template's commit rules judge
+	// would differ from one machine to another (bug-3).
+	if _, err := g.output("commit", "-q", "--cleanup=whitespace", "-m", message); err != nil {
 		return "", &port.Refused{Err: err}
 	}
 	sha, err := g.output("rev-parse", "HEAD")

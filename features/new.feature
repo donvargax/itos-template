@@ -475,7 +475,7 @@ Feature: new makes a project from a template
   # line starting with #, so the message the template's commit rules judged
   # differed from the manifest's on one machine and not another. new gives
   # git the cleanup itself, keeping every line but trailing whitespace.
-  @ID-NEW-40 @bug-3 @wip
+  @ID-NEW-40 @bug-3
   Scenario: the first commit keeps a line starting with # whatever git's commit.cleanup says
     Given the template "acme" whose manifest gives the first commit the message "chore: start acme-widget" with the body line "# Notes" and the footer "Task: T-1"
     When itos-template runs with git's commit.cleanup set to strip with "new {template} made --stack go --answer name=blue-fox --defaults"
