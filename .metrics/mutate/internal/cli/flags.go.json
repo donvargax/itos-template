@@ -3,6 +3,7 @@
   "file": "internal/cli/flags.go",
   "language": "go",
   "tests": {
+    "cmd/itos-template/main_test.go": "bb956b677831ef661680d059fc656920c18759ea6b68fcd0dfe49974b1c2527b",
     "internal/cli/cli_test.go": "94f672872f685eadc6bccac62ce19685f1c5a260b4474c103f3dfb63ff2aaf5d",
     "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098"
   },

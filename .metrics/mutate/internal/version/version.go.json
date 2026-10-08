@@ -3,9 +3,72 @@
   "file": "internal/version/version.go",
   "language": "go",
   "tests": {
+    "cmd/itos-template/main_test.go": "bb956b677831ef661680d059fc656920c18759ea6b68fcd0dfe49974b1c2527b",
     "internal/version/version_test.go": "c7f8bb3175313d6180ad76519fb7e45150b53173430ff569658192b760013050"
   },
   "units": [
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/version",
+      "name": "Version",
+      "hash": "1ed88fb0d1f951aa",
+      "start_line": 38,
+      "end_line": 46,
+      "killed": 1,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 1,
+      "mutants": [
+        {
+          "line": 39,
+          "column": 11,
+          "offset": 34,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/version",
+      "name": "fromModule",
+      "hash": "d10466ef7874b63f",
+      "start_line": 50,
+      "end_line": 55,
+      "killed": 3,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 3,
+      "mutants": [
+        {
+          "line": 51,
+          "column": 7,
+          "offset": 41,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 51,
+          "column": 13,
+          "offset": 47,
+          "original": "||",
+          "replacement": "&&",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 51,
+          "column": 18,
+          "offset": 52,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
     {
       "namespace": "github.com/donvargax/itos-template/internal/version",
       "name": "Commit",
