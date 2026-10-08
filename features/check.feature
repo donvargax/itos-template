@@ -263,3 +263,27 @@ Feature: check renders every combination a template allows and runs its checks
     When itos-template runs in the folder "ci.git" with "check --answer name=blue-fox --defaults"
     Then it exits with code 0
     And its report says "go + cli" passed
+
+  # What git clone recorded is read before origin is asked: a detached
+  # checkout whose origin cannot be reached still has its root.
+  @ID-CHECK-21 @slice-8 @wip
+  Scenario: check in a clone whose HEAD is detached reads the root git clone recorded, never asking origin
+    Given the template "acme"
+    And a clone "ci" of the template, only its default branch local
+    And the clone "ci" has its HEAD detached
+    And the clone "ci" has an origin that cannot be reached
+    When itos-template runs in the folder "ci" with "check --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And its report says "go + cli + web" passed
+
+  # An origin that answers but whose HEAD names no branch (a detached HEAD
+  # there) says no root either.
+  @ID-CHECK-22 @slice-8 @wip
+  Scenario: check refuses with exit 2 a detached checkout whose origin's HEAD names no branch
+    Given the template "acme"
+    And a clone "ci" of the template, only its default branch local
+    And the clone "ci" has its HEAD detached, no local branch and no record of origin's HEAD
+    And the clone "ci" has an origin whose HEAD names no branch
+    When itos-template runs in the folder "ci" with "check --answer name=blue-fox --defaults"
+    Then it exits with code 2
+    And its error output says "no default branch"

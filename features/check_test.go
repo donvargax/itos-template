@@ -42,6 +42,7 @@ func (w *world) checkSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^the clone "([^"]*)" has its HEAD detached$`, w.cloneDetached)
 	sc.Step(`^the clone "([^"]*)" has its HEAD detached, no local branch and no record of origin's HEAD$`, w.cloneAsPullRequest)
 	sc.Step(`^the clone "([^"]*)" has an origin that cannot be reached$`, w.cloneWithUnreachableOrigin)
+	sc.Step(`^the clone "([^"]*)" has an origin whose HEAD names no branch$`, w.cloneWithDetachedOrigin)
 	sc.Step(`^a bare clone "([^"]*)" of the template$`, w.bareCloneOfTemplate)
 	sc.Step(`^itos-template runs in the folder "([^"]*)" with "([^"]*)"$`, func(folder, args string) error {
 		fields := strings.Fields(args)
@@ -228,6 +229,26 @@ func (w *world) cloneAsPullRequest(name string) error {
 func (w *world) cloneWithUnreachableOrigin(name string) error {
 	gone := filepath.ToSlash(w.path("no-such-origin.git"))
 	return w.gitIn(w.path(name), "remote", "set-url", "origin", gone)
+}
+
+// cloneWithDetachedOrigin points the clone name's origin at a bare copy of
+// the template whose HEAD is detached at the commit it named, so origin
+// answers git ls-remote but names no branch as its HEAD. The fixture
+// template itself is never changed.
+func (w *world) cloneWithDetachedOrigin(name string) error {
+	origin := name + "-origin.git"
+	if err := w.git("clone", "-q", "--bare", "--", w.template, origin); err != nil {
+		return err
+	}
+	dir := w.path(origin)
+	commit, err := w.gitOut(dir, "rev-parse", "HEAD")
+	if err != nil {
+		return err
+	}
+	if err := w.gitIn(dir, "update-ref", "--no-deref", "HEAD", commit); err != nil {
+		return err
+	}
+	return w.gitIn(w.path(name), "remote", "set-url", "origin", filepath.ToSlash(dir))
 }
 
 // bareCloneOfTemplate clones the scenario's template bare into the folder
