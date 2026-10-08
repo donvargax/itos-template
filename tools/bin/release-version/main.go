@@ -22,21 +22,22 @@
 // a build commit, which would otherwise release nothing: a security fix in a
 // module the binary links, or in Go's standard library, which every binary
 // links and the toolchain brings, would reach no user until the next feat or
-// fix. It reads each side from a copy of that commit's tree (git archive into
-// a temporary folder, the working tree never touched): the modules are what
-// go list -deps lists for ./cmd/itos-template on each system the release
-// builds for (.goreleaser.yaml's goos), each package's module path and
-// version, a replacement's after it, the main module left out; the toolchain
-// is go.mod's toolchain line, else its go line, as go mod edit -json reads
-// them. What leaves the binary as it was releases nothing: a module only
-// tests import (godog, rapid), a tool of go.mod's tool block (govulncheck),
-// a go.sum-only change, a required module the binary never links, a
-// workflow's action. internal/release's Moved says what moved, and the line
-// on stderr names each module (its old and new version) or the toolchain, so
-// the release's run shows why. go list needs the modules of both commits:
-// the module cache, or the network to the module proxy, as the release job
-// has (actions/setup-go runs before it). With no tag the rule does not run:
-// the first release still needs a feat.
+// fix. internal/release's BinaryMoved reads each side from a copy of that
+// commit's tree (git archive into a temporary folder, the working tree never
+// touched): the modules are what go list -deps lists for ./cmd/itos-template
+// on each system the release builds for (.goreleaser.yaml's goos), each
+// package's module path and version, a replacement's after it, the main
+// module left out; the toolchain is go.mod's toolchain line, else its go
+// line, as go mod edit -json reads them. What leaves the binary as it was
+// releases nothing: a module only tests import (godog, rapid), a tool of
+// go.mod's tool block (govulncheck), a go.sum-only change, a required module
+// the binary never links, a workflow's action. Its Moved says what moved, and
+// the line on stderr names each module (its old and new version) or the
+// toolchain, so the release's run shows why; tools/bin/release-notes names
+// them from the same, in the notes' opening line. go list needs the modules
+// of both commits: the module cache, or the network to the module proxy, as
+// the release job has (actions/setup-go runs before it). With no tag the
+// rule does not run: the first release still needs a feat.
 //
 // With no such tag the last version is 0.0.0, every commit counting, so the
 // first release is v0.1.0 when the history holds a feat. A shallow clone,
@@ -60,9 +61,9 @@
 //	range=v0.1.0..HEAD
 //
 // and on stderr one line saying why. A commit is read by internal/release
-// (Type and Breaking), and the last release is picked there too (Newest);
-// beside it, release-version imports only the standard library, and runs git
-// and go.
+// (Type and Breaking), the last release is picked there too (Newest), and
+// what moved beneath the binary is read there (BinaryMoved); beside it,
+// release-version imports only the standard library, and runs git.
 //
 //	go run ./tools/bin/release-version
 //
@@ -71,16 +72,12 @@
 package main
 
 import (
-	"archive/tar"
 	"bytes"
-	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -89,13 +86,6 @@ import (
 )
 
 const self = "release-version"
-
-// binary is the package the release builds (.goreleaser.yaml's main), and
-// systems the GOOS it builds it for: a module one of them alone links
-// counts.
-const binary = "./cmd/itos-template"
-
-var systems = []string{"linux", "darwin", "windows"}
 
 var suffix = regexp.MustCompile(`/v(\d+)$`)
 
@@ -132,7 +122,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 	}
 	b := bumpOf(messages(out))
 	if b.kind == "none" && tag != "" {
-		moved, err := binaryMoved(tag, "HEAD")
+		moved, err := release.BinaryMoved(tag, "HEAD")
 		if err != nil {
 			return fail("cannot tell whether the binary is built from what %s's was: %v", tag, err)
 		}
@@ -302,165 +292,4 @@ func mismatch(next, module string) string {
 		needs = fmt.Sprintf("%s/v%d", base, want)
 	}
 	return fmt.Sprintf("refusing v%s: its major is %d, but go.mod's module path is %s, and Go's module proxy takes a v%d tag only from %s: move the module path first (go.mod's module line, every import, the -X ldflags that stamp the version, the go install lines), then release", next, major, module, major, needs)
-}
-
-// binaryMoved lists what moved beneath the binary from one commit to the
-// other, by internal/release's Moved: none when it is built from the same.
-func binaryMoved(from, to string) ([]string, error) {
-	old, err := builtAt(from)
-	if err != nil {
-		return nil, err
-	}
-	now, err := builtAt(to)
-	if err != nil {
-		return nil, err
-	}
-	return release.Moved(old, now), nil
-}
-
-// builtAt is what the binary is built from at rev, read from a copy of rev's
-// tree in a temporary folder.
-func builtAt(rev string) (release.Build, error) {
-	dir, err := os.MkdirTemp("", self+"-")
-	if err != nil {
-		return release.Build{}, err
-	}
-	defer func() { _ = os.RemoveAll(dir) }()
-	if err := extract(rev, dir); err != nil {
-		return release.Build{}, fmt.Errorf("cannot copy %s's tree: %v", rev, err)
-	}
-	b := release.Build{Modules: map[string]string{}}
-	for _, goos := range systems {
-		out, err := goIn(dir, goos, "list", "-deps", "-json=Module", binary)
-		if err != nil {
-			return release.Build{}, fmt.Errorf("at %s: %v", rev, err)
-		}
-		for decoder := json.NewDecoder(strings.NewReader(out)); ; {
-			var pkg struct{ Module *module }
-			if err := decoder.Decode(&pkg); errors.Is(err, io.EOF) {
-				break
-			} else if err != nil {
-				return release.Build{}, fmt.Errorf("at %s, go list's output: %v", rev, err)
-			}
-			if m := pkg.Module; m != nil && !m.Main {
-				b.Modules[m.Path] = m.version()
-			}
-		}
-	}
-	out, err := goIn(dir, "", "mod", "edit", "-json")
-	if err != nil {
-		return release.Build{}, fmt.Errorf("at %s: %v", rev, err)
-	}
-	var mod struct{ Go, Toolchain string }
-	if err := json.Unmarshal([]byte(out), &mod); err != nil {
-		return release.Build{}, fmt.Errorf("at %s, go mod edit's output: %v", rev, err)
-	}
-	b.Toolchain = mod.Toolchain
-	if b.Toolchain == "" {
-		b.Toolchain = "go" + mod.Go
-	}
-	return b, nil
-}
-
-// module is what go list says of a package's module.
-type module struct {
-	Path, Version string
-	Main          bool
-	Replace       *module
-}
-
-// version is the module's version, and its replacement's path and version
-// after " => " when it has one.
-func (m module) version() string {
-	v := m.Version
-	if r := m.Replace; r != nil {
-		v += " => " + strings.TrimSpace(r.Path+" "+r.Version)
-	}
-	return v
-}
-
-// goIn runs go in dir, for goos when it is not "", as the release builds
-// (CGO_ENABLED=0), and outside any go.work.
-func goIn(dir, goos string, args ...string) (string, error) {
-	cmd := exec.Command("go", args...)
-	cmd.Dir = dir
-	cmd.Env = append(os.Environ(), "GOWORK=off", "CGO_ENABLED=0")
-	if goos != "" {
-		cmd.Env = append(cmd.Env, "GOOS="+goos, "GOARCH=amd64")
-	}
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-	out, err := cmd.Output()
-	if err != nil {
-		return "", fmt.Errorf("go %s: %v\n%s", strings.Join(args, " "), err, stderr.String())
-	}
-	return string(out), nil
-}
-
-// extract writes rev's tree into dir, from git archive, which leaves the
-// repository and its working tree as they are.
-func extract(rev, dir string) error {
-	cmd := exec.Command("git", "archive", "--format=tar", rev)
-	var stderr bytes.Buffer
-	cmd.Stderr = &stderr
-	pipe, err := cmd.StdoutPipe()
-	if err != nil {
-		return err
-	}
-	if err := cmd.Start(); err != nil {
-		return err
-	}
-	unpacked := untar(pipe, dir)
-	if unpacked != nil {
-		_, _ = io.Copy(io.Discard, pipe)
-	}
-	if err := cmd.Wait(); err != nil {
-		return fmt.Errorf("git archive %s: %v\n%s", rev, err, stderr.String())
-	}
-	return unpacked
-}
-
-// untar writes a tar stream's folders, files and links into dir, refusing a
-// name that would leave it.
-func untar(r io.Reader, dir string) error {
-	archive := tar.NewReader(r)
-	for {
-		h, err := archive.Next()
-		if errors.Is(err, io.EOF) {
-			return nil
-		}
-		if err != nil {
-			return err
-		}
-		if !filepath.IsLocal(filepath.FromSlash(h.Name)) {
-			return fmt.Errorf("the archive names %q, outside its folder", h.Name)
-		}
-		path := filepath.Join(dir, filepath.FromSlash(h.Name))
-		switch h.Typeflag {
-		case tar.TypeDir:
-			err = os.MkdirAll(path, 0o755)
-		case tar.TypeReg:
-			err = write(path, archive, h.FileInfo().Mode().Perm())
-		case tar.TypeSymlink:
-			err = os.Symlink(h.Linkname, path)
-		}
-		if err != nil {
-			return err
-		}
-	}
-}
-
-func write(path string, r io.Reader, perm os.FileMode) error {
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		return err
-	}
-	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, perm)
-	if err != nil {
-		return err
-	}
-	if _, err := io.Copy(f, r); err != nil {
-		_ = f.Close()
-		return err
-	}
-	return f.Close()
 }

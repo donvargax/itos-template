@@ -8,12 +8,13 @@ name: Release
 # (tools/bin/release-version): a breaking change a major, a feat a minor, a fix a patch; with
 # none, a patch when the modules ./cmd/itos-template links or go.mod's toolchain moved (decision
 # 23, T-15), go list reading both commits, which is why Go is set up before the version step;
-# else nothing is released and the job ends green. With no tag yet the last version is 0.0.0, so
-# the first release is v0.1.0. Its one gate of its own is that version against go.mod's module
-# path (itos's T-089): a major the path does not end in (/vN from v2, nothing below) fails the
-# version step, before any tag, since Go's module proxy would refuse that tag. Otherwise the push's
-# CI is what a release rests on, and a break that slips through is a missing check, fixed forward
-# with the check and a fix release.
+# else nothing is released and the job ends green. The notes of such a patch name what moved,
+# read again by the same code (internal/release's BinaryMoved, T-16) from the module cache the
+# version step filled. With no tag yet the last version is 0.0.0, so the first release is v0.1.0.
+# Its one gate of its own is that version against go.mod's module path (itos's T-089): a major the
+# path does not end in (/vN from v2, nothing below) fails the version step, before any tag, since
+# Go's module proxy would refuse that tag. Otherwise the push's CI is what a release rests on, and
+# a break that slips through is a missing check, fixed forward with the check and a fix release.
 #
 # What it publishes (.goreleaser.yaml): the five archives, Linux and macOS on amd64 and arm64 and
 # Windows on amd64, each binary stamped with the version, and checksums.txt. In order, all in this
@@ -26,8 +27,10 @@ name: Release
 #      donvargax/itos-template` checks one). Attesting needs a public repository, as this one is,
 #      or GitHub Enterprise Cloud: a private repository on GitHub Free or Team cannot attest, and
 #      this step would fail there;
-#   5. the notes are generated (tools/bin/release-notes: git-cliff over the range, every
-#      BREAKING-CHANGE and Upgrading footer quoted);
+#   5. the notes are generated (tools/bin/release-notes: why the version is what it is, what
+#      moved beneath the binary for a patch with no feat, fix or breaking change, git-cliff over
+#      the range, every BREAKING-CHANGE and Upgrading footer quoted), from the last release's tag
+#      the version step printed;
 #   6. the draft is published with those notes, which is when GitHub creates the tag, so the tag
 #      and a release holding every asset appear together. A run that fails before leaves no tag,
 #      only a draft the next run replaces; a tag is never moved.

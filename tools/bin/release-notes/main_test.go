@@ -1,8 +1,11 @@
 package main
 
 import (
+	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/donvargax/itos-template/internal/release/releasetest"
 )
 
 // What a commit marked as breaking asks: its footer's text, wrapped lines
@@ -84,5 +87,84 @@ func TestRender(t *testing.T) {
 	}
 	if strings.Contains(first, "compare/") {
 		t.Errorf("a first release's notes link a comparison:\n%s", first)
+	}
+}
+
+// Why a release was cut, over example repositories (decision 19): each starts
+// from releasetest.Example's v0.1.0, commits one change, and reads the range
+// as the notes do. With no feat, fix or breaking change, the opening line
+// names what moved beneath the binary, each module old to new and the
+// toolchain, and Upgrading says there is nothing to change; a fix or a feat
+// beside a moved module reads as it always has, what moved never read.
+func TestMovedNotes(t *testing.T) {
+	const moved = "example.com/lib v1.0.0 => ./lib to v1.1.0 => ./lib; the toolchain go1.24.0 to go1.24.1"
+	cases := []struct {
+		name, message string
+		upgrading     []footer
+		says, not     []string
+	}{
+		{name: "a build commit moving a linked module and the toolchain", message: "build: move lib and Go",
+			says: []string{
+				"Cut by CI from the 1 commit since v0.1.0: no feat, no fix and no breaking change, but the binary is built from what moved beneath it, which makes a patch: " + moved + ". Every change: https://github.com/donvargax/itos-template/compare/v0.1.0...v0.1.1\n",
+				"1. **What the commits ask.** Nothing to change: no commit since v0.1.0 is a breaking change, and none has an `Upgrading:` footer asking for anything.\n",
+			},
+			not: []string{"Every `feat` and `fix`"}},
+		{name: "a build commit whose footer asks for something", message: "build: move lib and Go",
+			upgrading: []footer{{SHA: "a1b2c3d", Subject: "build: move lib and Go", Text: "Rebuild your plugins."}},
+			says: []string{
+				"which makes a patch: " + moved + ".",
+				"No commit since v0.1.0 is a breaking change.\n   Each `Upgrading:` footer since v0.1.0",
+				"> Rebuild your plugins.",
+			},
+			not: []string{"Nothing to change"}},
+		{name: "a fix beside a moved module", message: "fix: a bug\n\nUpgrading: none",
+			says: []string{
+				"Cut by CI from the 1 commit since v0.1.0: 0 feats, 1 fix and 0 breaking changes, where a breaking change makes a major release, a feat a minor one and a fix a patch.",
+				"Every `feat` and `fix` since v0.1.0 says `Upgrading: none`.",
+			},
+			not: []string{"moved", "Nothing to change"}},
+		{name: "a feat beside a moved module", message: "feat: a thing\n\nUpgrading: none",
+			says: []string{"1 feat, 0 fixes and 0 breaking changes, where"},
+			not:  []string{"moved"}},
+	}
+	for _, c := range cases {
+		t.Run(c.name, func(t *testing.T) {
+			repo := releasetest.Example(t, true)
+			releasetest.Change(t, filepath.Join(repo, "go.mod"), "example.com/lib v1.0.0", "example.com/lib v1.1.0")
+			releasetest.Change(t, filepath.Join(repo, "go.mod"), "toolchain go1.24.0", "toolchain go1.24.1")
+			releasetest.Commit(t, repo, c.message)
+			t.Chdir(repo)
+			n := notes{Version: "0.1.1", Repository: repository, From: "v0.1.0", Upgrading: c.upgrading}
+			var err error
+			if n.Commits, err = commits("v0.1.0..HEAD"); err != nil {
+				t.Fatal(err)
+			}
+			if err := n.readMoved("HEAD"); err != nil {
+				t.Fatal(err)
+			}
+			got, err := n.render()
+			if err != nil {
+				t.Fatal(err)
+			}
+			for _, want := range c.says {
+				if !strings.Contains(got, want) {
+					t.Errorf("the notes lack %q:\n%s", want, got)
+				}
+			}
+			for _, unwanted := range c.not {
+				if strings.Contains(got, unwanted) {
+					t.Errorf("the notes hold %q:\n%s", unwanted, got)
+				}
+			}
+		})
+	}
+}
+
+// With no release before, nothing moved is read: there is no side to compare
+// with, and a first release still needs a feat.
+func TestMovedFirstRelease(t *testing.T) {
+	n := notes{Version: "0.1.0", Commits: parseLog("a1\x1fbuild: start\n\x1e")}
+	if err := n.readMoved("HEAD"); err != nil || n.Moved != nil {
+		t.Errorf("readMoved with no last release = %q, %v; want nothing read", n.Moved, err)
 	}
 }

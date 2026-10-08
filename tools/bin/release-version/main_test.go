@@ -2,11 +2,11 @@ package main
 
 import (
 	"bytes"
-	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/donvargax/itos-template/internal/release/releasetest"
 )
 
 // The bump the commits since the last release ask for, the cases itos's
@@ -92,7 +92,7 @@ func TestMessages(t *testing.T) {
 }
 
 // The rule of what the binary is built from (decision 23), over example
-// repositories (decision 19): each starts from example's v0.1.0, commits one
+// repositories (decision 19): each starts from releasetest.Example's v0.1.0, commits one
 // change, and runs release-version in it. A module the binary links, or the
 // toolchain, moved is a patch naming it; whatever leaves the binary as it
 // was is nothing; a feat beside a moved module is a minor, as before; and
@@ -139,16 +139,15 @@ func TestBinaryMoved(t *testing.T) {
 	}
 	for _, c := range cases {
 		t.Run(c.name, func(t *testing.T) {
-			repo := example(t, !c.untagged)
+			repo := releasetest.Example(t, !c.untagged)
 			for file, edit := range c.edits {
-				change(t, filepath.Join(repo, file), edit[0], edit[1])
+				releasetest.Change(t, filepath.Join(repo, file), edit[0], edit[1])
 			}
 			message := c.message
 			if message == "" {
 				message = "build: move it"
 			}
-			gitIn(t, repo, "add", "--all")
-			gitIn(t, repo, "commit", "--quiet", "-m", message)
+			releasetest.Commit(t, repo, message)
 			t.Chdir(repo)
 			var stdout, stderr bytes.Buffer
 			if code := run(nil, &stdout, &stderr); code != 0 {
@@ -166,124 +165,12 @@ func TestBinaryMoved(t *testing.T) {
 
 // A shallow clone stops it before any rule: exit 2.
 func TestShallow(t *testing.T) {
-	repo := example(t, true)
+	repo := releasetest.Example(t, true)
 	clone := filepath.Join(t.TempDir(), "clone")
-	gitIn(t, repo, "clone", "--quiet", "--depth", "1", "file://"+filepath.ToSlash(repo), clone)
+	releasetest.Git(t, repo, "clone", "--quiet", "--depth", "1", "file://"+filepath.ToSlash(repo), clone)
 	t.Chdir(clone)
 	var stdout, stderr bytes.Buffer
 	if code := run(nil, &stdout, &stderr); code != 2 || stdout.Len() != 0 || !strings.Contains(stderr.String(), "shallow clone") {
 		t.Errorf("exit %d, stdout %q, stderr %q; want 2, nothing and the shallow clone named", code, stdout.String(), stderr.String())
-	}
-}
-
-// example makes an example repository: a module whose binary,
-// ./cmd/itos-template, links example.com/lib; example.com/testonly only its
-// tests import, example.com/unlinked it requires and never imports, and
-// example.com/tool its tool block names, each a local module replaced in
-// go.mod, so go list resolves every one with no network (GOPROXY=off); a
-// workflow; and one commit, a feat tagged v0.1.0 when tagged, else a build
-// commit, so no release has been cut and none is due. The go line
-// and toolchain are below any Go that runs the test, and GOTOOLCHAIN=local,
-// so no toolchain is fetched either.
-func example(t *testing.T, tagged bool) string {
-	t.Helper()
-	home := t.TempDir()
-	config := filepath.Join(home, "gitconfig")
-	if err := os.WriteFile(config, nil, 0o644); err != nil {
-		t.Fatal(err)
-	}
-	for k, v := range map[string]string{
-		"GIT_CONFIG_GLOBAL": config, "GIT_CONFIG_NOSYSTEM": "1",
-		"GIT_AUTHOR_NAME": "Example", "GIT_AUTHOR_EMAIL": "example@example.com",
-		"GIT_COMMITTER_NAME": "Example", "GIT_COMMITTER_EMAIL": "example@example.com",
-		"GOPROXY": "off", "GOTOOLCHAIN": "local", "GOFLAGS": "", "GOWORK": "off",
-	} {
-		t.Setenv(k, v)
-	}
-	repo := filepath.Join(home, "repo")
-	files := map[string]string{
-		"go.mod": `module example.com/app
-
-go 1.24
-
-toolchain go1.24.0
-
-require (
-	example.com/lib v1.0.0
-	example.com/testonly v1.0.0
-	example.com/tool v1.0.0
-)
-
-require example.com/unlinked v1.0.0 // indirect
-
-replace (
-	example.com/lib => ./lib
-	example.com/testonly => ./testonly
-	example.com/tool => ./tool
-	example.com/unlinked => ./unlinked
-)
-
-tool example.com/tool/cmd/tool
-`,
-		"cmd/itos-template/main.go":      "package main\n\nimport \"example.com/lib\"\n\nfunc main() { println(lib.Name) }\n",
-		"cmd/itos-template/main_test.go": "package main\n\nimport (\n\t\"testing\"\n\n\t\"example.com/testonly\"\n)\n\nfunc TestName(t *testing.T) { _ = testonly.Name }\n",
-		"lib/go.mod":                     "module example.com/lib\n\ngo 1.24\n",
-		"lib/lib.go":                     "package lib\n\nconst Name = \"lib\"\n",
-		"testonly/go.mod":                "module example.com/testonly\n\ngo 1.24\n",
-		"testonly/testonly.go":           "package testonly\n\nconst Name = \"testonly\"\n",
-		"unlinked/go.mod":                "module example.com/unlinked\n\ngo 1.24\n",
-		"unlinked/unlinked.go":           "package unlinked\n\nconst Name = \"unlinked\"\n",
-		"tool/go.mod":                    "module example.com/tool\n\ngo 1.24\n",
-		"tool/cmd/tool/main.go":          "package main\n\nfunc main() {}\n",
-		".github/workflows/ci.yml":       "on: push\njobs:\n  ci:\n    runs-on: ubuntu-latest\n    steps:\n      - uses: actions/checkout@v4\n",
-	}
-	for name, text := range files {
-		path := filepath.Join(repo, filepath.FromSlash(name))
-		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-			t.Fatal(err)
-		}
-		if err := os.WriteFile(path, []byte(text), 0o644); err != nil {
-			t.Fatal(err)
-		}
-	}
-	gitIn(t, repo, "init", "--quiet", "--initial-branch=main")
-	gitIn(t, repo, "add", "--all")
-	if tagged {
-		gitIn(t, repo, "commit", "--quiet", "-m", "feat: start")
-		gitIn(t, repo, "tag", "v0.1.0")
-	} else {
-		gitIn(t, repo, "commit", "--quiet", "-m", "build: start")
-	}
-	return repo
-}
-
-// change replaces old with new in the file, or writes new whole when old is
-// "", failing the test when old is not there.
-func change(t *testing.T, path, old, new string) {
-	t.Helper()
-	text := ""
-	if old != "" {
-		b, err := os.ReadFile(path)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if text = string(b); !strings.Contains(text, old) {
-			t.Fatalf("%s does not hold %q", path, old)
-		}
-	}
-	if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.WriteFile(path, []byte(strings.Replace(text, old, new, 1)), 0o644); err != nil {
-		t.Fatal(err)
-	}
-}
-
-func gitIn(t *testing.T, dir string, args ...string) {
-	t.Helper()
-	cmd := exec.Command("git", args...)
-	cmd.Dir = dir
-	if out, err := cmd.CombinedOutput(); err != nil {
-		t.Fatalf("git %s: %v\n%s", strings.Join(args, " "), err, out)
 	}
 }

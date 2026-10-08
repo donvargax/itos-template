@@ -1,10 +1,12 @@
 // Package release reads what the release cut counts (T-5): a commit's
 // Conventional Commits type, whether it is marked as breaking, which tag
 // names the last release, and what moved beneath the binary between two
-// commits (Build and Moved, decision 23). tools/bin/release-version computes
-// the next version with it, and tools/bin/release-notes picks the range it
-// describes with it, so both read a commit and pick the last release from
-// one copy.
+// commits (Build, Moved and BinaryMoved, decision 23).
+// tools/bin/release-version computes the next version with it, and
+// tools/bin/release-notes picks the range it describes and says why a patch
+// with no fix was cut with it (T-16), so both read a commit, pick the last
+// release and read what moved from one copy. BinaryMoved runs git and go;
+// the rest is plain functions of their arguments.
 //
 // Harvested from itos's internal/release (its releasable.go, T-088 and bug
 // 20), the part its release tools import: a module cannot import another's

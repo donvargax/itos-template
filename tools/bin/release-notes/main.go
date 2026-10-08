@@ -14,16 +14,27 @@
 //
 //   - a title and a line saying what the range holds, and why the version is
 //     what it is (a breaking change makes a major, a feat a minor, a fix a
-//     patch, as tools/bin/release-version computes it);
+//     patch, as tools/bin/release-version computes it); with none of those, a
+//     patch cut because the binary is built from what moved beneath it
+//     (decision 23), each module that moved, old to new, and the toolchain,
+//     named from internal/release's BinaryMoved, the one reading
+//     release-version cuts that patch on (T-16);
 //   - "What changed": every commit of the range, grouped by type, from
 //     git-cliff (tools/bin/release-notes/cliff.toml, run by tools/bin/pinned);
 //   - "Upgrading", last: every breaking change's BREAKING-CHANGE: footer (or
 //     its ! header), and every Upgrading: footer quoted whole, as `itos commit
-//     footers Upgrading` lists them (those saying none left out); then how to
-//     check the binary and its attestation.
+//     footers Upgrading` lists them (those saying none left out), or, for a
+//     patch cut for what moved, that there is nothing to change when no
+//     footer asks for anything; then how to check the binary and its
+//     attestation.
 //
-// It imports nothing but the standard library and internal/release. Exit
-// status: 0 written, 2 a part could not be read (a tool that fails).
+// What moved is read only when no commit of the range is a feat, a fix or a
+// breaking change, and only from a last release's tag: go list reads each
+// side, so it needs the modules of both commits, the module cache or the
+// network to the module proxy, as the release job has (actions/setup-go runs
+// before it). It imports nothing but the standard library and
+// internal/release. Exit status: 0 written, 2 a part could not be read (a
+// tool that fails).
 package main
 
 import (
@@ -83,6 +94,9 @@ func run() int {
 	if n.Commits, err = commits(rng); err != nil {
 		return fail("%v", err)
 	}
+	if err := n.readMoved(*to); err != nil {
+		return fail("%v", err)
+	}
 	if n.Changed, err = cliff(rng); err != nil {
 		return fail("%v", err)
 	}
@@ -98,11 +112,30 @@ func run() int {
 	return 0
 }
 
-// notes is everything the template reads.
+// notes is everything the template reads. Moved is what moved beneath the
+// binary, for a patch with no feat, fix or breaking change, else none.
 type notes struct {
 	Version, Repository, From, Range, Changed string
 	Commits                                   []commit
 	Upgrading                                 []footer
+	Moved                                     []string
+}
+
+// readMoved reads what moved beneath the binary from the last release to
+// to, by internal/release's BinaryMoved, when the range holds no feat, no
+// fix and no breaking change: then what moved is why the release was cut.
+// With one of those, or no release before, the notes read as they always
+// have, and nothing is read.
+func (n *notes) readMoved(to string) error {
+	if n.From == "" || n.count("feat")+n.count("fix")+n.count("breaking") > 0 {
+		return nil
+	}
+	moved, err := release.BinaryMoved(n.From, to)
+	if err != nil {
+		return fmt.Errorf("cannot tell what moved beneath the binary since %s: %v", n.From, err)
+	}
+	n.Moved = moved
+	return nil
 }
 
 type commit struct {
@@ -287,6 +320,7 @@ func (n notes) render() (string, error) {
 	funcs := template.FuncMap{
 		"count":  n.count,
 		"plural": plural,
+		"join":   strings.Join,
 		"short":  func(sha string) string { return sha[:min(7, len(sha))] },
 		// A footer's text as written, its lines kept: a blockquote whose later lines continue it
 		// lazily, so the text reads back word for word.
@@ -313,7 +347,7 @@ func (n notes) render() (string, error) {
 
 const notesTemplate = `# itos-template {{.Version}}
 
-Cut by CI from the {{plural (len .Commits) "commit" "commits"}} since {{since}}: {{plural (count "feat") "feat" "feats"}}, {{plural (count "fix") "fix" "fixes"}} and {{plural (count "breaking") "breaking change" "breaking changes"}}, where a breaking change makes a major release, a feat a minor one and a fix a patch.{{if .From}} Every change: https://github.com/{{.Repository}}/compare/{{.From}}...v{{.Version}}{{end}}
+Cut by CI from the {{plural (len .Commits) "commit" "commits"}} since {{since}}: {{if .Moved}}no feat, no fix and no breaking change, but the binary is built from what moved beneath it, which makes a patch: {{join .Moved "; "}}.{{else}}{{plural (count "feat") "feat" "feats"}}, {{plural (count "fix") "fix" "fixes"}} and {{plural (count "breaking") "breaking change" "breaking changes"}}, where a breaking change makes a major release, a feat a minor one and a fix a patch.{{end}}{{if .From}} Every change: https://github.com/{{.Repository}}/compare/{{.From}}...v{{.Version}}{{end}}
 
 ## What changed
 
@@ -322,6 +356,8 @@ Cut by CI from the {{plural (len .Commits) "commit" "commits"}} since {{since}}:
 ## Upgrading
 
 1. **What the commits ask.**
+{{- if and .Moved (not .Upgrading)}} Nothing to change: no commit since {{since}} is a breaking change, and none has an ` + "`Upgrading:`" + ` footer asking for anything.
+{{- else}}
 {{- if eq (count "breaking") 0}} No commit since {{since}} is a breaking change.{{end}}
 {{- range .Commits}}{{if .Breaking}}
    - Breaking, {{short .SHA}} ` + "`{{.Header}}`" + `:
@@ -334,6 +370,7 @@ Cut by CI from the {{plural (len .Commits) "commit" "commits"}} since {{since}}:
      {{quote .Text}}
 {{- end}}
 {{- else}} Every ` + "`feat`" + ` and ` + "`fix`" + ` since {{since}} says ` + "`Upgrading: none`" + `.{{end}}
+{{- end}}
 
 2. **Check:** ` + "`itos-template --version`" + ` prints ` + "`itos-template {{.Version}}`" + `.
 

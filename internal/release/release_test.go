@@ -1,8 +1,11 @@
 package release
 
 import (
+	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/donvargax/itos-template/internal/release/releasetest"
 )
 
 // What the release cut reads of a commit: its type, and whether it is marked
@@ -89,5 +92,39 @@ func TestMoved(t *testing.T) {
 		if strings.Join(got, "\n") != strings.Join(c.want, "\n") {
 			t.Errorf("%s: Moved = %q, want %q", c.name, got, c.want)
 		}
+	}
+}
+
+// Each side read from its commit of an example repository (decision 19):
+// the module the binary links and the toolchain, as they moved in a commit;
+// a module only its tests import, moved, is nothing; and a revision git does
+// not know is an error, never none.
+func TestBinaryMoved(t *testing.T) {
+	repo := releasetest.Example(t, true)
+	releasetest.Change(t, filepath.Join(repo, "go.mod"), "example.com/lib v1.0.0", "example.com/lib v1.1.0")
+	releasetest.Change(t, filepath.Join(repo, "go.mod"), "toolchain go1.24.0", "toolchain go1.24.1")
+	releasetest.Commit(t, repo, "build: move lib and Go")
+	releasetest.Change(t, filepath.Join(repo, "go.mod"), "example.com/testonly v1.0.0", "example.com/testonly v1.1.0")
+	releasetest.Commit(t, repo, "build: move testonly")
+	t.Chdir(repo)
+	cases := []struct {
+		from, to string
+		want     []string
+	}{
+		{"v0.1.0", "HEAD~1", []string{"example.com/lib v1.0.0 => ./lib to v1.1.0 => ./lib", "the toolchain go1.24.0 to go1.24.1"}},
+		{"HEAD~1", "HEAD", nil},
+		{"v0.1.0", "v0.1.0", nil},
+	}
+	for _, c := range cases {
+		got, err := BinaryMoved(c.from, c.to)
+		if err != nil {
+			t.Fatalf("BinaryMoved(%s, %s): %v", c.from, c.to, err)
+		}
+		if strings.Join(got, "\n") != strings.Join(c.want, "\n") {
+			t.Errorf("BinaryMoved(%s, %s) = %q, want %q", c.from, c.to, got, c.want)
+		}
+	}
+	if _, err := BinaryMoved("v9.9.9", "HEAD"); err == nil || !strings.Contains(err.Error(), "v9.9.9") {
+		t.Errorf("BinaryMoved from a tag that is not there: %v, want an error naming it", err)
 	}
 }
