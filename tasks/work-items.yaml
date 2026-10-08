@@ -702,7 +702,7 @@ items:
     title: work done requires the code proof through itos-cc, with the scenarios' coverage, and CI samples it
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: [T-18, T-19]
     kind: task
     why: >
