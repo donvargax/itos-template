@@ -437,14 +437,15 @@ items:
     depends_on: []
     kind: slice
     refs: [T-9]
-  - id: asker-words
+  - id: T-17
     title: Word the stack question in the UI, not the domain
     phase: 1
     owner: null
     status: todo
     depends_on: []
-    kind: idea
+    kind: task
     why: >
+      Was asker-words.
       T-9 moved choosing a combination into the domain (template.Choose), and with it the stack
       question's text, Which stack (go, python)?, and its refusal on the terminal, the stacks are
       go, python: the UI's wording in the domain, which decision 17 keeps out of it. The Asker port
