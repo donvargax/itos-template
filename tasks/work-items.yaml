@@ -13,6 +13,7 @@ phases:
 queue:
   - T-21
   - T-22
+  - slice-9
   - slice-10
   - first-template
 items:
