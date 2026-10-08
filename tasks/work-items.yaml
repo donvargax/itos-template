@@ -770,3 +770,15 @@ items:
       and checked). Small: a step in itos.yaml's CI plan and the platform jobs. Before
       first-template, so the template carries it.
     tags: [ci]
+  - id: sast-gosec
+    title: "A SAST baseline: gosec, bundled in the pinned golangci-lint, in the gates"
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      docs/template-contents.md (Quality: a SAST baseline). gosec is one of golangci-lint's linters,
+      so no new tool; turning it on may surface findings to fix or to except with a reason. Before
+      first-template, so the template carries it.
+    tags: [ci]
