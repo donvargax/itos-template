@@ -16,6 +16,7 @@
 package main
 
 import (
+	"fmt"
 	"io"
 	"log/slog"
 	"os"
@@ -34,10 +35,12 @@ import (
 type commandLine struct {
 	// An action, not a switch: it prints and exits, so it has no --no- pair
 	// and no environment variable.
-	Version kong.VersionFlag `help:"Print the version and exit."`
+	ShowVersion kong.VersionFlag `name:"version" help:"Print the version and the commit it was built from, and exit."`
 
 	New   newproject.CLI `cmd:"" help:"Make a project from a template."`
 	Check check.CLI      `cmd:"" help:"Render every combination a template allows and run its checks."`
+	// docs/CLI.md, rule 11: version beside --version, printing the same.
+	Version struct{} `cmd:"" help:"Print the version and the commit it was built from."`
 }
 
 func main() {
@@ -55,29 +58,31 @@ func run(args []string, in io.Reader, stdout, stderr io.Writer, terminal bool) i
 		kong.Name("itos-template"),
 		kong.Description("Make projects from a template that is a real project, and keep them up to date with it."),
 		kong.Writers(stdout, stderr),
-		// docs/CLI.md, rule 11: the first line is itos-template <version>.
-		kong.Vars{"version": "itos-template " + version.Version()},
+		// docs/CLI.md, rule 11: itos-template <version>, then the commit.
+		kong.Vars{"version": version.Text("itos-template")},
 	)
 	if err != nil {
-		return ui.Fail(err, false)
+		// A model kong refuses is a bug, reported as one (rule 31).
+		return ui.Fail(err, wantsJSON(args))
 	}
 	ctx, err := parser.Parse(args)
 	if err != nil {
 		// With --json, the failure's object too (rule 29).
 		return ui.Usage(err, wantsJSON(args))
 	}
-	if command := strings.Fields(ctx.Command()); len(command) > 0 {
-		switch command[0] {
-		case "new":
-			return c.New.Run(ui)
-		case "check":
-			return c.Check.Run(ui)
-		}
+	// kong refuses a command line that names no command, so there is one.
+	switch command, _, _ := strings.Cut(ctx.Command(), " "); command {
+	case "new":
+		return c.New.Run(ui)
+	case "check":
+		return c.Check.Run(ui)
+	case "version":
+		// What --version prints, as kong prints it.
+		_, _ = fmt.Fprintln(stdout, parser.Model.Vars()["version"])
+		return 0
 	}
-	if err := ctx.PrintUsage(false); err != nil {
-		return ui.Fail(err, false)
-	}
-	return 0
+	// A command kong took that has no case here: a bug (rule 31).
+	return ui.Fail(fmt.Errorf("no case runs the command %q", ctx.Command()), wantsJSON(args))
 }
 
 // wantsJSON is whether args ask for --json before any --, as a command line

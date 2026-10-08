@@ -73,8 +73,9 @@ most important failure modes).
 9. Show help for the program alone, `--help`, `help <command>` and `<command> --help`, and for
    `-h` in any position. Write help to stdout and exit 0. (CLIG `#help`; GNU-HELP.)
 10. In the help of each command, give the shape of its `--json` output and its exit codes.
-11. Support `--version` and `version`. The first line of the output is `itos-template <version>`.
-    (GNU-CLI; GNU-VER; CLIG `#arguments-and-flags`.)
+11. Support `--version` and `version`, printing the same. The first line of the output is
+    `itos-template <version>`; a second line, `commit <full commit id>`, follows when the build
+    knows the commit it was built from. (GNU-CLI; GNU-VER; CLIG `#arguments-and-flags`.)
 12. For an unknown command, exit 2. If you can guess the command the person meant, name it.
     (CLIG `#help`.)
 13. For a group with no subcommand, name the subcommands the group takes.

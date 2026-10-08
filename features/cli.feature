@@ -1,9 +1,9 @@
 @phase-1
 Feature: The command line
   The rules docs/CLI.md sets for every command, held by the built binary.
-  The harness stamps the binary it builds with a known version, as a
-  release's build is stamped with the release's, so a scenario can tell
-  the stamp from the dev version of a build without one.
+  The harness stamps the binary it builds with a known version and commit,
+  as a release's build is stamped with the release's, so a scenario can
+  tell the stamp from the dev version of a build without one.
 
   @ID-CLI-01 @T-3
   Scenario: --version prints the version stamped at build
@@ -18,14 +18,14 @@ Feature: The command line
   # vcs.revision Go records for a build in a checkout, else there is none and
   # no second line. The harness stamps a known commit, as it stamps the
   # version. version takes no argument and prints exactly what --version does.
-  @ID-CLI-02 @slice-9 @wip
+  @ID-CLI-02 @slice-9
   Scenario: version prints what --version prints
     When itos-template runs with "version"
     Then it exits with code 0
     And the first line of its standard output is "itos-template" and the stamped version
     And the second line of its standard output is "commit" and the stamped commit
 
-  @ID-CLI-03 @slice-9 @wip
+  @ID-CLI-03 @slice-9
   Scenario: --version prints the build's commit on its second line
     When itos-template runs with "--version"
     Then it exits with code 0

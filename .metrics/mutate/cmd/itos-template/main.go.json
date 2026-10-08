@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "file": "cmd/itos-template/main.go",
+  "language": "go",
+  "tests": {},
+  "units": [
+    {
+      "namespace": "github.com/donvargax/itos-template/cmd/itos-template",
+      "name": "run",
+      "hash": "c9eae2a8830dd366",
+      "start_line": 53,
+      "end_line": 86,
+      "killed": 3,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 3,
+      "mutants": [
+        {
+          "line": 64,
+          "column": 9,
+          "offset": 549,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 69,
+          "column": 9,
+          "offset": 703,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 82,
+          "column": 10,
+          "offset": 1160,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    }
+  ]
+}

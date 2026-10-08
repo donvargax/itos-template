@@ -20,11 +20,12 @@ builds:
     binary: itos-template
     env: [CGO_ENABLED=0]
     flags: [-trimpath]
-    # The tag is the version: internal/version says it, stamped as the acceptance harness stamps
-    # the binary it builds (features/features_test.go's versionSymbol); a snapshot's, below, for a
-    # build that publishes nothing.
+    # The tag is the version, and the full commit the commit it was built from: internal/version
+    # says both, stamped as the acceptance harness stamps the binary it builds
+    # (features/features_test.go's versionSymbol and commitSymbol); a snapshot's version, below,
+    # for a build that publishes nothing.
     ldflags:
-      - -s -w -X github.com/donvargax/itos-template/internal/version.stamp={{ .Version }}
+      - -s -w -X github.com/donvargax/itos-template/internal/version.stamp={{ .Version }} -X github.com/donvargax/itos-template/internal/version.commit={{ .FullCommit }}
     goos: [linux, darwin, windows]
     goarch: [amd64, arm64]
     ignore:
