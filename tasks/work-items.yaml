@@ -745,3 +745,16 @@ items:
     why: >
       Found with slice-6 (the idea first-commit-cleanup, which this replaces).
     tags: [new]
+  - id: shell-completion
+    title: itos-template completes on bash, zsh, fish and PowerShell through a hidden __complete command
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Decision 25 and docs/template-contents.md (CLI: shell completion generated). The binary
+      answers the shell from kong's model, a stub script per shell asking it; scenarios run the
+      stubs' question (the __complete command) on three systems. Before first-template, so the
+      template carries it proven.
+    tags: [cli]
