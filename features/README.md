@@ -43,8 +43,17 @@ itos's rule, its T-104).
 ```sh
 go test ./features -count=1                          # every live scenario
 go test ./features -count=1 -scenarios='^@ID-CLI-'   # the live scenarios with a matching tag
+GOCOVERDIR=$d go test ./features -count=1            # itos-template built with -cover, its coverage in $d
 itos tests smoke run scenario                        # exactly the smoke set
 ```
+
+With `GOCOVERDIR` set (an existing folder), `TestFeatures` builds
+itos-template with `-cover -covermode=atomic -coverpkg=./...`, and every
+command a scenario starts writes what it ran there, for itos-cc to merge with
+go test's (T-19); `go tool covdata` reads it. The build keys on `GOCOVERDIR`
+alone, never on `ITOS_CC_TEST_COVERDIR`: a `-cover` binary run without
+`GOCOVERDIR` warns on its stderr, which would break the scenarios reading it
+(`features_test.go` says why). Without it, nothing changes.
 
 `-scenarios` takes a regular expression over each tag, `@` included, and
 runs the live scenarios with a tag it matches; one that matches no tag fails

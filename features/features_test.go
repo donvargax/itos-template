@@ -6,11 +6,31 @@
 //	go test ./features -count=1                        every live scenario
 //	go test ./features -count=1 -scenarios=<regexp>    the live scenarios with a
 //	                                                   tag the expression matches
+//	GOCOVERDIR=<dir> go test ./features -count=1       either, itos-template
+//	                                                   built with -cover, what
+//	                                                   the scenarios ran in <dir>
 //
 // godog's own tag filter takes exact tags joined by commas; itos's run
 // templates join the IDs they select with |, as a regular expression
 // (itos.yaml's tests.scenario.run), so -scenarios takes that expression and
 // is turned here into godog's filter. A scenario tagged @wip never runs.
+//
+// The scenarios run itos-template as another process, where Go records
+// coverage only for a binary built with -cover and run with GOCOVERDIR naming
+// an existing folder (go.dev/doc/build-cover); go test's own -cover sees none
+// of it. So with GOCOVERDIR set, the binary is built with -cover
+// -covermode=atomic -coverpkg=./..., every package of the module counted, and
+// what the scenarios run lands in that folder, where itos-cc merges it with go
+// test's (T-19). The build keys on GOCOVERDIR alone: a -cover binary run
+// without it writes "warning: GOCOVERDIR not set, no coverage data emitted" to
+// its stderr, which breaks every scenario that reads stderr, and only
+// GOCOVERDIR's being set guarantees every command a scenario starts has it.
+// w.env() passes it on unchanged, every environment a step runs a command in
+// is w.env() changed elsewhere (noGit, knowingNoOne, withGitConfig), and
+// itos-template hands its own environment on to what it starts. So never
+// ITOS_CC_TEST_COVERDIR, which itos-cc sets alone for a listed test's first
+// coverage run and w.env() drops with every ITOS_ variable. With GOCOVERDIR
+// unset the build is the plain one.
 package features
 
 import (
@@ -73,16 +93,20 @@ func TestFeatures(t *testing.T) {
 // build builds cmd/itos-template from the module at root into dir, stamped
 // with stampedVersion, once for every scenario of the run: itos-template, or
 // itos-template.exe on windows, where a program is found by its extension.
-// No VCS stamping, so the build runs no git of the caller's.
+// No VCS stamping, so the build runs no git of the caller's. With GOCOVERDIR
+// set it is a -cover build (see the package's comment).
 func build(root, dir string) (string, error) {
 	name := "itos-template"
 	if runtime.GOOS == "windows" {
 		name += ".exe"
 	}
 	bin := filepath.Join(dir, name)
-	cmd := exec.Command("go", "build", "-trimpath", "-buildvcs=false",
-		"-ldflags", "-X "+versionSymbol+"="+stampedVersion,
-		"-o", bin, "./cmd/itos-template")
+	args := []string{"build", "-trimpath", "-buildvcs=false",
+		"-ldflags", "-X " + versionSymbol + "=" + stampedVersion}
+	if os.Getenv("GOCOVERDIR") != "" {
+		args = append(args, "-cover", "-covermode=atomic", "-coverpkg=./...")
+	}
+	cmd := exec.Command("go", append(args, "-o", bin, "./cmd/itos-template")...)
 	cmd.Dir = root
 	if out, err := cmd.CombinedOutput(); err != nil {
 		return "", fmt.Errorf("building itos-template: %v\n%s", err, out)
