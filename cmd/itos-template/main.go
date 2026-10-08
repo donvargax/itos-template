@@ -12,7 +12,8 @@
 // and main parses the command line, runs the one it names through the UI
 // the slices share (internal/cli) and exits with the code the slice
 // returns. A usage error, which kong finds before any slice runs, is the
-// one failure main reports itself, through that UI.
+// one failure main reports itself, through that UI; internal/cli's Flags
+// hold kong to the rules on flags it does not hold by itself.
 package main
 
 import (
@@ -54,13 +55,13 @@ func run(args []string, in io.Reader, stdout, stderr io.Writer, terminal bool) i
 	slog.SetDefault(logger(stderr))
 	ui := &cli.UI{In: in, Stdout: stdout, Stderr: stderr, Terminal: terminal}
 	var c commandLine
-	parser, err := kong.New(&c,
+	parser, err := kong.New(&c, append(cli.Flags(),
 		kong.Name("itos-template"),
 		kong.Description("Make projects from a template that is a real project, and keep them up to date with it."),
 		kong.Writers(stdout, stderr),
 		// docs/CLI.md, rule 11: itos-template <version>, then the commit.
 		kong.Vars{"version": version.Text("itos-template")},
-	)
+	)...)
 	if err != nil {
 		// A model kong refuses is a bug, reported as one (rule 31).
 		return ui.Fail(err, wantsJSON(args))

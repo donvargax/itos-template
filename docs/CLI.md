@@ -85,7 +85,11 @@ most important failure modes).
 ### Flags and arguments
 
 kong declares every command's flags in one place (decision 4), which gives rules 19 to 21 and 24
-by construction; check each when a flag is added.
+by construction; check each when a flag is added. kong refuses an unknown flag by itself;
+`internal/cli`'s `Flags`, its mappers and a hook on kong's parse, refuse the rest of rule 20 in our
+words: a flag with no value, a switch given a value and a once-only flag given twice. A flag is a
+switch (a bool), once-only (a string) or repeatable (a slice); a flag of another kind is added
+there first.
 
 15. Give each flag a long form. Give a one-letter form only to the most common flags. (CLIG
     `#arguments-and-flags`; GNU-CLI.)

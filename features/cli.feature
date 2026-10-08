@@ -35,43 +35,45 @@ Feature: The command line
   # exits 2 and names what was wrong, on the error output, in words a person
   # reads (never kong's own, such as "EOL"). kong gives an unknown command
   # with the one meant, an unknown flag and a flag's value never read as a
-  # flag already (@ID-CLI-04, 05 and 07 pass before the work); a flag given
-  # no value says kong's words, and a once-only flag given twice or a switch
-  # given a value (--defaults=yes) are taken, the last value winning. A flag
-  # that may repeat (--feature, --answer) still does.
-  @ID-CLI-04 @slice-10 @wip
+  # flag by itself; internal/cli's mappers and its hook on kong's parse
+  # refuse a flag given no value, a switch given a value (--defaults=yes,
+  # which kong took) and a once-only flag given twice (which kong took, the
+  # last value winning), a switch and its --no- pair counting as one. A
+  # flag that may repeat (--feature, --answer) still does, and a switch's
+  # environment variable still takes a value (ITOS_TEMPLATE_DEFAULTS=false).
+  @ID-CLI-04 @slice-10
   Scenario: an unknown command exits 2, naming it and the command meant
     When itos-template runs with "chek"
     Then it exits with code 2
     And its error output says "chek"
     And its error output says "check"
 
-  @ID-CLI-05 @slice-10 @wip
+  @ID-CLI-05 @slice-10
   Scenario: an unknown flag exits 2, naming it
     When itos-template runs with "check --bogus"
     Then it exits with code 2
     And its error output says "--bogus"
 
-  @ID-CLI-06 @slice-10 @wip
+  @ID-CLI-06 @slice-10
   Scenario: a flag given no value exits 2, naming it in a person's words
     When itos-template runs with "new acme made --stack"
     Then it exits with code 2
     And its error output says "--stack"
     And its error output does not say "EOL"
 
-  @ID-CLI-07 @slice-10 @wip
+  @ID-CLI-07 @slice-10
   Scenario: a flag's value is never read as a flag
     When itos-template runs with "new acme made --stack --defaults"
     Then it exits with code 2
     And its error output says "--stack"
 
-  @ID-CLI-08 @slice-10 @wip
+  @ID-CLI-08 @slice-10
   Scenario: a switch given a value exits 2, naming it
     When itos-template runs with "new acme made --stack go --defaults=yes"
     Then it exits with code 2
     And its error output says "--defaults"
 
-  @ID-CLI-09 @slice-10 @wip
+  @ID-CLI-09 @slice-10
   Scenario: a once-only flag given twice exits 2, naming it
     When itos-template runs with "new acme made --stack go --stack python"
     Then it exits with code 2
