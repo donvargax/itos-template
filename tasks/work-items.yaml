@@ -749,15 +749,9 @@ items:
     title: "A unit test holds itos-template's logs: JSON to a non-terminal, text to a terminal, nothing below a warning"
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      Was structured-logs.
-      docs/template-contents.md (CLI: structured logs, JSON when not on a terminal, quiet by
-      default). Go's log/slog, no library; internal/tempdir already warns through slog. A UI concern
-      (decision 17): the handler chosen in cmd or internal/cli. Before first-template, so the
-      template carries it.
     tags: [cli]
   - id: slice-8
     title: check's root lookup in a detached or bare checkout is held by scenarios
