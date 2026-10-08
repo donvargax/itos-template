@@ -754,14 +754,9 @@ items:
     title: "A SAST baseline: gosec, bundled in the pinned golangci-lint, in the gates"
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      Was sast-gosec.
-      docs/template-contents.md (Quality: a SAST baseline). gosec is one of golangci-lint's linters,
-      so no new tool; turning it on may surface findings to fix or to except with a reason. Before
-      first-template, so the template carries it.
     tags: [ci]
   - id: T-23
     title: "A unit test holds itos-template's logs: JSON to a non-terminal, text to a terminal, nothing below a warning"
