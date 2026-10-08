@@ -148,8 +148,8 @@ items:
   - id: slice-10
     title: Usage errors exit 2 naming what was wrong, a once-only flag twice and a switch given a value too
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: [T-3]
     kind: slice
     why: >
