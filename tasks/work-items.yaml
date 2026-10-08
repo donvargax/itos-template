@@ -843,3 +843,20 @@ items:
       the coverage per scenario under ITOS_CC_TEST_COVERDIR, as itos's T-121 does, is not needed
       while --all-tests is cheap (the idea listed-tests). Without GOCOVERDIR nothing changes. As
       itos's T-121 does it (6377a0d, df80cd9 in donvargax/itos).
+  - id: listed-tests
+    title: "itos-cc runs only the scenarios that reach a mutant: listed tests, the coverage split per scenario"
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Once the suite outgrows --all-tests (T-20 records results running every scenario per mutant,
+      about 4 seconds a run on 2026-10-08). itos-cc v0.5.0 lists tests in itos-cc.yaml
+      (mutation.tests); tried 2026-10-08, they work with T-19's cover build alone, itos-cc then
+      running each scenario by itself for coverage (57 seconds against 38 for slice-7's mutants).
+      The harness writing GOCOVERDIR=<ITOS_CC_TEST_COVERDIR>/<scenario ID> per scenario, as itos's
+      T-121 does, makes that one run. A list command that works: itos tests list scenario --json
+      piped through jq into the ID, a tab and features/<file>; donvargax/itos#22 asks itos for a
+      form itos-cc reads as is.
+    tags: [ci]
