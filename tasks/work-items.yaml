@@ -331,14 +331,15 @@ items:
       report only, since no scenario described a --json one: a combination each, its checks with
       their words, status and output, as new prints its result.
     tags: [check, cli]
-  - id: check-ci-branches
-    title: itos-template check renders a CI checkout without a fetch recipe
+  - id: slice-7
+    title: check reads a CI checkout's branches from origin, from any folder of it, with no fetch recipe
     phase: 1
     owner: null
     status: todo
     depends_on: [slice-2]
-    kind: idea
+    kind: slice
     why: >
+      Was check-ci-branches.
       check clones the template, so in a CI checkout (one branch, perhaps a detached HEAD) a
       template needs a fetch of every branch as a local branch and HEAD on its root first
       (docs/manifest.md, Checking a template in its CI). check could read the remote-tracking
