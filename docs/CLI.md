@@ -163,6 +163,17 @@ there first.
     the program that calls it: itos's extension protocol for `itos template`, this contract for a
     person or a script.
 
+### Shell completion
+
+42. `completion <shell>` prints a short completion stub for `bash`, `zsh`, `fish` or `powershell`.
+    The stub asks the same executable through the hidden `__complete` command; it does not carry a
+    second copy of the command model. `__complete` takes the words after the command, with the last
+    word being completed and an empty last word meaning a new word. It prints one candidate per
+    line, followed by exactly one final instruction: `:files` leaves file-name completion to the
+    shell, and `:none` asks it to offer no further candidates. Candidates come from kong's command
+    and flag model, including only values kong declares; values read from a template manifest are
+    not completion candidates. (Decision 25.)
+
 ### Changing the interface
 
 40. A rename of a command or a flag, or a change to an exit code, is a breaking change. Put the
