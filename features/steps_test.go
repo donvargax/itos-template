@@ -50,7 +50,8 @@ func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
 	})
 
 	// Split before {template} is expanded, so a path with a space stays one
-	// argument. Quotes also preserve empty words for completion requests.
+	// argument. Quotes also preserve empty words for completion requests, and
+	// backslashes in unquoted Windows paths stay literal.
 	sc.Step(`^itos-template runs with "([^"]*)"$`, func(args string) error {
 		return w.runWith(w.env(), args)
 	})
@@ -297,8 +298,8 @@ func (w *world) runWith(env []string, args string) error {
 
 // commandWords splits a scenario's command line without involving a shell.
 // Quotes group words and preserve an explicitly empty argument, as the
-// completion protocol needs for a new word. Backslashes are left untouched
-// except when escaping the active quote, so Windows paths stay literal.
+// completion protocol needs for a new word. Backslashes stay literal, so
+// Windows paths are not altered by the scenario parser.
 func commandWords(line string) ([]string, error) {
 	var words []string
 	var word strings.Builder

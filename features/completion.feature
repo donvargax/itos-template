@@ -14,7 +14,7 @@ Feature: Shell completion
   the three systems; no shell runs in them.
 
   # slice-11 (shell-completion)
-  @ID-COMPL-01 @slice-11 @wip
+  @ID-COMPL-01 @slice-11
   Scenario: a new word at the top completes to the commands, the hidden one left out
     When itos-template runs with "__complete ''"
     Then it exits with code 0
@@ -23,7 +23,7 @@ Feature: Shell completion
     And its standard output lists "completion"
     And its standard output does not list "__complete"
 
-  @ID-COMPL-02 @slice-11 @wip
+  @ID-COMPL-02 @slice-11
   Scenario: a flag of a command completes from its name's start
     When itos-template runs with "__complete new acme made --st"
     Then it exits with code 0
@@ -31,13 +31,13 @@ Feature: Shell completion
     And its standard output does not list "--feature"
     And the last line of its standard output is ":none"
 
-  @ID-COMPL-03 @slice-11 @wip
+  @ID-COMPL-03 @slice-11
   Scenario: a command's argument is left to the shell's completion of file names
     When itos-template runs with "__complete new ''"
     Then it exits with code 0
     And the last line of its standard output is ":files"
 
-  @ID-COMPL-04 @slice-11 @wip
+  @ID-COMPL-04 @slice-11
   Scenario Outline: completion prints a script for <shell> that asks itos-template
     When itos-template runs with "completion <shell>"
     Then it exits with code 0
@@ -50,13 +50,13 @@ Feature: Shell completion
       | fish       |
       | powershell |
 
-  @ID-COMPL-05 @slice-11 @wip
+  @ID-COMPL-05 @slice-11
   Scenario: completion refuses a shell it has no script for with exit 2, naming it
     When itos-template runs with "completion tcsh"
     Then it exits with code 2
     And its error output says "tcsh"
 
-  @ID-COMPL-06 @slice-11 @wip
+  @ID-COMPL-06 @slice-11
   Scenario: the help names completion and not __complete
     When itos-template runs with "--help"
     Then it exits with code 0
