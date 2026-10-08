@@ -349,3 +349,20 @@
   done_when:
     - run: "! grep -rn 'Which stack' internal/template internal/answer internal/manifest"
     - run: go build ./...
+- id: T-18
+  type: build
+  title: "itos 7.0.0-rc.1: the pin and CI's itos action move from 6.4.0"
+  why: >
+    The person's call, 2026-10-08: try itos's first support for itos-cc before the first template.
+    7.0.0-rc.1 adds proof.code (itos work done refuses an item whose commits touch code until a
+    check passes), which T-20 sets. Nothing from 6.4.0 to 7.0.0-rc.1 is a breaking change and no
+    config key changed but the added proof; a trial pin of it here passed itos config check. The pin
+    in itos.yaml (version and the SHA-256 of the release's checksums.txt, b4061c97…122c), and
+    donvargax/itos in ci.yml and release.yml at the tag's commit,
+    1b9f1f9995be5d20aed3b4f8877a453bbd1e98a3. A pre-release: when 7.0.0 is out, itos says so (6.5.1
+    orders a pre-release below its release), and the pin moves again.
+  done_when:
+    - run: "grep -q 'version: \"7.0.0-rc.1\"' itos.yaml"
+    - run: "grep -q 'donvargax/itos@1b9f1f9995be5d20aed3b4f8877a453bbd1e98a3 # v7.0.0-rc.1' .github/workflows/ci.yml"
+    - run: "grep -q 'donvargax/itos@1b9f1f9995be5d20aed3b4f8877a453bbd1e98a3 # v7.0.0-rc.1' .github/workflows/release.yml"
+    - run: itos version --check
