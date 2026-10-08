@@ -13,6 +13,7 @@ phases:
 queue:
   - T-18
   - T-19
+  - T-20
   - first-template
 items:
   - id: T-2
