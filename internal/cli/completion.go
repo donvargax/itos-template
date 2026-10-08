@@ -114,8 +114,8 @@ func Complete(root *kong.Application, words []string) []string {
 			continue
 		}
 		if strings.HasPrefix(word, "-") && word != "-" {
-			flag, valueGiven := findFlag(node, word)
-			if flag != nil && !flag.IsBool() && !flag.IsCumulative() && !valueGiven {
+			flag := findFlag(node, word)
+			if flag != nil && !flag.IsBool() && !flag.IsCumulative() && !strings.Contains(word, "=") {
 				needValue = true
 				valueFlag = flag
 				if i+1 < len(previous) {
@@ -142,19 +142,22 @@ func Complete(root *kong.Application, words []string) []string {
 		return []string{":none"}
 	}
 	if name, value, hasValue := strings.Cut(partial, "="); strings.HasPrefix(partial, "-") && hasValue {
-		flag, _ := findFlag(node, name)
-		if flag != nil && flag.Enum != "" {
-			return flagValues(flag, value)
+		if flag := findFlag(node, name); flag != nil {
+			if flag.Enum != "" {
+				return flagValues(flag, value)
+			}
 		}
 	}
 	if needValue {
-		if valueFlag != nil && valueFlag.Enum != "" {
-			return flagValues(valueFlag, partial)
+		if valueFlag != nil {
+			if valueFlag.Enum != "" {
+				return flagValues(valueFlag, partial)
+			}
 		}
 		return []string{":none"}
 	}
 	if strings.HasPrefix(partial, "-") {
-		return flagCandidates(root.Node, node, partial)
+		return flagCandidates(node, partial)
 	}
 	if len(node.Children) > 0 && position == 0 {
 		var candidates []string
@@ -181,7 +184,7 @@ func Complete(root *kong.Application, words []string) []string {
 	return []string{":none"}
 }
 
-func flagCandidates(root, node *kong.Node, prefix string) []string {
+func flagCandidates(node *kong.Node, prefix string) []string {
 	var candidates []string
 	for current := node; current != nil; current = current.Parent {
 		for _, flag := range current.Flags {
@@ -209,19 +212,19 @@ func flagCandidates(root, node *kong.Node, prefix string) []string {
 	return finish(candidates, ":none")
 }
 
-func findFlag(node *kong.Node, name string) (*kong.Flag, bool) {
+func findFlag(node *kong.Node, name string) *kong.Flag {
 	for current := node; current != nil; current = current.Parent {
 		for _, flag := range current.Flags {
 			long := "--" + flag.Name
 			if name == long || strings.HasPrefix(name, long+"=") {
-				return flag, name != long
+				return flag
 			}
 			if flag.Short != 0 && name == "-"+string(flag.Short) {
-				return flag, false
+				return flag
 			}
 		}
 	}
-	return nil, false
+	return nil
 }
 
 func flagValues(flag *kong.Flag, prefix string) []string {
