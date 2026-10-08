@@ -109,3 +109,4 @@ questions:
   - id: q-25
     question: "How does a CLI made from the template complete on a shell? Recommended: our own, as cobra does it: a hidden __complete command that answers the shell from kong's model (its commands, flags and values), and a short stub script per shell (bash, zsh, fish, PowerShell) that asks the binary, so the scripts never go stale; no dependency. Or: jotaen/kong-completion (v0.0.14, April 2026, one maintainer) or willabides/kongplete (v0.4.0, 2023), both on posener/complete v1.2.3 of 2019 with loginshell and hashicorp/go-multierror, and neither completing on PowerShell, while Windows is one of the three systems every scenario runs on."
     answer: "Our own __complete, from kong's model, for bash, zsh, fish and PowerShell. The user's call, 2026-10-08."
+    decision: 25

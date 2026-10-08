@@ -25,5 +25,6 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0022: Configuration is JSON data written as YAML, read strictly, its conventions shown](0022-configuration-is-json-data-written-as-yaml-read-strictly-its-conventions-shown.md)
 - [ADR-0023: A release cuts a patch when the binary's linked modules or its Go toolchain changed](0023-a-release-cuts-a-patch-when-the-binary-s-linked-modules-or-its-go-toolchain-changed.md)
 - [ADR-0024: A template lives in its own repository, and the project it came from adopts it and takes its updates](0024-a-template-lives-in-its-own-repository-and-the-project-it-came-from-adopts-it-and-takes-its-updates.md)
+- [ADR-0025: Shell completion is our own: a hidden __complete command answering every shell from the command line's model](0025-shell-completion-is-our-own-a-hidden-complete-command-answering-every-shell-from-the-command-line-s-model.md)
 
 <!-- itos:decisions:end -->
