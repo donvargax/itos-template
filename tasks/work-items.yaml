@@ -279,17 +279,9 @@ items:
     title: The manifest gives a made project's first commit its message, so the project's own commit rules pass it
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: [slice-1]
     kind: slice
-    why: >
-      Was new-first-commit-rules.
-      slice-1's new commits the render as 'chore: make the project from its template', with no
-      footer. A template that uses itos (or any commit lint) holds that commit to its rules on the
-      made project's first push, when CI has no green run to start from and judges the whole
-      history: a chore needing a Task footer fails it. Settle in its scenarios whether the manifest
-      gives the first commit's message, or the template's itos.yaml starts its rules after it
-      (commits.since).
     tags: [new]
   - id: new-template-name
     title: "What the record keeps of how a template was named: a relative path, a URL with credentials"
