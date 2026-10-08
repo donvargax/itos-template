@@ -14,7 +14,13 @@ Feature: Shell completion
   the three systems; no shell runs in them.
 
   # slice-11 (shell-completion)
-  @ID-COMPL-01 @slice-11
+  # Main-red attempt (2026-10-08): commits 143dace..e7f4d93 were reverted after CI run
+  # 37861711541 failed because completion.feature has no representative scenario in
+  # features/smoke.yaml. Before retrying, add a completion smoke scenario and prove the code
+  # without the two rejected mutation exceptions. ID-COMPL-07 is retained as a boundary case;
+  # all seven scenarios stay @wip until the smoke set and code proof are addressed.
+
+  @ID-COMPL-01 @slice-11 @wip
   Scenario: a new word at the top completes to the commands, the hidden one left out
     When itos-template runs with "__complete ''"
     Then it exits with code 0
@@ -23,7 +29,7 @@ Feature: Shell completion
     And its standard output lists "completion"
     And its standard output does not list "__complete"
 
-  @ID-COMPL-02 @slice-11
+  @ID-COMPL-02 @slice-11 @wip
   Scenario: a flag of a command completes from its name's start
     When itos-template runs with "__complete new acme made --st"
     Then it exits with code 0
@@ -31,13 +37,13 @@ Feature: Shell completion
     And its standard output does not list "--feature"
     And the last line of its standard output is ":none"
 
-  @ID-COMPL-03 @slice-11
+  @ID-COMPL-03 @slice-11 @wip
   Scenario: a command's argument is left to the shell's completion of file names
     When itos-template runs with "__complete new ''"
     Then it exits with code 0
     And the last line of its standard output is ":files"
 
-  @ID-COMPL-04 @slice-11
+  @ID-COMPL-04 @slice-11 @wip
   Scenario Outline: completion prints a script for <shell> that asks itos-template
     When itos-template runs with "completion <shell>"
     Then it exits with code 0
@@ -50,20 +56,20 @@ Feature: Shell completion
       | fish       |
       | powershell |
 
-  @ID-COMPL-05 @slice-11
+  @ID-COMPL-05 @slice-11 @wip
   Scenario: completion refuses a shell it has no script for with exit 2, naming it
     When itos-template runs with "completion tcsh"
     Then it exits with code 2
     And its error output says "tcsh"
 
-  @ID-COMPL-06 @slice-11
+  @ID-COMPL-06 @slice-11 @wip
   Scenario: the help names completion and not __complete
     When itos-template runs with "--help"
     Then it exits with code 0
     And its standard output says "completion"
     And its standard output does not say "__complete"
 
-  @ID-COMPL-07 @slice-11
+  @ID-COMPL-07 @slice-11 @wip
   Scenario: completion handles a shell with no current word
     When itos-template runs with "__complete"
     Then it exits with code 0

@@ -40,8 +40,3 @@ go tool govulncheck -test ./...             # the vulnerability check, at go.mod
 ```
 
 `features/README.md` says how the scenarios are written and run.
-
-To enable shell completion, print the matching stub with `itos-template completion bash`,
-`itos-template completion zsh`, `itos-template completion fish` or
-`itos-template completion powershell`, then follow the printed shell-specific instruction. The
-stub asks the executable for candidates, so it stays current with the command model.

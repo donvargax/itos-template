@@ -10,15 +10,15 @@
       "namespace": "github.com/donvargax/itos-template/cmd/itos-template",
       "name": "main",
       "hash": "1701e913e8f92b69",
-      "start_line": 49,
-      "end_line": 51,
+      "start_line": 47,
+      "end_line": 49,
       "killed": 1,
       "survived": 0,
       "uncovered": 0,
       "sites": 1,
       "mutants": [
         {
-          "line": 50,
+          "line": 48,
           "column": 22,
           "offset": 35,
           "original": "1",
@@ -31,16 +31,16 @@
     {
       "namespace": "github.com/donvargax/itos-template/cmd/itos-template",
       "name": "run",
-      "hash": "595087b35eb977eb",
-      "start_line": 56,
-      "end_line": 97,
-      "killed": 9,
-      "survived": 1,
+      "hash": "66c90fdd278cec8f",
+      "start_line": 54,
+      "end_line": 87,
+      "killed": 3,
+      "survived": 0,
       "uncovered": 0,
-      "sites": 10,
+      "sites": 3,
       "mutants": [
         {
-          "line": 67,
+          "line": 65,
           "column": 9,
           "offset": 573,
           "original": "!=",
@@ -49,81 +49,18 @@
           "scope": "all-tests"
         },
         {
-          "line": 71,
-          "column": 15,
-          "offset": 701,
-          "original": ">",
-          "replacement": ">=",
-          "outcome": "survived",
-          "scope": "all-tests"
-        },
-        {
-          "line": 71,
-          "column": 17,
-          "offset": 703,
-          "original": "0",
-          "replacement": "1",
-          "outcome": "killed",
-          "scope": "all-tests"
-        },
-        {
-          "line": 71,
-          "column": 19,
-          "offset": 705,
-          "original": "&&",
-          "replacement": "||",
-          "outcome": "killed",
-          "scope": "all-tests"
-        },
-        {
-          "line": 71,
-          "column": 27,
-          "offset": 713,
-          "original": "0",
-          "replacement": "1",
-          "outcome": "killed",
-          "scope": "all-tests"
-        },
-        {
-          "line": 71,
-          "column": 30,
-          "offset": 716,
-          "original": "==",
-          "replacement": "!=",
-          "outcome": "killed",
-          "scope": "all-tests"
-        },
-        {
-          "line": 72,
-          "column": 56,
-          "offset": 789,
-          "original": "1",
-          "replacement": "0",
-          "outcome": "killed",
-          "scope": "all-tests"
-        },
-        {
-          "line": 75,
-          "column": 10,
-          "offset": 846,
-          "original": "0",
-          "replacement": "1",
-          "outcome": "killed",
-          "scope": "all-tests"
-        },
-        {
-          "line": 78,
+          "line": 70,
           "column": 9,
-          "offset": 891,
+          "offset": 727,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 93,
+          "line": 83,
           "column": 10,
-          "offset": 1398,
+          "offset": 1184,
           "original": "0",
           "replacement": "1",
           "outcome": "killed",
@@ -135,15 +72,15 @@
       "namespace": "github.com/donvargax/itos-template/cmd/itos-template",
       "name": "wantsJSON",
       "hash": "27c86e3a6adeeec5",
-      "start_line": 101,
-      "end_line": 114,
+      "start_line": 91,
+      "end_line": 104,
       "killed": 3,
       "survived": 0,
       "uncovered": 0,
       "sites": 3,
       "mutants": [
         {
-          "line": 102,
+          "line": 92,
           "column": 10,
           "offset": 46,
           "original": "false",
@@ -152,7 +89,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 108,
+          "line": 98,
           "column": 11,
           "offset": 161,
           "original": "true",
@@ -161,7 +98,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 110,
+          "line": 100,
           "column": 11,
           "offset": 212,
           "original": "false",
@@ -175,15 +112,15 @@
       "namespace": "github.com/donvargax/itos-template/cmd/itos-template",
       "name": "logger",
       "hash": "010f44e3eb7c3bee",
-      "start_line": 118,
-      "end_line": 126,
+      "start_line": 108,
+      "end_line": 116,
       "killed": 4,
       "survived": 0,
       "uncovered": 0,
       "sites": 4,
       "mutants": [
         {
-          "line": 121,
+          "line": 111,
           "column": 33,
           "offset": 157,
           "original": "==",
@@ -192,7 +129,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 121,
+          "line": 111,
           "column": 40,
           "offset": 164,
           "original": "&&",
@@ -201,7 +138,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 121,
+          "line": 111,
           "column": 73,
           "offset": 197,
           "original": "!=",
@@ -210,7 +147,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 121,
+          "line": 111,
           "column": 76,
           "offset": 200,
           "original": "0",
