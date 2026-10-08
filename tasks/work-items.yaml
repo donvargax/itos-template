@@ -782,3 +782,16 @@ items:
       so no new tool; turning it on may surface findings to fix or to except with a reason. Before
       first-template, so the template carries it.
     tags: [ci]
+  - id: structured-logs
+    title: Logs go to stderr through log/slog, JSON when not on a terminal, quiet by default
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      docs/template-contents.md (CLI: structured logs, JSON when not on a terminal, quiet by
+      default). Go's log/slog, no library; internal/tempdir already warns through slog. A UI concern
+      (decision 17): the handler chosen in cmd or internal/cli. Before first-template, so the
+      template carries it.
+    tags: [cli]
