@@ -9,3 +9,6 @@
 # rapid's fail files, written beside a property that failed to replay it: a
 # failure is reported, never committed (decision 20).
 **/testdata/rapid/
+
+# .metrics/mutate/, itos-cc's mutation results, is committed with the code: the
+# code proof reads it (itos.yaml's proof). .metrics/coverage/ ignores itself.

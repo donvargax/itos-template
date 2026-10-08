@@ -89,6 +89,16 @@ hooks:
 work:
   tags: [new, check, update, sync, cli, ci, windows]
 
+# The code proof (T-20): itos work done closes an item whose commits touch these paths only once
+# the check exits 0, {base} the parent of the item's first commit. It runs no test: it reads the
+# results itos-cc mutation run recorded in .metrics/mutate/, committed with the code, so each
+# function the item changed has fresh results, no survivor itos-cc.yaml does not except, and no
+# uncovered mutant (AGENTS.md, Finishing).
+proof:
+  code:
+    paths: ["{cmd,internal}/**/*.go"]
+    check: "tools/bin/pinned itos-cc mutation check --since {base} --fail-uncovered --json"
+
 # What CI runs on a push (.github/workflows/ci.yml): itos ci run over the range from the last green
 # run, these steps in cost order, then the checks of the tasks the range names. Harvested from
 # itos's (github.com/donvargax/itos, itos.yaml's ci). The platform jobs, every test on Linux, macOS
@@ -117,6 +127,11 @@ ci:
     # when there is no green run to start from. No nightly yet: the whole suite is the smoke set's
     # size.
     - { tests: scenario }
+    # The code proof trusts .metrics/mutate/, so CI runs again a few of the mutants it records, the
+    # draw seeded by the commit, each with the tests it was recorded with, and fails when an outcome
+    # differs: a cache written by hand or against other code. With nothing recorded it samples
+    # nothing and passes.
+    - { run: tools/bin/pinned itos-cc mutation sample --count 10, cost: late }
   prose: # a range that touches only these runs only the prose steps: what a docs commit may touch
     paths: ["**/*.md", "docs/**", "tasks/**"]
     steps:

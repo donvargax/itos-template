@@ -65,6 +65,14 @@ background and watch its output with a Monitor, never a wait loop of your own.
 
 ## Finishing
 
+An item whose commits touch `cmd` or `internal` closes only on its code proof (itos.yaml's
+`proof`). Before its last push, run `tools/bin/pinned itos-cc mutation run --since <the parent of
+the item's first commit> --fail-uncovered --all-tests --no-annotate`, commit `.metrics/mutate/`,
+and kill each survivor with a test; a truly equivalent one is excepted (`itos-cc mutation except`)
+with its reason, for the person to review. An uncovered mutant needs a test, never an exception.
+Code that differs by OS takes the OS as a value (decision 26): no `runtime.GOOS` branch in logic,
+and a build-tagged file only for a call one OS lacks, with no mutation site in it.
+
 Push with `itos push` (it rebases onto `main`, pushes, and waits for CI). Done is that run green;
 report its URL. A gap the work leaves goes into the registry as an idea (`itos work add`), never
 into a commit body. A reason worth keeping goes where a reader looks: a scenario's above it, a
@@ -134,6 +142,7 @@ CI runs its plan, `itos ci run`, on every push, in this order, stopping at the f
 - `RAPID_CHECKS=1 go test ./cmd/... ./internal/...`
 - `tools/bin/domain-coverage`
 - The `scenario` tests of the smoke set and those the push's commits name, in one run.
+- `tools/bin/pinned itos-cc mutation sample --count 10`
 - The other checks of the tasks the push's commits name.
 
 A push that touches only `**/*.md`, `docs/**` and `tasks/**` runs only `itos config check` and `tools/bin/doc-caps`, and the static checks of the tasks its commits name.
