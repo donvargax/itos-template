@@ -754,7 +754,7 @@ items:
     title: "A SAST baseline: gosec, bundled in the pinned golangci-lint, in the gates"
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: []
     kind: task
     why: >
