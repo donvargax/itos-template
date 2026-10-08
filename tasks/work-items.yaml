@@ -855,3 +855,15 @@ items:
       from a pre-release tag or a commit too; once it does, CI drops the version input and pins the
       action by commit alone.
     tags: [ci]
+  - id: completion-values
+    title: "Completion offers a flag's values from the template: --stack and --feature from its manifest"
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      slice-11 completes commands and flags from kong's model; no flag has a fixed set of values. A
+      stack's and a feature's names come from the template's manifest, which __complete would have
+      to read (a clone, or a local folder named before them).
+    tags: [cli]
