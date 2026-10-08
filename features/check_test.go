@@ -39,6 +39,10 @@ func (w *world) checkSteps(sc *godog.ScenarioContext) {
 		return w.run(w.templateDir, w.bin, fields...)
 	})
 	sc.Step(`^a clone "([^"]*)" of the template, only its default branch local$`, w.cloneOfTemplate)
+	sc.Step(`^the clone "([^"]*)" has its HEAD detached$`, w.cloneDetached)
+	sc.Step(`^the clone "([^"]*)" has its HEAD detached, no local branch and no record of origin's HEAD$`, w.cloneAsPullRequest)
+	sc.Step(`^the clone "([^"]*)" has an origin that cannot be reached$`, w.cloneWithUnreachableOrigin)
+	sc.Step(`^a bare clone "([^"]*)" of the template$`, w.bareCloneOfTemplate)
 	sc.Step(`^itos-template runs in the folder "([^"]*)" with "([^"]*)"$`, func(folder, args string) error {
 		fields := strings.Fields(args)
 		for i, f := range fields {
@@ -189,6 +193,50 @@ func (w *world) cloneOfTemplate(name string) error {
 		return errors.New("no template in this scenario")
 	}
 	return w.git("clone", "-q", "--", w.template, name)
+}
+
+// cloneDetached detaches the HEAD of the clone name at the commit it is on,
+// as a checkout of a commit rather than a branch leaves it.
+func (w *world) cloneDetached(name string) error {
+	return w.gitIn(w.path(name), "checkout", "-q", "--detach")
+}
+
+// cloneAsPullRequest leaves the clone name as actions/checkout leaves a pull
+// request's checkout: its HEAD detached, no local branch, and no
+// refs/remotes/origin/HEAD, so only origin itself can say which branch is
+// the root.
+func (w *world) cloneAsPullRequest(name string) error {
+	dir := w.path(name)
+	if err := w.cloneDetached(name); err != nil {
+		return err
+	}
+	branches, err := w.gitOut(dir, "for-each-ref", "--format=%(refname)", "refs/heads/")
+	if err != nil {
+		return err
+	}
+	for _, ref := range strings.Fields(branches) {
+		if err := w.gitIn(dir, "update-ref", "-d", ref); err != nil {
+			return err
+		}
+	}
+	return w.gitIn(dir, "remote", "set-head", "origin", "-d")
+}
+
+// cloneWithUnreachableOrigin points the clone name's origin at a folder that
+// does not exist, so asking origin anything (git ls-remote) fails at once,
+// with no network.
+func (w *world) cloneWithUnreachableOrigin(name string) error {
+	gone := filepath.ToSlash(w.path("no-such-origin.git"))
+	return w.gitIn(w.path(name), "remote", "set-url", "origin", gone)
+}
+
+// bareCloneOfTemplate clones the scenario's template bare into the folder
+// name of the scratch repository: every branch local, HEAD the root branch.
+func (w *world) bareCloneOfTemplate(name string) error {
+	if w.templateDir == "" {
+		return errors.New("no template in this scenario")
+	}
+	return w.git("clone", "-q", "--bare", "--", w.template, name)
 }
 
 // mappingValue is the value of key in the mapping m, or nil.
