@@ -80,6 +80,25 @@ func TestCompleteUsesKongCommandAndFlagModel(t *testing.T) {
 	}
 }
 
+func TestCompleteSingleCommandAndFlagWithoutShortName(t *testing.T) {
+	var model struct {
+		Only struct {
+			Path string `arg:""`
+			Name string `name:"name"`
+		} `cmd:""`
+	}
+	app, err := kong.New(&model, kong.Name("test"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got, want := Complete(app.Model, nil), []string{"only", ":none"}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("Complete(nil) = %q, want %q", got, want)
+	}
+	if got, want := Complete(app.Model, []string{"only", "-"}), []string{"--help", "--name", "-h", ":none"}; !reflect.DeepEqual(got, want) {
+		t.Fatalf("Complete(only, -) = %q, want %q", got, want)
+	}
+}
+
 func TestCompletionRunRejectsUnsupportedShell(t *testing.T) {
 	var stdout, stderr strings.Builder
 	ui := &UI{Stdout: &stdout, Stderr: &stderr}
