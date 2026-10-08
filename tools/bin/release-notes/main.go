@@ -261,7 +261,7 @@ func whole(listed []footer, key string, commits []commit) {
 		for _, c := range commits {
 			if strings.HasPrefix(c.SHA, f.SHA) {
 				if text := footerText(c.message, key, f.Text); text != "" {
-					listed[i].Text = text
+					listed[i].Text = text //nolint:gosec // G602, a false positive: i is from range over listed, so always in range
 				}
 			}
 		}

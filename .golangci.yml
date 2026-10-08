@@ -6,8 +6,28 @@ linters:
   enable:
     - depguard
     - gochecksumtype
+    - gosec
     - revive
   settings:
+    # gosec, the SAST baseline (T-22). A rule whose finding is this tool's
+    # job is turned off here with its reason; any other finding is fixed, or
+    # excepted on its line with a //nolint:gosec saying why, never by
+    # turning its rule off for one finding.
+    gosec:
+      excludes:
+        # A program run with variable words: itos-template runs git and a
+        # template's checks as lists of words, never through a shell
+        # (decision 15), so no word is read as shell syntax.
+        - G204
+        # A file read by a variable path: the files a template and a made
+        # project hold are what this tool reads and writes.
+        - G304
+        # Folder and file modes wider than owner-only: a made project's
+        # files keep the modes a person shares a project with, 0755 for a
+        # folder and an executable, 0644 for a file.
+        - G301 # a folder made 0755
+        - G302 # a file chmodded 0755 or 0644
+        - G306 # a file written 0644
     # A file is at most 600 lines of code, comments and blank lines not
     # counted (T-11): decision 17 keeps a slice in one file until it grows
     # large, and this says when. Only this rule of revive's runs.
@@ -150,6 +170,20 @@ linters:
           deny:
             - pkg: github.com/alecthomas/kong
               desc: "kong stays in the UI (decision 17): cmd, internal/cli and the slices"
+  exclusions:
+    rules:
+      # Test code is left out of gosec: it writes fixtures and runs programs
+      # where the test says, in folders the test made. The _test.go files,
+      # the scenarios in features/, and the packages that only tests import
+      # (releasetest, porttest).
+      - path: _test\.go$
+        linters: [gosec]
+      - path: ^features/
+        linters: [gosec]
+      - path: ^internal/release/releasetest/
+        linters: [gosec]
+      - path: ^internal/template/port/porttest/
+        linters: [gosec]
 formatters:
   enable:
     - gofmt
