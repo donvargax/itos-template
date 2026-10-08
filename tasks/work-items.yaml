@@ -739,3 +739,13 @@ items:
       Passing --cleanup=whitespace (the -m default) to that commit makes it the same everywhere;
       docs/manifest.md's first-commit section then says so.
     refs: [slice-6]
+  - id: bug-3
+    title: A made project's first commit keeps its message whatever git's commit.cleanup says
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: slice
+    why: >
+      Found with slice-6 (the idea first-commit-cleanup, which this replaces).
+    tags: [new]
