@@ -338,16 +338,9 @@ items:
     title: check reads a CI checkout's branches from origin, from any folder of it, with no fetch recipe
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: [slice-2]
     kind: slice
-    why: >
-      Was check-ci-branches.
-      check clones the template, so in a CI checkout (one branch, perhaps a detached HEAD) a
-      template needs a fetch of every branch as a local branch and HEAD on its root first
-      (docs/manifest.md, Checking a template in its CI). check could read the remote-tracking
-      branches and the root from the origin when the template is the folder it runs in, and work
-      from a subfolder of it too, so a template CI step is one line.
     tags: [check, ci]
   - id: T-6
     title: "itos 6.4.0: the pin and CI's itos action move from 6.0.0"
