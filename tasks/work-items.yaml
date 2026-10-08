@@ -434,16 +434,9 @@ items:
     title: Word the stack question in the UI, not the domain
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      Was asker-words.
-      T-9 moved choosing a combination into the domain (template.Choose), and with it the stack
-      question's text, Which stack (go, python)?, and its refusal on the terminal, the stacks are
-      go, python: the UI's wording in the domain, which decision 17 keeps out of it. The Asker port
-      could take what is asked (a stack among these, an answer to this question of the manifest's)
-      and prompt or internal/cli word it, the domain giving only the choices and the check.
     refs: [T-9]
   - id: T-10
     title: depguard refuses the mocking libraries (decision 19)
