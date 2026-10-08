@@ -259,7 +259,7 @@ is the usual one. The manifest itself is always left out.
 `itos-template check [<template>]` renders every combination the manifest allows, each as `new`
 renders it, in a temporary folder of its own, scans it for leftover literals, runs its checks there
 and removes the folder. The
-template is anything git clone takes, the folder `check` runs in when none is named. `check` never
+template is anything git clone takes, the repository `check` runs in when none is named. `check` never
 asks: every answer comes from `--answer`, or with `--defaults` from its question's default, and a
 missing one is refused, exit 2, each named, before anything is rendered. Each render's first commit
 is made as `itos-template check`, so a CI that sets no git identity can run it, with the message
@@ -324,17 +324,24 @@ itos-template: warning: no check of the template is marked as scanning its rende
 
 ### Checking a template in its CI
 
-`check` renders the template's branch heads, as `new` does, by cloning it: never its working tree.
-So a template's CI fetches every branch as a local branch first, and puts `HEAD` on the root branch,
-where the manifest is read. With GitHub Actions:
+`check` renders the template's branch heads, as `new` does: never its working tree. With no template
+named, it reads the repository it runs in, from its top whatever folder of it it runs in, and takes
+each branch the manifest names from the local branch of that name, else from origin's
+remote-tracking branch of that name. A checkout as git clone or actions/checkout leaves one, its
+other branches only origin's, is checked as it is, with no fetch first.
+
+The root branch, where the manifest is read, is the branch `HEAD` names. A detached `HEAD`, as
+actions/checkout leaves on a pull request, names none: the root is then the branch origin's `HEAD`
+names, as git clone records it, else as origin says it (`git ls-remote`). On a pull request, `check`
+so renders the branches as they are, not the change the pull request proposes.
+
+actions/checkout fetches only the commit it checks out unless told to fetch the whole history, which
+every branch's remote-tracking branch needs. With GitHub Actions:
 
 ```yaml
 - uses: actions/checkout@v5
   with:
     fetch-depth: 0
-- run: |
-    git fetch --update-head-ok origin '+refs/heads/*:refs/heads/*'
-    git checkout --quiet main
 - run: itos-template check --answer name=blue-fox --defaults
 ```
 

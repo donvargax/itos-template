@@ -35,7 +35,7 @@ import (
 // CLI is itos-template check as kong reads it (decision 4): its flags. It
 // never asks: it is a template's CI step.
 type CLI struct {
-	Template string   `arg:"" optional:"" help:"The template: anything git clone takes, a path or a URL. The folder check runs in when not given."`
+	Template string   `arg:"" optional:"" help:"The template: anything git clone takes, a path or a URL. When not given, the repository check runs in, from its top, each branch its local one or else origin's."`
 	Answer   []string `help:"An answer to one of the template's questions, as name=answer; once for each. check never asks: every answer is given, or taken with --defaults." placeholder:"NAME=ANSWER" sep:"none"`
 	Defaults bool     `help:"Take a missing answer's default." negatable:"" env:"ITOS_TEMPLATE_DEFAULTS"`
 }
@@ -153,8 +153,8 @@ func writeLines(b *strings.Builder, lines []string) {
 // ── Application ──
 
 // Query is check's query: the results of checking the template Template,
-// the folder check runs in when it is empty, with Answers, Defaults taking
-// a missing answer's default.
+// the repository check runs in when it is empty (git.CloneHere), with
+// Answers, Defaults taking a missing answer's default.
 type Query struct {
 	Template string
 	Answers  answer.Given
@@ -167,16 +167,19 @@ type Query struct {
 // unreachable, its manifest refused, an answer missing) is returned,
 // nothing given to opened or each, and so is an error each returns.
 func Handle(q Query, opened func(*manifest.Manifest), each func(template.Result) error) error {
-	name := q.Template
-	if name == "" {
-		name = "."
-	}
 	tmp, err := tempdir.Make("itos-template-template-")
 	if err != nil {
 		return err
 	}
 	defer tempdir.Discard(tmp)
-	repo, err := git.Clone(name, filepath.Join(tmp, "template.git"))
+	name, into := q.Template, filepath.Join(tmp, "template.git")
+	var repo *git.Repo
+	if name == "" {
+		name = git.Here
+		repo, err = git.CloneHere(into)
+	} else {
+		repo, err = git.Clone(name, into)
+	}
 	if err != nil {
 		return err
 	}

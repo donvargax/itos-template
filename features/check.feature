@@ -3,9 +3,10 @@ Feature: check renders every combination a template allows and runs its checks
   itos-template check [<template>] proves a template (PLAN.md, principle 5):
   it renders every combination the manifest allows, each as new renders it
   (decisions 2, 8 and 12), and runs that render's checks in it. The template
-  is anything git clone takes (decision 9), the folder check runs in when
-  none is named; check renders the template's branch heads, as new does, so
-  a CI checkout fetches the template's branches first.
+  is anything git clone takes (decision 9), the repository check runs in
+  when none is named; check renders the template's branch heads, as new
+  does, never its working tree (slice-7, below, says how it reads a CI
+  checkout's).
 
   The combinations are derived, never listed (the user's call, 2026-10-07):
   each stack alone, and each stack with every set of its features in which
@@ -199,7 +200,7 @@ Feature: check renders every combination a template allows and runs its checks
   # recipe is needed. The person's call, 2026-10-07. Before slice-7, check
   # in such a clone said the template has no branch stack/go (exit 1), and
   # in a subfolder that git cannot reach the template "." (exit 3).
-  @ID-CHECK-15 @slice-7 @wip
+  @ID-CHECK-15 @slice-7
   Scenario: check in a clone holding only its default branch reads the others from origin
     Given the template "acme"
     And a clone "ci" of the template, only its default branch local
@@ -208,7 +209,7 @@ Feature: check renders every combination a template allows and runs its checks
     And its report says "go + cli + web" passed
     And its report says "python + cli" passed
 
-  @ID-CHECK-16 @slice-7 @wip
+  @ID-CHECK-16 @slice-7
   Scenario: check run in a folder below the template's top checks the whole template
     Given the template "acme"
     And a clone "ci" of the template, only its default branch local

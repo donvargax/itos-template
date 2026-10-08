@@ -21,7 +21,8 @@ import (
 // and is the same on every system and every machine, as an update needs it
 // (decision 3).
 type Repo struct {
-	dir string
+	dir    string
+	noRoot bool // a copy CloneHere made of a checkout naming no root branch
 }
 
 var _ port.Repository = (*Repo)(nil)
@@ -30,15 +31,20 @@ var _ port.Repository = (*Repo)(nil)
 // which must not exist. A failure is an *Unreachable, or a *Missing when git
 // cannot be run.
 func Clone(name, dir string) (*Repo, error) {
-	_, err := run("", "clone", "--bare", "--quiet", "--", name, dir)
-	var failed *Failed
-	if errors.As(err, &failed) {
-		return nil, &Unreachable{Name: name, Err: failed}
-	}
-	if err != nil {
-		return nil, err
+	if _, err := run("", "clone", "--bare", "--quiet", "--", name, dir); err != nil {
+		return nil, unreachable(name, err)
 	}
 	return &Repo{dir: dir}, nil
+}
+
+// unreachable is err, a git command reaching the template name that failed,
+// as an *Unreachable; any other error as it is.
+func unreachable(name string, err error) error {
+	var failed *Failed
+	if errors.As(err, &failed) {
+		return &Unreachable{Name: name, Err: failed}
+	}
+	return err
 }
 
 func (r *Repo) git(args ...string) (string, error) {
@@ -48,8 +54,14 @@ func (r *Repo) git(args ...string) (string, error) {
 
 // DefaultBranch is the branch the template's HEAD names: its root branch.
 func (r *Repo) DefaultBranch() (string, error) {
+	if r.noRoot {
+		return "", errNoRoot
+	}
 	return r.git("symbolic-ref", "--short", "HEAD")
 }
+
+// errNoRoot is a template whose HEAD names no branch.
+var errNoRoot = errors.New("the template's HEAD names no branch")
 
 // Commit is the commit a branch is at, and false when the template has no
 // such branch.
