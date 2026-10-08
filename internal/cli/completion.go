@@ -102,6 +102,7 @@ func Complete(root *kong.Application, words []string) []string {
 	position := 0
 	optionsEnded := false
 	needValue := false
+	var valueFlag *kong.Flag
 	for i := 0; i < len(previous); i++ {
 		word := previous[i]
 		if optionsEnded {
@@ -116,9 +117,11 @@ func Complete(root *kong.Application, words []string) []string {
 			flag, valueGiven := findFlag(node, word)
 			if flag != nil && !flag.IsBool() && !flag.IsCumulative() && !valueGiven {
 				needValue = true
+				valueFlag = flag
 				if i+1 < len(previous) {
 					i++
 					needValue = false
+					valueFlag = nil
 				}
 			}
 			continue
@@ -138,13 +141,16 @@ func Complete(root *kong.Application, words []string) []string {
 		}
 		return []string{":none"}
 	}
-	if equal := strings.IndexByte(partial, '='); strings.HasPrefix(partial, "-") && equal >= 0 {
-		flag, _ := findFlag(node, partial[:equal])
+	if name, value, hasValue := strings.Cut(partial, "="); strings.HasPrefix(partial, "-") && hasValue {
+		flag, _ := findFlag(node, name)
 		if flag != nil && flag.Enum != "" {
-			return flagValues(flag, partial[equal+1:])
+			return flagValues(flag, value)
 		}
 	}
 	if needValue {
+		if valueFlag != nil && valueFlag.Enum != "" {
+			return flagValues(valueFlag, partial)
+		}
 		return []string{":none"}
 	}
 	if strings.HasPrefix(partial, "-") {
@@ -176,7 +182,6 @@ func Complete(root *kong.Application, words []string) []string {
 }
 
 func flagCandidates(root, node *kong.Node, prefix string) []string {
-	seen := map[string]bool{}
 	var candidates []string
 	for current := node; current != nil; current = current.Parent {
 		for _, flag := range current.Flags {
@@ -184,14 +189,18 @@ func flagCandidates(root, node *kong.Node, prefix string) []string {
 				continue
 			}
 			name := "--" + flag.Name
-			if strings.HasPrefix(name, prefix) && !seen[name] {
-				seen[name] = true
+			if strings.HasPrefix(name, prefix) {
 				candidates = append(candidates, name)
+			}
+			if flag.Short != 0 {
+				short := "-" + string(flag.Short)
+				if strings.HasPrefix(short, prefix) {
+					candidates = append(candidates, short)
+				}
 			}
 			if flag.Tag != nil && flag.Tag.Negatable != "" {
 				name = "--no-" + flag.Name
-				if strings.HasPrefix(name, prefix) && !seen[name] {
-					seen[name] = true
+				if strings.HasPrefix(name, prefix) {
 					candidates = append(candidates, name)
 				}
 			}
