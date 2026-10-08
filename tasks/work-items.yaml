@@ -747,7 +747,7 @@ items:
     title: "CI checks the locked install: go mod verify, and go.mod and go.sum tidy"
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: []
     kind: task
     why: >
