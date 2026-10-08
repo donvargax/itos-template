@@ -386,3 +386,36 @@
   done_when:
     - run: d=$(mktemp -d) && GOCOVERDIR=$d go test ./features -count=1 -scenarios='^@ID-CHECK-15$' && go tool covdata func -i="$d" | awk '$1 ~ /internal\/git\/checkout\.go/ && $2 == "CloneHere" && $3 != "0.0%" {f=1} END {exit !f}'
     - run: ITOS_CC_TEST_COVERDIR=$(mktemp -d) go test ./features -count=1 -scenarios='^@ID-CHECK-13$'
+- id: T-20
+  type: build
+  title: "work done requires the code proof through itos-cc, with the scenarios' coverage, and CI samples it"
+  why: >
+    Was the idea itos-cc-gates (docs/template-contents.md, Code quality). The person's calls,
+    2026-10-08: a gate from the start, not advice first; itos-cc pinned now, the 7-day age
+    tools/bin/pinned asks of a version not applying to the owner's own tools (itos, itos-cc), as
+    itos 6.4.0 was pinned here the day it was out. itos 7.0.0-rc.1 (T-18) reads proof.code: work
+    done closes an item whose commits touch its paths only once its check exits 0. tools/bin/pinned
+    gains itos-cc v0.5.0, its five archives' hashes from the release's checksums.txt, and its
+    comment says the age rule is for others' tools. itos.yaml gains proof.code, paths
+    "{cmd,internal}/**/*.go", check "tools/bin/pinned itos-cc mutation check --since {base}
+    --fail-uncovered --json". Results are recorded with --all-tests, every scenario run for each
+    mutant: the whole suite takes about 4 seconds, and with T-19's cover build its coverage reaches
+    itos-cc (tried 2026-10-08: 38 seconds for slice-7's 23 mutants, against 57 with listed tests,
+    the idea listed-tests). Runs pass --no-annotate, so no summary comment changes a source file;
+    .metrics/mutate/ is committed with the code, as itos-cc means it (.metrics/coverage/ ignores
+    itself). CI's plan gains a late step, tools/bin/pinned itos-cc mutation sample with a small
+    --count, so a cache written by hand or against other code fails. AGENTS.md's Finishing says
+    an implementing session runs tools/bin/pinned itos-cc mutation run --since <the parent of its
+    item's first commit> --fail-uncovered --all-tests --no-annotate, commits .metrics/mutate/, and
+    kills or excepts (with a reason, for the person to review) what survives before work done. Only
+    changed functions are judged, so code already here costs nothing until an item touches it:
+    slice-7's rootOf has 9 uncovered mutants and topLevel a survivor, the idea check-detached-head's.
+    itos-cc mutates test support outside _test.go files (internal/template/port/porttest) like code,
+    with no way to leave it out (donvargax/itos-cc#16): until then a change to a fake needs it
+    covered.
+  done_when:
+    - run: tools/bin/pinned itos-cc version | grep -qx 'itos-cc v0.5.0'
+    - run: "grep -qF 'tools/bin/pinned itos-cc mutation check --since {base} --fail-uncovered --json' itos.yaml"
+    - run: grep -q 'itos-cc mutation sample' itos.yaml
+    - run: grep -q 'itos-cc mutation run --since' AGENTS.md
+    - run: tools/bin/pinned itos-cc mutation check --since HEAD --fail-uncovered --json
