@@ -812,3 +812,18 @@ items:
       of it: it was checked by hand. A scenario could detach a clone's HEAD and drop origin/HEAD, so
       origin is asked.
     refs: [slice-7]
+  - id: check-pull-request
+    title: check a pull request's change, not only its base's branches
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      With no template named, check renders the branches the checkout holds, the local one or else
+      origin's (slice-7). On a pull request actions/checkout leaves no local branch, so check proves
+      origin's branches as they are, never the change the pull request proposes to one of them: a
+      broken stack is found only once it is merged. check could render the checked-out commit in
+      place of the branch the pull request targets, which needs that branch named (GITHUB_BASE_REF,
+      or a flag) without a host built in (decision 9).
+    refs: [slice-7]
