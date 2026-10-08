@@ -46,3 +46,6 @@ Each lesson names its exit and its two dates; at most ten.
   GitHub's API. Implementing agents push their own code and wait on their own run; the
   coordinator checks main's run in the background only when its push could turn it red. Exit:
   itos push stops waiting for a docs-only range itself.
+- **No commit body line starts `with #,`** (2026-10-08, seen 2026-10-08). itos's lint then warns
+  that the footers have no blank line before them, though they do (bug-3's c6cd810), and agents
+  reword correct bodies around it. Briefs say so. Exit: itos#21 fixed and pinned.
