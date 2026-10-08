@@ -251,6 +251,14 @@ items:
       commit, so adopting is writing that record from the answers that match the project, as cruft
       link does. Settle in its scenarios: how the release and answers are chosen, and how a project
       that differs from the render is shown the difference before its first update.
+
+      The person accepted 2026-10-08: adopt --dry-run previews added, changed and missing paths
+      without writing; adopt refuses to link a differing baseline unless --force explicitly accepts
+      it. Force never overwrites project files: adoption creates only .itos-template.yaml,
+      preserving existing files and history. Missing baseline files represent project deletions for
+      later update, not files adopt installs. Initial migration is adopt an older matching baseline
+      then update to a newer version; adopting latest alone imports no changes. Baseline selection
+      and the remaining safety/preview details still need specification.
     tags: [update]
   - id: template-releases
     title: A template release tags every branch, and new renders the newest release or the one --ref names
