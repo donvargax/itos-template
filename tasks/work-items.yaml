@@ -337,8 +337,8 @@ items:
   - id: slice-7
     title: check reads a CI checkout's branches from origin, from any folder of it, with no fetch recipe
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: [slice-2]
     kind: slice
     why: >
