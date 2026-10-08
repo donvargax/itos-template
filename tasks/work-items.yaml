@@ -15,6 +15,7 @@ queue:
   - T-22
   - slice-9
   - slice-10
+  - T-23
   - slice-11
   - first-template
 items:
