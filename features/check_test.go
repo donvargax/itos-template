@@ -38,6 +38,14 @@ func (w *world) checkSteps(sc *godog.ScenarioContext) {
 		}
 		return w.run(w.templateDir, w.bin, fields...)
 	})
+	sc.Step(`^a clone "([^"]*)" of the template, only its default branch local$`, w.cloneOfTemplate)
+	sc.Step(`^itos-template runs in the folder "([^"]*)" with "([^"]*)"$`, func(folder, args string) error {
+		fields := strings.Fields(args)
+		for i, f := range fields {
+			fields[i] = w.expand(f)
+		}
+		return w.run(w.path(folder), w.bin, fields...)
+	})
 
 	sc.Step(`^its report says "([^"]*)" passed$`, w.reportSaysPassed)
 	sc.Step(`^its report says "([^"]*)" failed at "([^"]*)"$`, w.reportSaysFailedAt)
@@ -170,6 +178,17 @@ func (w *world) changedTemplate(name, key string, change func(top *yaml.Node) er
 		}
 		return w.gitIn(dir, "commit", "-q", "-a", "-m", "Change the manifest: "+key)
 	})
+}
+
+// cloneOfTemplate clones the scenario's template into the folder name of the
+// scratch repository as a CI checkout has it: git clone's own, the default
+// branch the one local branch, every other only origin's remote-tracking
+// branch.
+func (w *world) cloneOfTemplate(name string) error {
+	if w.templateDir == "" {
+		return errors.New("no template in this scenario")
+	}
+	return w.git("clone", "-q", "--", w.template, name)
 }
 
 // mappingValue is the value of key in the mapping m, or nil.
