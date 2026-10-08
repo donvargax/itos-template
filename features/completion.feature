@@ -62,3 +62,10 @@ Feature: Shell completion
     Then it exits with code 0
     And its standard output says "completion"
     And its standard output does not say "__complete"
+
+  @ID-COMPL-07 @slice-11 @wip
+  Scenario: completion handles a shell with no current word
+    When itos-template runs with "__complete"
+    Then it exits with code 0
+    And its standard output lists "new"
+    And its standard output does not list "__complete"
