@@ -28,5 +28,6 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0025: Shell completion is our own: a hidden __complete command answering every shell from the command line's model](0025-shell-completion-is-our-own-a-hidden-complete-command-answering-every-shell-from-the-command-line-s-model.md)
 - [ADR-0026: Code that differs by OS takes the OS as a value; build-tagged files only for a call one OS lacks](0026-code-that-differs-by-os-takes-the-os-as-a-value-build-tagged-files-only-for-a-call-one-os-lacks.md)
 - [ADR-0027: The code proof is a gate from the start: itos-cc's mutation check over the functions an item changes](0027-the-code-proof-is-a-gate-from-the-start-itos-cc-s-mutation-check-over-the-functions-an-item-changes.md)
+- [ADR-0028: The owner's own tools, itos and itos-cc, are pinned when out; every other tool waits 7 days](0028-the-owner-s-own-tools-itos-and-itos-cc-are-pinned-when-out-every-other-tool-waits-7-days.md)
 
 <!-- itos:decisions:end -->
