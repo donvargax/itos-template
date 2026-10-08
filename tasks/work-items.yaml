@@ -710,9 +710,6 @@ items:
       2026-10-07: itos supports itos-cc first (donvargax/itos-cc#8 among it); raise it again once
       about five items are left in the queue.
     tags: [ci]
-    deferred: >
-      Waits for itos to support itos-cc; the owner wants it raised again when about five items are
-      left (2026-10-07).
   - id: first-commit-cleanup
     title: Commit the manifest's first commit message whatever the person's commit.cleanup says
     phase: 1
