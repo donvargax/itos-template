@@ -366,3 +366,23 @@
     - run: "grep -q 'donvargax/itos@1b9f1f9995be5d20aed3b4f8877a453bbd1e98a3 # v7.0.0-rc.1' .github/workflows/ci.yml"
     - run: "grep -q 'donvargax/itos@1b9f1f9995be5d20aed3b4f8877a453bbd1e98a3 # v7.0.0-rc.1' .github/workflows/release.yml"
     - run: itos version --check
+- id: T-19
+  type: test
+  title: The features build the itos-template under test with -cover when GOCOVERDIR is set, so itos-cc sees what the scenarios run
+  why: >
+    For T-20's code proof (the person's call, 2026-10-08: a gate from the start). The scenarios run
+    the built itos-template as another process, so Go records their coverage only for a binary built
+    with -cover writing to GOCOVERDIR (go.dev/doc/build-cover); without it they add 0.0%, and
+    itos-cc called all of slice-7's checkout.go and check.go uncovered (23 mutants). Tried on
+    2026-10-08 in a scratch worktree: building with -cover -covermode=atomic -coverpkg=./... when
+    GOCOVERDIR is set let itos-cc mutation run --all-tests kill 13 of them, the scenarios' coverage
+    merged with go test's; w.env() already passes GOCOVERDIR to every command a scenario runs. The
+    trap: a -cover binary with no GOCOVERDIR writes a warning to stderr, which broke @ID-CHECK-13
+    (no warning); itos-cc's listed tests set only ITOS_CC_TEST_COVERDIR for their first coverage
+    run, so the build keys on GOCOVERDIR alone, never on that variable. Splitting the coverage per
+    scenario under ITOS_CC_TEST_COVERDIR, as itos's T-121 does, is not needed while --all-tests is
+    cheap (the idea listed-tests). Without GOCOVERDIR nothing changes. As itos's T-121 does it
+    (6377a0d, df80cd9 in donvargax/itos).
+  done_when:
+    - run: d=$(mktemp -d) && GOCOVERDIR=$d go test ./features -count=1 -scenarios='^@ID-CHECK-15$' && go tool covdata func -i="$d" | awk '$1 ~ /internal\/git\/checkout\.go/ && $2 == "CloneHere" && $3 != "0.0%" {f=1} END {exit !f}'
+    - run: ITOS_CC_TEST_COVERDIR=$(mktemp -d) go test ./features -count=1 -scenarios='^@ID-CHECK-13$'
