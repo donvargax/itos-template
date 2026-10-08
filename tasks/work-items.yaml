@@ -13,6 +13,7 @@ phases:
 queue:
   - slice-7
   - bug-3
+  - T-17
   - first-template
 items:
   - id: T-2
