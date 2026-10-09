@@ -980,6 +980,12 @@ items:
       problem the same way, and rule 32 of docs/CLI.md forbids showing a raw command line as the
       message. Report what you find as an idea rather than widening this item.
     tags: [new, check]
+    deferred: >
+      Held while the branch work is in flight, so this repository is not under two sets of changes
+      at once. The leak is real and still open: internal/cli/codes.go formats the caller-supplied
+      template name straight into the exit-3 message, so a URL whose userinfo holds a credential
+      prints it on stderr before any project exists. The two @wip scenarios and the item are ready;
+      nothing about the deferral changes the fix, and restoring it is itos work resume bug-4.
   - id: T-28
     title: Give go-template-itos ADR-0030's branches, with its itos data on its own branch
     phase: 1
