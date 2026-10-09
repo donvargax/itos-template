@@ -954,3 +954,30 @@ items:
       specify count, stdin, JSON, CLI/completion, harness and made-project release machinery. The
       implementation belongs to go/cli; source changes are coordination evidence.
     tags: [new, check, cli, ci]
+  - id: bug-4
+    title: A template URL's credential never reaches itos-template's own output
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: slice
+    why: >
+      Found 2026-10-09 while specifying the first template, from a real run of the built binary. new
+      prints the template name it was given, and git's own error, straight into the exit-3 message
+      (internal/cli/codes.go, the template-unreachable problem). A URL whose userinfo holds a
+      credential therefore puts the credential in the error output, on stderr, in a terminal's
+      scrollback and in a CI log, before any project exists. A mistyped password, an expired token
+      or a token revoked mid-run each print it. git redacts the userinfo in its own fatal line; the
+      leak is entirely ours, the one %s of the name. The fix redacts the userinfo of a URL's name in
+      what we print and keeps the rest of it: ID-NEW-19 and ID-CHECK-08 already hold that an
+      unreachable template is named, and they stay green. It is a fix, so a @bug-4 scenario that
+      failed before it. Two scenarios, one per command, both over a URL that cannot be reached
+      without the network (127.0.0.1 on a closed port) so the run is hermetic and no credential goes
+      anywhere. What this item must not decide: whether the record may hold such a name at all, or
+      what a made project keeps instead. That is new-template-name, and it is what update rests on.
+      Redacting the output does not stop the record keeping the name verbatim in the made project's
+      first commit; this item closes the leak on the way out, not the one at rest. While here, check
+      whether any other message formats a name or a URL of the caller's: codes.go builds every
+      problem the same way, and rule 32 of docs/CLI.md forbids showing a raw command line as the
+      message. Report what you find as an idea rather than widening this item.
+    tags: [new, check]
