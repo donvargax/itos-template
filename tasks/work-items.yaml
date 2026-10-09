@@ -976,3 +976,38 @@ items:
       problem the same way, and rule 32 of docs/CLI.md forbids showing a raw command line as the
       message. Report what you find as an idea rather than widening this item.
     tags: [new, check]
+  - id: T-28
+    title: Restructure go-template-itos to ADR-0029's branches, with itos on its own branch
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: [T-27]
+    kind: task
+    why: >
+      ADR-0029, recorded 2026-10-09 as the shape every template follows as a recommendation. A
+      template's itos setup lives on one branch beside its render root, and no render starts from
+      it, so a made project runs itos init and inherits no itos data. This task makes
+      donvargax/go-template-itos that shape; today it is the old one, with itos.yaml, tasks/ and the
+      generated rules block on every branch and main as both the render root and the itos project.
+      T-27 was built and proved under the old layout and says so. The branches become: itos,
+      carrying the itos data and a merged copy of the whole template, the only place itos runs for
+      this template; main, the language-neutral template root and the repository default, the branch
+      a render starts from; stack/go and go/cli as they are. The merge direction stays one way, main
+      into stack/go into go/cli, never rebased, so the SHAs a record pins keep holding. itos absorbs
+      a merge from each of the three and is consumed by none; that reads backwards and must be
+      written in PLAN.md and docs/ORCHESTRATING.md where an agent reads it, so nobody straightens
+      it. With the itos data gone from the three template branches their CI loses itos ci run, the
+      Task footer check and proof.code, so their plans become plain steps: gofmt, build, vet, module
+      verification, tidy-diff, pinned lint, govulncheck, tests, domain coverage and the pinned
+      itos-cc mutation sample, which needs no config. Every gate is kept; none is weakened. The data
+      gates and the code gates then meet in one run on itos, which is the point of the branch. Two
+      checks make it safe and are part of this task, not a later one. Nothing on itos since its last
+      merge is anything but that merge or a commit touching only itos.yaml, tasks/ and the generated
+      rules block, so a fix made in the wrong place fails loudly instead of being overwritten. And
+      itos holds the current head of every branch it absorbs, so a stale branch cannot report green
+      for code nobody renders. Set main as the repository default branch, so a render starts from
+      it. Rewire the CI triggers to cover the itos branch and add whatever the new plans need.
+      Renovate is its own item, T-29: it must not target itos, whose commit-shape check would refuse
+      its commits, and it must name the branches holding the code. Close only on the exact pushed
+      head of every branch green, with itos holding the current head of the other three.
+    tags: [ci]
