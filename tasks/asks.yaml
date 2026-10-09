@@ -148,3 +148,4 @@ questions:
   - id: q-34
     item: "first-template"
     question: "GitHub cannot resolve donvargax/go-template-itos under the authenticated owner (repository lookup returned 404). May first-template create it, and with what visibility? Recommended: create a public repository named donvargax/go-template-itos, with main as the root/default branch, the agreed MIT template and no GitHub-generated initial files; bootstrap it through our own commits and gates. Alternative: create it private, or use an existing repository once the person supplies access/location."
+    answer: "The person approved creation using the recommended public visibility: create donvargax/go-template-itos with no GitHub-generated initial files. Its first bootstrap push will establish main as the root/default branch; the settled template license is MIT."
