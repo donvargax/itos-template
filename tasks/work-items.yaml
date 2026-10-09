@@ -15,6 +15,7 @@ queue:
   - T-30
   - render-gofmt
   - T-31
+  - new-steps
   - new-itos-setup
   - T-29
   - bug-4
