@@ -236,14 +236,15 @@ items:
       are unit-tested, through huh's accessible mode, since scenarios run with no terminal (rule
       37).
     tags: [new, cli]
-  - id: adopt
+  - id: slice-12
     title: itos-template adopt writes the record for an existing project, so it can take template updates
     phase: 1
     owner: null
     status: todo
     depends_on: [slice-1, update-merges]
-    kind: idea
+    kind: slice
     why: >
+      Was adopt.
       A project made before the template, itos or itos-cc say, has files and history, so new refuses
       its folder (decision 12) and nothing records which template release it matches. update
       re-renders the old release from the record (decisions 3 and 10), not from the project's first
@@ -694,7 +695,7 @@ items:
     phase: 1
     owner: donvargax
     status: todo
-    depends_on: [adopt]
+    depends_on: [slice-12]
     kind: idea
     why: >
       Decision 24's end goal, the owner's: itos-template is its own template, its branches (a root,
