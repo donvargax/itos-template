@@ -110,6 +110,12 @@ items:
       preserving third-party licenses/provenance (q-35). T-25 specifies the root bootstrap as the
       first separate piece; Go, CLI and template-check CI follow. The root alone is explicitly
       unfinished, not a usable template.
+
+      The person accepted logical line counting for the count example: LF separates lines, CRLF is
+      one separator, a nonempty final unterminated line counts, empty input has zero lines, hello
+      and hello followed by a newline each have one, and two newline bytes have two. The additivity
+      property uses newline-terminated pieces, not arbitrary concatenation. Record this in the count
+      scenarios before building.
     tags: [new, check]
   - id: T-14
     title: Renovate keeps the Go modules and the workflows' actions current, landing on main once CI is green
