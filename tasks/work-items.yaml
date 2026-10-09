@@ -13,9 +13,9 @@ phases:
 queue:
   - T-28
   - new-itos-setup
+  - first-template
   - T-29
   - bug-4
-  - first-template
 items:
   - id: T-2
     title: License itos-template under the AGPL-3.0, as itos is
