@@ -156,3 +156,6 @@ questions:
   - id: q-36
     item: "first-template"
     question: "For the template's count example, how are lines counted? Recommended: logical text lines separated by LF (CRLF counts as one separator), counting a nonempty final unterminated line: empty input has 0 lines, hello has 1, hello followed by a newline has 1, and two newline bytes have 2. Alternative: wc-style newline counting, where hello without a final newline has 0 lines. This is the small example's behavior, not a promise of compatibility with wc. The joined-pieces property will use newline-terminated pieces so its additivity assertion is valid."
+  - id: q-37
+    item: "first-template"
+    question: "For the template's count example, what separates words? Recommended: runs of non-whitespace separated by Unicode whitespace, using Go's standard-library tokenization rather than adding a dependency or custom word parser. Spaces, tabs, newlines and nonbreaking spaces separate words; punctuation does not, so hello-world counts as one word. Alternative: ASCII whitespace only, or linguistic punctuation/word segmentation (more complexity than this example needs)."
