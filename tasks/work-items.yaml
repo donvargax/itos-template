@@ -83,7 +83,7 @@ items:
     phase: 1
     owner: donvargax
     status: todo
-    depends_on: [slice-4, T-14, slice-7, bug-3, T-17, slice-11, T-21, T-22, T-23, slice-9, slice-10, T-20]
+    depends_on: [slice-4, T-14, slice-7, bug-3, T-17, slice-11, T-21, T-22, T-23, slice-9, slice-10, T-20, T-25]
     kind: idea
     why: >
       PLAN.md, order of work 6; decision 4: the generator is the proof that a template made to
@@ -104,6 +104,12 @@ items:
       trust-boundary guide, an upgrade guide); built in four pieces: the root, stack/go, go/cli,
       then the template's CI running check with gitleaks marked scans: [credentials]. Waits for
       slice-6, check-ci-branches, asker-words and the CLI items before it.
+
+      2026-10-08: the public repository https://github.com/donvargax/go-template-itos has been
+      created (q-34). The owner approved MIT distribution of their own harvested infrastructure,
+      preserving third-party licenses/provenance (q-35). T-25 specifies the root bootstrap as the
+      first separate piece; Go, CLI and template-check CI follow. The root alone is explicitly
+      unfinished, not a usable template.
     tags: [new, check]
   - id: T-14
     title: Renovate keeps the Go modules and the workflows' actions current, landing on main once CI is green
