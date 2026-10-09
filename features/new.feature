@@ -227,6 +227,62 @@ Feature: new makes a project from a template
     And itos config check passes in the folder "made"
     And the ledger of "made" has the task "T-1" titled "Adopt itos"
 
+  # ADR-0007 decided that a template, not the generator, drives what a made project needs set
+  # up, so the generator names no itos and no stack's hook tool. This is that decision with the
+  # running deferred: new prints the steps and the person runs them.
+  #
+  # Printing rather than running is the better default and is not only a smaller first cut. A
+  # step is a template's code, and running a template's code because a flag said so is how a
+  # clone of an unfamiliar repository ends up executing something it never chose to. new already
+  # asks before it writes a project; it does not get to decide to execute for the person too.
+  # Copier's --trust is the shape of that, and it can come later under a name that says what it
+  # risks. Until then nothing here runs anything, so there is no tree to leave clean and no
+  # question of a step failing halfway.
+  #
+  # A step is a list of words, as a check is, not a shell string: the person is meant to read it
+  # and copy it, and a word list is unambiguous where a quoted string is not. [sh, -c, "…"] is
+  # there for a step that genuinely needs a shell, as it is for a check. Each word has the
+  # literals replaced by the answers, exactly as a check's words do, so the step printed is the
+  # step that would run in this project rather than one naming acme-widget.
+  #
+  # Steps are printed where the person will see them: on stdout beside what was made, and on
+  # stderr under --json, where rule 29 keeps the object alone.
+  @ID-NEW-44 @new-steps @wip
+  Scenario: new prints the setup steps the chosen branches declare, the root's first
+    Given the template "acme" whose root lists the setup step "git config core.hooksPath tools/hooks/pre-commit" and whose stack go lists the setup step "go mod download"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And its standard output says "git config core.hooksPath tools/hooks/pre-commit"
+    And its standard output says "go mod download"
+    And the first line of the setup steps it printed is the root's
+
+  # The step printed is the step this project would run, not one naming the template's literal.
+  @ID-NEW-45 @new-steps @wip
+  Scenario: a setup step's words have the literals replaced by the answers
+    Given the template "acme" whose root lists the setup step "go build ./cmd/acme-widget"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And its standard output says "go build ./cmd/blue-fox"
+    And its standard output does not say "acme-widget"
+
+  @ID-NEW-46 @new-steps @wip
+  Scenario: with --json the object is alone on stdout and the steps go to the error output
+    Given the template "acme" whose root lists the setup step "git config core.hooksPath tools/hooks/pre-commit"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults --json"
+    Then it exits with code 0
+    And its standard output does not say "hooksPath"
+    And its error output says "hooksPath"
+
+  # A template that needs nothing set up says nothing about it, so the output stays the
+  # output it was before this existed.
+  @ID-NEW-47 @new-steps @wip
+  Scenario: a template declaring no setup step prints nothing about setup
+    Given the template "acme"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And its standard output does not say "setup"
+    And its error output does not say "setup"
+
   @ID-NEW-43 @new-itos-setup @wip
   Scenario: a setup step that cannot run leaves the render and says which step failed
     Given the template "acme" whose root lists the setup step "itos init --agent-rules"
