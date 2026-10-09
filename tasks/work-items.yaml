@@ -987,7 +987,7 @@ items:
       prints it on stderr before any project exists. The two @wip scenarios and the item are ready;
       nothing about the deferral changes the fix, and restoring it is itos work resume bug-4.
   - id: T-28
-    title: Give go-template-itos ADR-0030's branches, with its itos data on its own branch
+    title: Keep the template's itos data out of every render, with template_only, and drop first_commit's footer
     phase: 1
     owner: donvargax
     status: todo
