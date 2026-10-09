@@ -1039,3 +1039,34 @@ items:
       features/new.feature, ID-NEW-42 to 45, and the reason is in the comments above them; this
       entry is only the index.
     tags: [new, cli]
+  - id: T-30
+    title: The template's manifest declares what every render must pass, so check proves something
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: [T-28]
+    kind: task
+    why: >
+      check runs and passes today, and proves nothing: the template manifest names no checks, so
+      each combination renders and then has nothing to run. Its only output is the warning that no
+      check is marked as scanning renders for credentials. This is the piece that makes the
+      generator the proof it is meant to be, and the last one first-template needs. Declare checks
+      in the target manifest beside what they check, per branch as docs/manifest.md says: the root
+      its checks, stack/go its own, the cli feature its own, and a combination running the root then
+      the stack then the features in order. What each branch already runs in CI is what its renders
+      must pass, so a render is proved as strongly as the branch it came from: gofmt, build, vet,
+      module verification, tidy-diff, the pinned lint, govulncheck, the tests, domain coverage, the
+      pinned itos-cc mutation sample, and the godog scenarios for the feature that has them. Checks
+      run with no shell, so the gofmt pipeline is written as [sh, -c, …] and every other is a plain
+      word list. Each word has the literals replaced by the answers, as a file contents do. Pin
+      gitleaks the way tools/bin/pinned pins the others, with a version and a checksum, and mark it
+      scans: [credentials] as the root check, so every render is scanned and check stops warning.
+      itos-template scans nothing itself and knows no tool; the template names its own, which is why
+      this is template work and not generator work. A render after T-28 carries none of the template
+      own itos data, so no check may be an itos one: itos config check and the like would have
+      nothing to read. The checks are the language gates, and the made project own itos setup comes
+      from the template declared setup steps per ADR-0031. The source check builds this repository
+      generator and runs check against the public target, so it proves the combination rather than
+      asserting it: both combinations render, the checks run, and no credential-scan warning is
+      left. It is red today for exactly that reason.
+    tags: [check, ci]
