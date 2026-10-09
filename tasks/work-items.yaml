@@ -14,7 +14,7 @@ queue:
   - T-28
   - T-30
   - new-itos-setup
-  - first-template
+  - T-31
   - T-29
   - bug-4
 items:
@@ -82,14 +82,15 @@ items:
     why: >
       PLAN.md, order of work 5: the upkeep the branch model costs (decision 2), never a rebase.
     tags: [sync]
-  - id: first-template
-    title: This repository's skeleton, its domain stripped, becomes the first template's stack/go and go/cli
+  - id: T-31
+    title: Prove the first template end to end and say it is ready
     phase: 1
     owner: donvargax
     status: todo
     depends_on: [slice-4, T-14, slice-7, bug-3, T-17, slice-11, T-21, T-22, T-23, slice-9, slice-10, T-20, T-25, T-26, T-27, T-30]
-    kind: idea
+    kind: task
     why: >
+      Was first-template.
       PLAN.md, order of work 6; decision 4: the generator is the proof that a template made to
       docs/template-contents.md works. Which repository holds the template (its own, beside this
       one) is settled then.
@@ -479,7 +480,7 @@ items:
     phase: 1
     owner: donvargax
     status: todo
-    depends_on: [first-template, nightly]
+    depends_on: [T-31, nightly]
     kind: idea
     why: >
       The third wiring of the same scenarios, as a live environment is to a web app: the fixture
