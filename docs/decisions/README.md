@@ -29,5 +29,6 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0026: Code that differs by OS takes the OS as a value; build-tagged files only for a call one OS lacks](0026-code-that-differs-by-os-takes-the-os-as-a-value-build-tagged-files-only-for-a-call-one-os-lacks.md)
 - [ADR-0027: The code proof is a gate from the start: itos-cc's mutation check over the functions an item changes](0027-the-code-proof-is-a-gate-from-the-start-itos-cc-s-mutation-check-over-the-functions-an-item-changes.md)
 - [ADR-0028: The owner's own tools, itos and itos-cc, are pinned when out; every other tool waits 7 days](0028-the-owner-s-own-tools-itos-and-itos-cc-are-pinned-when-out-every-other-tool-waits-7-days.md)
+- [ADR-0029: A template's itos setup lives on one branch beside its render root, and no render starts from it](0029-a-template-s-itos-setup-lives-on-one-branch-beside-its-render-root-and-no-render-starts-from-it.md)
 
 <!-- itos:decisions:end -->
