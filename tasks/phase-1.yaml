@@ -556,3 +556,62 @@
         test -f itos-template.yaml && test -f .github/workflows/ci.yml &&
         test -f .github/renovate.json5 && test ! -f go.mod &&
         test ! -d cmd && test ! -d internal
+- id: T-26
+  type: build
+  title: "Add the first template's working Go foundation and full code gates"
+  why: >
+    Second piece of first-template, after T-25. In go-template-itos, branch stack/go
+    from the current root main without rewriting history. Bootstrap a real, testable
+    Go module github.com/itos-corp/go-template-itos, not an empty skeleton that avoids
+    measurable code. The private example's counting domain, Files port, disk adapter,
+    in-memory fake, example tests and rapid property belong here; go/cli adds the
+    public command and thin application/UI later. The counting policy was delegated
+    to the coordinator by the person (q-36, q-37). Count logical lines: empty input
+    gives zero, LF separates lines, CRLF is one separator, and a nonempty final line
+    without LF counts. Words are non-whitespace runs under Go's Unicode-whitespace
+    standard-library tokenization; punctuation stays within words. Use the standard
+    library, not another dependency or a custom word parser. Treat invalid UTF-8 bytes
+    as non-whitespace as that tokenizer does; no encoding guessing or conversion.
+    Do not impose Scanner's default token limit on a long line. File input is read-only;
+    missing/unreadable inputs are typed failures through the Files port, not raw OS
+    models leaking into the domain. There are no UI flags, JSON or exit codes here.
+    The additive property joins newline-terminated pieces so counts add across valid
+    line and word boundaries; arbitrary concatenation is not promised additive.
+    Unit tests assert outcomes through our in-memory fake, never mocks. Disk boundary
+    tests may use real temporary files and pure error classification tests, without
+    assuming Unix permission bits work on Windows. Knowledge that differs by OS takes
+    the OS as a value, with only unavailable calls build-tagged (decision 26).
+    Harvest this project's go.mod/go.sum as version references, not a dependency list
+    to retain blindly; keep Go 1.27.2's security patch and only actual imports/tools.
+    Retain rapid at the source pin; kong and godog arrive with their actual CLI imports.
+    Harvest .golangci.yml, tools/bin/pinned, tools/bin/domain-coverage and the Go
+    pre-commit hook, retargeting package rules and keeping no generator-specific
+    exceptions. Domain coverage is 80 percent and judges the actual counting package.
+    Add full proof.code with the first Go code and fresh committed mutation evidence,
+    fail-uncovered and all-tests, killing survivors rather than reshaping code to avoid
+    sites. No source project's cache is copied. Determine the base from this target
+    item's actual first commit, specs included, never assume the take commit is first.
+    Root checks remain; the Go CI plan adds formatting, vet, module verification,
+    tidy-diff, pinned lint, govulncheck, tests, domain coverage and mutation sampling.
+    Run tests on Linux, macOS and Windows with one rapid case per push. Add no phantom
+    scenario kind or binary release job yet: neither public CLI nor its harness exists.
+    Source donor patterns are internal/template/errors.go, its port/porttest fake,
+    internal/disk/disk.go and internal/render/property_test.go, not their generator
+    behavior. The root's Go Renovate preset/manager is added with the module. Use
+    target checked tasks and commits; private bootstrap behavior is specified here
+    before tests and code, with tests committed red first. Root/common manifest and
+    coordinator docs evolve with what exists, without claiming the CLI/check piece.
+    The go combination must remain independently buildable and testable. Close only
+    after target stack/go's exact pushed head CI and target code proof are green, and
+    source checks pass. Generated combination acceptance and gitleaks arrive in the
+    final template-check piece; do not publish the unfinished template as ready yet.
+  done_when:
+    - run: >-
+        d=$(mktemp -d) && trap 'rm -rf "$d"' EXIT &&
+        git clone --quiet --branch stack/go https://github.com/donvargax/go-template-itos.git "$d" &&
+        cd "$d" && itos config check && tools/bin/doc-caps &&
+        test -f go.mod && grep -qx 'module github.com/itos-corp/go-template-itos' go.mod &&
+        grep -qx 'toolchain go1.27.2' go.mod &&
+        test -f tools/bin/domain-coverage && test -f tools/bin/pinned &&
+        go mod verify && go mod tidy -diff &&
+        go test ./... && tools/bin/domain-coverage
