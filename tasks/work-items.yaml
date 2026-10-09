@@ -13,6 +13,7 @@ phases:
 queue:
   - T-28
   - T-30
+  - render-gofmt
   - T-31
   - new-itos-setup
   - T-29
