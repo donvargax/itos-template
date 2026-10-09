@@ -144,3 +144,4 @@ questions:
   - id: q-33
     item: "adopt"
     question: "How much should adopt's difference preview print? Recommended: path summaries by default, marking project-only, modified and missing baseline files, with binary or mode changes identified; --diff explicitly adds content diffs for text files. The default does not print existing project file contents, which can be large or sensitive. --dry-run writes no project files, while --force accepts the displayed differences rather than applying them. Alternative: always print full text diffs, or offer only the path summary."
+    answer: "Accepted by the person: preview defaults to a path summary identifying project-only, modified and missing baseline files, with binary and mode changes identified. --diff explicitly adds text content diffs; it does not apply changes. Default output prints no project file contents. --dry-run writes no project files and --force only accepts differences."
