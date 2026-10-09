@@ -740,3 +740,42 @@
         git cat-file -e origin/go/cli:.metrics/mutate/internal/cli/cli.go.json &&
         git cat-file -e origin/go/cli:itos-cc.yaml &&
         git cat-file -e origin/itos:.github/workflows/ci.yml
+- id: T-29
+  type: ci
+  title: "Renovate targets the branches holding the code, never the itos branch"
+  why: >
+    T-28 leaves the itos branch holding only its data, read by every other branch's run and
+    merged from by none, so it is not a branch a dependency update belongs on: a Renovate
+    request has to change a module or an action somewhere, and the itos branch holds neither.
+    Naming it would file requests against a branch whose whole content is config.
+
+    The configuration names no baseBranches, so Renovate uses the repository default branch.
+    After T-28 that is main, which holds no go.mod, so the gomod manager finds nothing and
+    dependency updates stop with nobody told. Name the branches that hold the code: main for
+    renovate-config and any root workflow action, stack/go and go/cli for gomod, with the
+    github-actions manager reading each branch's own workflows, which genuinely differ.
+    baseBranches is also the fan-out, one request per base branch, each judged by that branch's
+    own run, so no workflow has to propagate an update; correlate one dependency's requests
+    with a groupName so the second catches up if the first merges alone. Version skew between
+    branches is acceptable, they are different projects, and each branch's own run keeps each
+    honest.
+
+    Two strings mislead under the new layout. commitBody calls the update "landed on main once
+    CI passed on its branch": these land on stack/go or go/cli, never on main. commitTrailers
+    names Task: T-2, a task whose ledger after T-28 lives only on the itos branch, where no
+    Renovate request is made, and the code branches carry no hooks, so a Renovate commit there
+    needs no trailer at all. Keep the owner presets, the pinned action digests, the seven-day
+    cooldown and automerge-on-green, and verify the app is installed rather than assuming, as
+    docs/upgrading.md already warns.
+  done_when:
+    - run: >-
+        d=$(mktemp -d) && trap 'rm -rf "$d"' EXIT &&
+        git clone --quiet https://github.com/donvargax/go-template-itos.git "$d" &&
+        cd "$d" && c=.github/renovate.json5 &&
+        grep -q '"baseBranches"' "$c" &&
+        grep -q 'stack/go' "$c" && grep -q 'go/cli' "$c" &&
+        ! grep -qw 'itos' "$c" &&
+        ! grep -q 'landed on main' "$c" &&
+        ! grep -q 'commitTrailers' "$c" &&
+        grep -q 'donvargax/renovate-config' "$c" &&
+        grep -q 'pinDigests' "$c"
