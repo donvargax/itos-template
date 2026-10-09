@@ -1054,7 +1054,7 @@ items:
     title: A rendered file is gofmt-clean whatever the substituted project name is
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: [T-30]
     kind: slice
     why: >
