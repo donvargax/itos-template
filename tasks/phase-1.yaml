@@ -747,3 +747,42 @@
         grep -q 'gitleaks' "$d/t/tools/bin/pinned" &&
         go build -o "$d/itos-template" ./cmd/itos-template &&
         ! "$d/itos-template" check https://github.com/donvargax/go-template-itos.git --answer name=blue-fox --answer owner=acme --answer module=example.com/blue/fox 2>&1 | grep -q warning
+- id: T-31
+  type: build
+  title: "Prove the first template end to end and say it is ready"
+  why: >
+    The umbrella first-template, promoted once its last piece had an item of its own. Three of
+    its four pieces are done: the language-neutral root as T-25 and target T-1, the Go
+    foundation as T-26 and target T-2, and the public CLI and its scenarios as T-27 and target
+    T-3 with the count-cli slice. The fourth is T-30, the checks a render must pass, which is
+    what makes check mean anything for this template. What is left here is the closing claim,
+    which no earlier item makes because it was not true yet: that a project made from this
+    template is a working project, and that the template may be advertised as ready.
+
+    PLAN.md order of work 4 says the template is advertised as ready only after this passes, so
+    this item is where that happens and nowhere else. Three things have to hold. The public
+    template renders every combination its manifest allows and each render passes the checks the
+    manifest names, with the credential scan marked so no warning is left. A project made from
+    the public template builds, tests and runs its command, with none of the template's own itos
+    data in it and a first commit naming no task. And the template's own documents stop claiming
+    it is unfinished, because after this it is not: README's status, PLAN.md's order of work, and
+    docs/security.md's sentence saying no render credential scan is installed.
+
+    Do not re-render itos-container here and do not treat it as a deliverable; it was a working
+    sample taken while the manifest was still incomplete. Prove against the public template, and
+    let a person make a project when they want one.
+  done_when:
+    - run: >-
+        d=$(mktemp -d) && trap 'rm -rf "$d"' EXIT &&
+        go build -o "$d/itos-template" ./cmd/itos-template &&
+        t=https://github.com/donvargax/go-template-itos.git &&
+        a="--answer name=blue-fox --answer owner=acme --answer module=example.com/blue/fox" &&
+        "$d/itos-template" check $t $a > "$d/check.txt" 2>&1 &&
+        ! grep -q warning "$d/check.txt" &&
+        grep -q '2 of 2 combinations passed' "$d/check.txt" &&
+        "$d/itos-template" new $t "$d/p" --stack go --feature cli $a &&
+        test ! -e "$d/p/itos.yaml" && test ! -e "$d/p/tasks" &&
+        git -C "$d/p" log --format=%B -1 | grep -q 'chore: start the generated project' &&
+        ! git -C "$d/p" log --format=%B -1 | grep -q 'Task:' &&
+        env -C "$d/p" go build ./... && env -C "$d/p" go vet ./... &&
+        env -C "$d/p" go test ./... && env -C "$d/p" go run ./cmd/blue-fox count README.md --json
