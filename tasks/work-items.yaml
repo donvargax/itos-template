@@ -13,7 +13,6 @@ phases:
 queue:
   - new-steps
   - new-itos-setup
-  - T-29
   - bug-4
 items:
   - id: T-2
@@ -964,32 +963,9 @@ items:
     title: Renovate targets the branches holding the code, never the itos branch
     phase: 1
     owner: donvargax
-    status: todo
+    status: dropped
     depends_on: [T-28]
     kind: task
-    why: >
-      ADR-0029 makes the itos branch a branch no render starts from, and T-28 gives it the
-      commit-shape check that refuses anything but a merge or an itos-data commit. A Renovate pull
-      request bumps go.mod or a workflow action, which is neither, so Renovate must not target itos:
-      every such request would be refused by our own gate, correctly. Today the configuration names
-      no baseBranches, so Renovate uses the repository default branch. After T-28 that is main,
-      which holds no go.mod, so the gomod manager would find nothing and dependency updates would
-      stop without anyone being told. Name the branches that hold the code instead: main for
-      renovate-config and root workflow actions, stack/go and go/cli for gomod, with the
-      github-actions manager reading each branch own workflows, which genuinely differ. baseBranches
-      is the fan-out: one pull request per base branch, each judged by that branch own CI, each
-      automerging once that run is green, so no workflow has to be written to propagate an update.
-      Correlate the requests for one dependency with a groupName so they move together and the
-      second catches up if the first merges alone; version skew between branches is acceptable, they
-      are different projects, and each branch CI is what keeps each honest. Two strings are wrong
-      under the new layout and would mislead. commitBody says the update is "landed on main once CI
-      passed on its branch": these land on stack/go or go/cli, never on main. commitTrailers names
-      Task: T-2, a task in a ledger that after T-28 lives only on the itos branch, where no Renovate
-      request is made; the template branches carry no hooks, so a Renovate commit there needs no
-      trailer at all. Keep the owner presets and pinned action digests, keep the existing seven-day
-      cooldown and the automerge-on-green shape, and verify rather than assume: a Renovate
-      configuration proves nothing about the app being installed or the bot running, which
-      docs/upgrading.md already says.
     tags: [ci]
   - id: new-itos-setup
     title: A made project left with the template's itos setup step run is a sound itos project
