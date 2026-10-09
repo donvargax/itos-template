@@ -241,9 +241,12 @@ Feature: new makes a project from a template
   #
   # A step is a list of words, as a check is, not a shell string: the person is meant to read it
   # and copy it, and a word list is unambiguous where a quoted string is not. [sh, -c, "…"] is
-  # there for a step that genuinely needs a shell, as it is for a check. Each word has the
-  # literals replaced by the answers, exactly as a check's words do, so the step printed is the
-  # step that would run in this project rather than one naming acme-widget.
+  # there for a step that genuinely needs a shell, as it is for a check.
+  #
+  # Each word has the manifest's literals replaced by the values the person gave, exactly as a
+  # check's words do. That is a substitution and nothing is asked here: a manifest question has
+  # an answer, and both words are used in this file, so a scenario about replacing a literal by
+  # an answer is easy to misread as a question being put to the person. It is not.
   #
   # Steps are printed where the person will see them: on stdout beside what was made, and on
   # stderr under --json, where rule 29 keeps the object alone.
@@ -257,8 +260,9 @@ Feature: new makes a project from a template
     And the first line of the setup steps it printed is the root's
 
   # The step printed is the step this project would run, not one naming the template's literal.
+  # Nothing is asked: the words are rewritten, and the person reads them.
   @ID-NEW-45 @new-steps @wip
-  Scenario: a setup step's words have the literals replaced by the answers
+  Scenario: a setup step printed for a project names that project's own paths
     Given the template "acme" whose root lists the setup step "go build ./cmd/acme-widget"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
     Then it exits with code 0
