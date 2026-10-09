@@ -528,6 +528,9 @@
     is checked with its own tree. No release job at root. Keep tools and presets' real
     upstream identities; substitute only project identity, never every donvargax.
     Use the root docs authored by the coordinator, in separate docs commits. The root
+    CONTRIBUTORS.md includes the coordinator-corrected All Contributors profile table
+    with donvargax's real GitHub profile: narrative provenance alone does not register
+    a work owner. Preserve that provenance while making the owner resolvable by itos.
     README says unfinished, not that it already counts or scans. Add a fresh MIT
     LICENSE with itos-corp as the illustrative attribution owner. The manifest is
     version 4, names stack go and its cli feature, and asks for name (go-template-itos,
