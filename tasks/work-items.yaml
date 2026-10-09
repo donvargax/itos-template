@@ -938,11 +938,7 @@ items:
     title: Add the first template's working Go foundation and full code gates
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: [T-25]
     kind: task
-    why: >
-      Second piece of first-template; tasks/phase-1.yaml specifies the Go foundation, private
-      counting example, domain fake/property tests and full Go/code-proof gates. The public CLI and
-      template-combination checks are later pieces.
     tags: [new, check, ci]
