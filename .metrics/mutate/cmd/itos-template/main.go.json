@@ -3,7 +3,7 @@
   "file": "cmd/itos-template/main.go",
   "language": "go",
   "tests": {
-    "cmd/itos-template/main_test.go": "bb956b677831ef661680d059fc656920c18759ea6b68fcd0dfe49974b1c2527b"
+    "cmd/itos-template/main_test.go": "9e36580f77a88e3eadeed409f12517b12aa45a208524ec9f57b449d35cb7ed59"
   },
   "units": [
     {
@@ -26,21 +26,22 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/cmd/itos-template",
       "name": "run",
-      "hash": "66c90fdd278cec8f",
-      "start_line": 54,
-      "end_line": 87,
-      "killed": 3,
+      "hash": "595087b35eb977eb",
+      "start_line": 56,
+      "end_line": 97,
+      "killed": 10,
       "survived": 0,
       "uncovered": 0,
-      "sites": 3,
+      "sites": 10,
       "mutants": [
         {
-          "line": 65,
+          "line": 67,
           "column": 9,
           "offset": 573,
           "original": "!=",
@@ -49,18 +50,81 @@
           "scope": "all-tests"
         },
         {
-          "line": 70,
+          "line": 71,
+          "column": 15,
+          "offset": 701,
+          "original": ">",
+          "replacement": ">=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 71,
+          "column": 17,
+          "offset": 703,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 71,
+          "column": 19,
+          "offset": 705,
+          "original": "&&",
+          "replacement": "||",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 71,
+          "column": 27,
+          "offset": 713,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 71,
+          "column": 30,
+          "offset": 716,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 72,
+          "column": 56,
+          "offset": 789,
+          "original": "1",
+          "replacement": "0",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 75,
+          "column": 10,
+          "offset": 846,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 78,
           "column": 9,
-          "offset": 727,
+          "offset": 891,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 83,
+          "line": 93,
           "column": 10,
-          "offset": 1184,
+          "offset": 1398,
           "original": "0",
           "replacement": "1",
           "outcome": "killed",
@@ -106,7 +170,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/cmd/itos-template",
@@ -155,7 +220,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     }
   ]
 }
