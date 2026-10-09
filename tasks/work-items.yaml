@@ -480,13 +480,16 @@ items:
     phase: 1
     owner: donvargax
     status: todo
-    depends_on: [T-31, nightly]
+    depends_on: [nightly]
     kind: idea
     why: >
       The third wiring of the same scenarios, as a live environment is to a web app: the fixture
       acme built in a temporary folder swapped for the first real template cloned from GitHub. Not
       on every push, so a network failure never turns a push red (docs/CLI.md rule 36); nightly or
       before a release. Waits for a template to point at and a run to hold it.
+
+      It waited on T-31, the claim that the first template is ready, which go-template-itos now
+      tracks itself as its T-7: it waits on that instead.
     tags: [new, check, ci]
   - id: T-12
     title: Property-based tests of the domain with rapid, one case per push (decision 20)
