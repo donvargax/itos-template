@@ -12,6 +12,7 @@ phases:
   1: donvargax # the ledger's phase 1: a handle, or null
 queue:
   - T-28
+  - T-30
   - new-itos-setup
   - first-template
   - T-29
