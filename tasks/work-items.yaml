@@ -13,8 +13,8 @@ phases:
 queue:
   - T-28
   - T-30
-  - new-itos-setup
   - T-31
+  - new-itos-setup
   - T-29
   - bug-4
 items:
