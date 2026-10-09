@@ -1047,7 +1047,7 @@ items:
     title: The template's manifest declares what every render must pass, so check proves something
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: [T-28]
     kind: task
     why: >
