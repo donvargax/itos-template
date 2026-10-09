@@ -207,6 +207,58 @@ Feature: new makes a project from a template
   # redacts it in its own fatal line; we do not. The name is still named, as ID-NEW-19
   # holds, only without its userinfo. 127.0.0.1 on a closed port refuses at once, so the
   # run needs no network and sends the token nowhere.
+  # ADR-0030 puts a template's itos setup on one branch no render starts from, so a made
+  # project inherits none and gets its own. itos init writes it: the config, the hooks, a
+  # ledger whose T-1 is "Adopt itos", an empty registry, and the agent rules. That is the
+  # bare setup docs/template-contents.md promises, and it is the only way a made project has
+  # rules at all, since the render carries none.
+  #
+  # It is a second commit, and it has to be. The render is committed first, and at that
+  # moment the project has no ledger, so no Task footer on that commit could name anything;
+  # the footer belongs to the commit that adds the ledger, which is the one itos init itself
+  # asks for. That is why the template's own manifest gives its first_commit no footer: T-1
+  # in a made project means Adopt itos, not the template's root, and it does not exist yet.
+  #
+  # new runs itos init when itos is on the PATH and commits what it wrote. It is optional,
+  # because itos-template runs on its own as well as as `itos template`, and a template must
+  # be usable by someone who does not use itos: without itos, new still succeeds, writes no
+  # itos files, and says on stderr how to add them later.
+  @ID-NEW-42 @new-itos-setup @wip
+  Scenario: new commits the render, then a second commit adopting itos
+    Given the template "acme"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"
+    Then it exits with code 0
+    And the folder "made" is a git repository with exactly 2 commits
+    And the first commit of "made" has the header "chore: make the project from its template"
+    And the second commit of "made" has the header "chore: adopt itos"
+    And the second commit of "made" has the footer "Task: T-1"
+
+  # The setup is the made project's own, not the template's carried down: T-1 is the task
+  # that adds itos, and no item of the template's registry comes with it.
+  @ID-NEW-43 @new-itos-setup @wip
+  Scenario: the made project's ledger holds the task that adopts itos and no item
+    Given the template "acme"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"
+    Then the ledger of "made" has the task "T-1" titled "Adopt itos"
+    And the work registry of "made" holds no item
+
+  # What new wrote has to be a working itos project, judged by itos's own check and not by
+  # our reading of it: a config naming a ledger and a registry that hold each other up.
+  @ID-NEW-44 @new-itos-setup @wip
+  Scenario: the itos setup new wrote is sound
+    Given the template "acme"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"
+    Then itos config check passes in the folder "made"
+
+  @ID-NEW-45 @new-itos-setup @wip
+  Scenario: without itos on the PATH new still succeeds and says how to add itos later
+    Given the template "acme"
+    When itos-template runs with no itos on the PATH with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"
+    Then it exits with code 0
+    And the folder "made" is a git repository with exactly 1 commit
+    And its error output says "itos init"
+    And the path "made/itos.yaml" does not exist
+
   @ID-NEW-41 @bug-4 @wip
   Scenario: a template URL's credential never reaches new's error output
     When itos-template runs with "new https://x-access-token:ghp_EXAMPLETOKENNOTREAL@127.0.0.1:1/acme.git made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"
