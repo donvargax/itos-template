@@ -688,100 +688,38 @@
         go run ./cmd/go-template-itos count README.md --json
 - id: T-28
   type: build
-  title: "Give go-template-itos ADR-0030's branches, with its itos data on its own branch"
+  title: "Keep the template's itos data out of every render, and drop first_commit's footer"
   why: >
-    ADR-0030 supersedes ADR-0029's mechanism and keeps its decision: a template's itos setup
-    lives on one branch beside its render root, and no render starts from it. The itos branch
-    holds data only, nothing merges into it, and it carries no copy of the code. A run on any
-    branch checks that branch out as the working tree and the itos data beside it, points
-    ITOS_CONFIG at the data, and runs the full plan there, so the gates that need code and the
-    gates that judge commits meet in one place from one copy of the data. Because there is no
-    copy, neither of the checks ADR-0029 asked for is needed: there is no wrong place to fix,
-    and every push to any branch runs the gates against that branch, so no branch can report
-    green for code nobody renders.
+    ADR-0032, which supersedes the two records before it. The problem was one of exclusion, not
+    of placement, and the fix is two lines of the manifest.
 
-    The branches become: itos, holding itos.yaml, tasks/ and the generated rules block in
-    AGENTS.md, and the only place itos runs for this template; main, the language-neutral
-    template root and the repository default, the branch a render starts from; stack/go and
-    go/cli unchanged in role. Merges stay one way, main into stack/go into go/cli, never
-    rebased, so the SHAs a record pins keep holding. Set main as the repository default.
+    Each branch already keeps its own config, ledger and registry, scoped to the work that
+    happened on it: main holds T-1, stack/go adds T-2, go/cli adds T-3 and the count-cli slice,
+    and no branch holds another's work. Nothing is duplicated that ought to be one thing, so no
+    branch is added, nothing merges up into anything, and no CI plan moves. Every branch keeps
+    the gates, the plan, the proof and the task checks it has today. Add to the manifest a
+    template_only naming itos.yaml and tasks, which IsTemplateOnly already excludes from every
+    render beside the manifest itself.
 
-    The three template branches keep the code, the scenarios, the mutation records in
-    .metrics/mutate and itos-cc.yaml, and lose the itos data. Their CI becomes plain steps,
-    keeping every gate and weakening none: gofmt, build, vet, module verification, tidy-diff,
-    the pinned lint, govulncheck, tests, domain coverage and the pinned itos-cc mutation
-    sample, which needs no config. One workflow, held on the itos branch so there is a single
-    copy, triggers on a push or pull request to any of the four branches: for a code branch it
-    gates that branch against the data, and for a push to itos it runs the matrix over the
-    other three, because a change to the gates changes every branch. Renovate is T-29.
+    Drop the Task footer from the manifest's first_commit. The render is committed before the
+    made project has any ledger, so a footer there names nothing, and in a made project T-1 means
+    Adopt itos rather than anything this repository decides. The made project's own setup comes
+    from the template's declared setup steps per ADR-0031, which is a later piece.
 
-    ADR-0029 called the itos branch backwards-reading because it merged from everything and
-    was read by nothing. That is gone: it is read by every branch and merges from none, which
-    is the ordinary direction. What still needs writing down is that the gates live on a branch
-    that holds no code, so a change to them lands nowhere a reader is looking.
-
-    The manifest's first_commit loses its footer for the same reason the branches lose their
-    ledger: the render is committed before the made project has any, so a Task footer there
-    names nothing that exists. In a made project T-1 means Adopt itos, not the template's root,
-    and it arrives with the setup the person runs themselves. The check holds the manifest
-    naming no task at all.
+    The checks prove the two facts a machine can judge and that the earlier records could not: a
+    render of every combination the manifest allows carries none of the template's itos data, and
+    the manifest names no task. Reaching the first means building the generator's check, so this
+    item's own checks read the manifest and the branch layout, and check itself follows with
+    first-template. Do not add a branch, and do not touch a CI plan.
   done_when:
     - run: >-
         d=$(mktemp -d) && trap 'rm -rf "$d"' EXIT &&
         git clone --quiet https://github.com/donvargax/go-template-itos.git "$d" &&
-        cd "$d" &&
-        git symbolic-ref refs/remotes/origin/HEAD | grep -q 'origin/main$' &&
-        git rev-parse --verify origin/itos &&
-        git cat-file -e origin/itos:itos.yaml &&
-        git cat-file -e origin/itos:tasks/work-items.yaml &&
-        git show origin/itos:AGENTS.md | grep -q 'itos:begin' &&
-        for b in main stack/go go/cli; do
-          git merge-base --is-ancestor origin/main "origin/$b" || exit 1;
-          git cat-file -e "origin/$b:itos.yaml" 2>/dev/null && exit 1;
-          git cat-file -e "origin/$b:tasks" 2>/dev/null && exit 1;
-          git show "origin/$b:AGENTS.md" | grep -q 'itos:begin' && exit 1;
-          git cat-file -e "origin/$b:itos-template.yaml" || exit 1;
-        done &&
-        git merge-base --is-ancestor origin/stack/go origin/go/cli &&
-        git cat-file -e origin/go/cli:.metrics/mutate/internal/cli/cli.go.json &&
-        git cat-file -e origin/go/cli:itos-cc.yaml &&
-        git cat-file -e origin/itos:.github/workflows/ci.yml
-- id: T-29
-  type: ci
-  title: "Renovate targets the branches holding the code, never the itos branch"
-  why: >
-    T-28 leaves the itos branch holding only its data, read by every other branch's run and
-    merged from by none, so it is not a branch a dependency update belongs on: a Renovate
-    request has to change a module or an action somewhere, and the itos branch holds neither.
-    Naming it would file requests against a branch whose whole content is config.
-
-    The configuration names no baseBranches, so Renovate uses the repository default branch.
-    After T-28 that is main, which holds no go.mod, so the gomod manager finds nothing and
-    dependency updates stop with nobody told. Name the branches that hold the code: main for
-    renovate-config and any root workflow action, stack/go and go/cli for gomod, with the
-    github-actions manager reading each branch's own workflows, which genuinely differ.
-    baseBranches is also the fan-out, one request per base branch, each judged by that branch's
-    own run, so no workflow has to propagate an update; correlate one dependency's requests
-    with a groupName so the second catches up if the first merges alone. Version skew between
-    branches is acceptable, they are different projects, and each branch's own run keeps each
-    honest.
-
-    Two strings mislead under the new layout. commitBody calls the update "landed on main once
-    CI passed on its branch": these land on stack/go or go/cli, never on main. commitTrailers
-    names Task: T-2, a task whose ledger after T-28 lives only on the itos branch, where no
-    Renovate request is made, and the code branches carry no hooks, so a Renovate commit there
-    needs no trailer at all. Keep the owner presets, the pinned action digests, the seven-day
-    cooldown and automerge-on-green, and verify the app is installed rather than assuming, as
-    docs/upgrading.md already warns.
-  done_when:
-    - run: >-
-        d=$(mktemp -d) && trap 'rm -rf "$d"' EXIT &&
-        git clone --quiet https://github.com/donvargax/go-template-itos.git "$d" &&
-        cd "$d" && c=.github/renovate.json5 &&
-        grep -q '"baseBranches"' "$c" &&
-        grep -q 'stack/go' "$c" && grep -q 'go/cli' "$c" &&
-        ! grep -qw 'itos' "$c" &&
-        ! grep -q 'landed on main' "$c" &&
-        ! grep -q 'commitTrailers' "$c" &&
-        grep -q 'donvargax/renovate-config' "$c" &&
-        grep -q 'pinDigests' "$c"
+        cd "$d" && m=itos-template.yaml &&
+        grep -q '^template_only:' "$m" &&
+        grep -qE '^  - itos\.yaml$' "$m" &&
+        grep -qE '^  - tasks$' "$m" &&
+        ! grep -q 'Task:' "$m" &&
+        git rev-parse --verify origin/main >/dev/null &&
+        git rev-parse --verify origin/stack/go >/dev/null &&
+        git rev-parse --verify origin/go/cli >/dev/null
