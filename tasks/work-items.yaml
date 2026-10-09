@@ -946,13 +946,9 @@ items:
     title: Add the first template's CLI feature and proven command-line machinery
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: [T-26]
     kind: task
-    why: >
-      Third piece of first-template; the source ledger and coordinator-authored target scenarios
-      specify count, stdin, JSON, CLI/completion, harness and made-project release machinery. The
-      implementation belongs to go/cli; source changes are coordination evidence.
     tags: [new, check, cli, ci]
   - id: bug-4
     title: A template URL's credential never reaches itos-template's own output
