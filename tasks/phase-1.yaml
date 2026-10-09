@@ -536,8 +536,8 @@
     version 4, names stack go and its cli feature, and asks for name (go-template-itos,
     case forms), owner (itos-corp, exact) and module
     (github.com/itos-corp/go-template-itos, exact), without guessed answers or defaults.
-    Its first_commit is a chore message naming target T-1, completed before this task
-    closes, so renders pass the target's rules. Both go and go + cli are planned;
+    Its first_commit was a chore message naming target T-1; T-28 drops that footer, because a
+    made project has no ledger at its first commit and T-1 there means Adopt itos. Both go and go + cli are planned;
     missing branches mean this intermediate template is not ready to render. Do not
     run check yet or claim credentials scanning; the fourth piece installs pinned
     gitleaks and scans: [credentials]. Preserve owner MIT permission/provenance in
