@@ -1020,7 +1020,7 @@ items:
       docs/upgrading.md already says.
     tags: [ci]
   - id: new-itos-setup
-    title: new seeds a made project with its own itos setup, in a second commit, when itos is there
+    title: new says a made project has no itos setup and names the command, and never runs itos itself
     phase: 1
     owner: donvargax
     status: todo
