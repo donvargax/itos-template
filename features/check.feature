@@ -119,6 +119,16 @@ Feature: check renders every combination a template allows and runs its checks
     Then it exits with code 3
     And its error output says "nosuch-template"
 
+  # bug-4: the same message as new's, built in one place (internal/cli/codes.go), so the
+  # credential a URL's userinfo holds would reach check's error output too. Same closed
+  # local port, so no network and no token leaves the machine.
+  @ID-CHECK-23 @bug-4 @wip
+  Scenario: a template URL's credential never reaches check's error output
+    When itos-template runs with "check https://x-access-token:ghp_EXAMPLETOKENNOTREAL@127.0.0.1:1/acme.git --answer name=blue-fox --defaults"
+    Then it exits with code 3
+    And its error output does not say "ghp_EXAMPLETOKENNOTREAL"
+    And its error output says "127.0.0.1:1/acme.git"
+
   # slice-3 (the idea scenario-gaps): a check naming a program nothing can
   # start fails its combination as any failed check does, its output saying
   # it cannot run.
