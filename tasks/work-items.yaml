@@ -910,7 +910,7 @@ items:
     title: Upgrade the Go toolchain to clear the standard-library security failures
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: []
     kind: task
     why: >
