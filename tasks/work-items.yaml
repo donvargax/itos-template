@@ -116,6 +116,12 @@ items:
       and hello followed by a newline each have one, and two newline bytes have two. The additivity
       property uses newline-terminated pieces, not arbitrary concatenation. Record this in the count
       scenarios before building.
+
+      2026-10-09: T-25 implemented the language-neutral root in public donvargax/go-template-itos.
+      Target T-1 is done; main is ed5798615ccbb98e405f3f45e62a465b99027fb6 and its exact-head CI run
+      passed at https://github.com/donvargax/go-template-itos/actions/runs/37888658513. This root
+      plans go and go + cli but has no Go module, CLI, template-check job or credential scanner yet;
+      first-template remains open for those pieces.
     tags: [new, check]
   - id: T-14
     title: Renovate keeps the Go modules and the workflows' actions current, landing on main once CI is green
