@@ -941,3 +941,15 @@ items:
     depends_on: [T-25]
     kind: task
     tags: [new, check, ci]
+  - id: T-27
+    title: Add the first template's CLI feature and proven command-line machinery
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: [T-26]
+    kind: task
+    why: >
+      Third piece of first-template; the source ledger and coordinator-authored target scenarios
+      specify count, stdin, JSON, CLI/completion, harness and made-project release machinery. The
+      implementation belongs to go/cli; source changes are coordination evidence.
+    tags: [new, check, cli, ci]
