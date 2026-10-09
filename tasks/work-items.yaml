@@ -995,7 +995,7 @@ items:
     title: Keep the template's itos data out of every render, with template_only, and drop first_commit's footer
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: [T-27]
     kind: task
     tags: [ci]
