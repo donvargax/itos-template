@@ -723,3 +723,27 @@
         git rev-parse --verify origin/main >/dev/null &&
         git rev-parse --verify origin/stack/go >/dev/null &&
         git rev-parse --verify origin/go/cli >/dev/null
+- id: T-30
+  type: build
+  title: "The template's manifest declares what every render must pass, so check proves something"
+  why: >
+    check runs and passes today and proves nothing: the template manifest names no checks, so
+    each combination renders and has nothing to run, and its only output is the warning that no
+    check scans for credentials. Declare checks beside what they check, per branch as
+    docs/manifest.md says, so a combination runs the root then the stack then the features in
+    order, and what each branch already runs in CI is what its renders must pass. Pin gitleaks
+    as the root check and mark it scans: [credentials]. No check may be an itos one: a render
+    carries none of the template's own data, so there would be nothing to read.
+    The made project's own setup comes from the template's declared setup steps.
+  done_when:
+    - run: >-
+        d=$(mktemp -d) && trap 'rm -rf "$d"' EXIT &&
+        m=$(mktemp) && git clone --quiet https://github.com/donvargax/go-template-itos.git "$d/t" &&
+        cp "$d/t/itos-template.yaml" "$m" &&
+        grep -q '^checks:' "$m" &&
+        grep -q 'scans:' "$m" &&
+        grep -q 'credentials' "$m" &&
+        grep -qE '^  - name: go$' "$m" &&
+        grep -q 'gitleaks' "$d/t/tools/bin/pinned" &&
+        go build -o "$d/itos-template" ./cmd/itos-template &&
+        ! "$d/itos-template" check https://github.com/donvargax/go-template-itos.git --answer name=blue-fox --answer owner=acme --answer module=example.com/blue/fox 2>&1 | grep -q warning
