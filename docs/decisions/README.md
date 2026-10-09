@@ -30,5 +30,6 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0027: The code proof is a gate from the start: itos-cc's mutation check over the functions an item changes](0027-the-code-proof-is-a-gate-from-the-start-itos-cc-s-mutation-check-over-the-functions-an-item-changes.md)
 - [ADR-0028: The owner's own tools, itos and itos-cc, are pinned when out; every other tool waits 7 days](0028-the-owner-s-own-tools-itos-and-itos-cc-are-pinned-when-out-every-other-tool-waits-7-days.md)
 - [ADR-0030: The itos branch holds only its data, and every other branch's CI consumes it](0030-the-itos-branch-holds-only-its-data-and-every-other-branch-s-ci-consumes-it.md)
+- [ADR-0031: A template using itos lists itos init among its root setup steps, and the generator still names no itos](0031-a-template-using-itos-lists-itos-init-among-its-root-setup-steps-and-the-generator-still-names-no-itos.md)
 
 <!-- itos:decisions:end -->
