@@ -505,3 +505,51 @@
   done_when:
     - run: "grep -qx 'toolchain go1.27.2' go.mod"
     - run: "go tool govulncheck -test ./..."
+- id: T-25
+  type: build
+  title: "Bootstrap the first template's language-neutral root repository"
+  why: >
+    First-template's dependencies are done. The person approved the public repository
+    donvargax/go-template-itos (q-34) and MIT distribution of their own harvested
+    infrastructure, preserving third-party licenses and provenance (q-35). This is the
+    first of four pieces: root, stack/go, go/cli, then template check CI. It changes no
+    generator behavior. Bootstrap the existing empty repository with main as its
+    root/default branch, without a Go module or generator code. Harvest .gitattributes,
+    common .gitignore entries, tools/bin/doc-caps, the pinned itos/range/verification
+    parts of .github/workflows/ci.yml, and the owner's base Renovate preset from this
+    repository. Write fresh itos data, not this project's work history. Start a target
+    bootstrap task T-1 and registry; take, commit and close it through itos. Its checks
+    must also hold in a made project, where the manifest itself is excluded. Root CI
+    checks configuration and doc caps and verifies commit rules; it does not pretend
+    to run Go, domain coverage, scenarios, mutation or binary releases without their
+    code. Defer sourced Scenarios footers until a runnable test kind exists. Later
+    pieces install the complete corresponding gates, not permanent weaker versions.
+    Root workflow triggers main, stack/**, go/** and renovate/**, so each later branch
+    is checked with its own tree. No release job at root. Keep tools and presets' real
+    upstream identities; substitute only project identity, never every donvargax.
+    Use the root docs authored by the coordinator, in separate docs commits. The root
+    README says unfinished, not that it already counts or scans. Add a fresh MIT
+    LICENSE with itos-corp as the illustrative attribution owner. The manifest is
+    version 4, names stack go and its cli feature, and asks for name (go-template-itos,
+    case forms), owner (itos-corp, exact) and module
+    (github.com/itos-corp/go-template-itos, exact), without guessed answers or defaults.
+    Its first_commit is a chore message naming target T-1, completed before this task
+    closes, so renders pass the target's rules. Both go and go + cli are planned;
+    missing branches mean this intermediate template is not ready to render. Do not
+    run check yet or claim credentials scanning; the fourth piece installs pinned
+    gitleaks and scans: [credentials]. Preserve owner MIT permission/provenance in
+    target docs. No existing source mutation records or generator fixtures are copied.
+    Close only after target main's exact pushed head CI is green and source checks
+    pass. Read branch status from GitHub, not an agent report. The source task's checks
+    inspect the public root and must pass before its implementation/evidence commit
+    names T-25 and is pushed. Source changes are registry, ledger and coordination
+    docs only; the implementation belongs to the template repository.
+  done_when:
+    - run: >-
+        d=$(mktemp -d) && trap 'rm -rf "$d"' EXIT &&
+        git clone --quiet --depth 1 --branch main https://github.com/donvargax/go-template-itos.git "$d" &&
+        cd "$d" && itos config check && tools/bin/doc-caps &&
+        test -f LICENSE && grep -q 'MIT License' LICENSE &&
+        test -f itos-template.yaml && test -f .github/workflows/ci.yml &&
+        test -f .github/renovate.json5 && test ! -f go.mod &&
+        test ! -d cmd && test ! -d internal
