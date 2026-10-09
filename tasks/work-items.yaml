@@ -1018,3 +1018,17 @@ items:
       configuration proves nothing about the app being installed or the bot running, which
       docs/upgrading.md already says.
     tags: [ci]
+  - id: new-itos-setup
+    title: new seeds a made project with its own itos setup, in a second commit, when itos is there
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: [T-27]
+    kind: slice
+    why: >
+      ADR-0030 leaves a made project with no itos data at all: the template keeps its own on the
+      itos branch and no render starts from it. So the project docs/template-contents.md promises,
+      itos from the first commit, has to be created rather than inherited. The specification is in
+      features/new.feature, ID-NEW-42 to 45, and the reason is in the comments above them; this
+      entry is only the index.
+    tags: [new, cli]
