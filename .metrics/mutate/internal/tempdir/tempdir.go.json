@@ -4,6 +4,7 @@
   "language": "go",
   "tests": {
     "internal/cli/cli_test.go": "94f672872f685eadc6bccac62ce19685f1c5a260b4474c103f3dfb63ff2aaf5d",
+    "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
     "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
     "internal/tempdir/tempdir_test.go": "9c128f226e5490ad20d727b798d62440102fa02e5eff5cff213fa3586cc016fe"
   },

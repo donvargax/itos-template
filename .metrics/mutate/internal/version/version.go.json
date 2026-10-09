@@ -3,7 +3,7 @@
   "file": "internal/version/version.go",
   "language": "go",
   "tests": {
-    "cmd/itos-template/main_test.go": "bb956b677831ef661680d059fc656920c18759ea6b68fcd0dfe49974b1c2527b",
+    "cmd/itos-template/main_test.go": "9e36580f77a88e3eadeed409f12517b12aa45a208524ec9f57b449d35cb7ed59",
     "internal/version/version_test.go": "c7f8bb3175313d6180ad76519fb7e45150b53173430ff569658192b760013050"
   },
   "units": [
@@ -27,7 +27,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/version",
@@ -67,7 +68,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/version",
