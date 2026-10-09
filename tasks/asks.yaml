@@ -160,3 +160,4 @@ questions:
   - id: q-37
     item: "first-template"
     question: "For the template's count example, what separates words? Recommended: runs of non-whitespace separated by Unicode whitespace, using Go's standard-library tokenization rather than adding a dependency or custom word parser. Spaces, tabs, newlines and nonbreaking spaces separate words; punctuation does not, so hello-world counts as one word. Alternative: ASCII whitespace only, or linguistic punctuation/word segmentation (more complexity than this example needs)."
+    answer: "The person authorized the coordinator to choose the example details and proceed to publication. Use the recommended Go standard-library Unicode-whitespace tokenization, with punctuation retained within a word, no new dependency and no custom word parser. Other routine count choices belong in its scenarios before implementation; no further interview is needed for this small example."
