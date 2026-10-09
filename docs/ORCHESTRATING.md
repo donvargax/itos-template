@@ -14,6 +14,11 @@ teaches, in the guide's lesson format.
   here around it; one in itos-cc (github.com/donvargax/itos-cc, the code proof's mutation check)
   goes to itos-cc as an issue. The person wants both filed as they are found, after trying the
   tool to be sure. The idea upstream-fixes lists those open and what each changes here.
+- The first template, github.com/donvargax/go-template-itos, tracks its own work: each of its
+  branches (main, stack/go, go/cli) keeps its own config, ledger and registry (decision 32), and
+  the person works it with itos there. Work on the template goes into that registry, on the
+  branch whose code it touches; this registry holds the generator's work only, and an item here
+  that waits on the template names the template's item in its why.
 
 ## What a brief adds here
 
