@@ -152,3 +152,4 @@ questions:
   - id: q-35
     item: "first-template"
     question: "MIT is already selected for go-template-itos. Before harvesting infrastructure, may the owner-authored files copied from itos-template and itos (both currently AGPL-3.0 projects) be distributed under MIT in this template? Recommended: the copyright owner explicitly authorizes MIT distribution of their own harvested code, preserving provenance and every applicable third-party notice/license. This does not relicense dependencies or any material the owner does not control. If that authority is unavailable, identify those files before bootstrap rather than silently replacing their license."
+    answer: "The person confirms MIT for templates and authorizes distributing their own harvested infrastructure under MIT in go-template-itos. Preserve provenance and all applicable third-party notices and licenses; this permission does not relicense dependencies or material outside the owner's control."
