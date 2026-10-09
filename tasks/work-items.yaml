@@ -918,7 +918,7 @@ items:
     title: Bootstrap the first template's language-neutral root repository
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: []
     kind: task
     why: >
