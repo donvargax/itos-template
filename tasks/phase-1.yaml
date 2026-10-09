@@ -615,3 +615,73 @@
         test -f tools/bin/domain-coverage && test -f tools/bin/pinned &&
         go mod verify && go mod tidy -diff &&
         go test ./... && tools/bin/domain-coverage
+- id: T-27
+  type: build
+  title: "Add the first template's CLI feature and proven command-line machinery"
+  why: >
+    Third piece of first-template, after T-26. In go-template-itos branch go/cli from
+    the verified stack/go head without rewriting history. The source task coordinates
+    an external bootstrap; target public behavior follows its own wip scenarios and
+    feat commits, not a build label substituted for behavior. Keep the Go foundation
+    and its proof/coverage gates whole. Add a thin application handler and kong UI
+    whose command carries domain data and calls the counting domain through its Files
+    port; no options/DTO struct copying a domain type and no counting in the UI.
+    The command is count <file>, with - reading stdin, not an implicit default action.
+    Count uses the foundation's logical lines and Unicode-whitespace words; a long
+    line is not truncated by Scanner's default token limit. It writes no input or
+    project files. Human success gives line and word counts on stdout and the
+    use-json hint on stderr, never input contents. With --json success is one object
+    with schema: 1, ok: true, file (the argument, - for stdin), lines and words.
+    Usage failures exit 2 and JSON failures still emit one object with schema: 1,
+    ok: false and problems with rule, message and fix. Missing file input exits 3
+    with COUNT_INPUT_MISSING; other unreadable input, including a directory or failing
+    stdin, exits 3 with COUNT_INPUT_UNREADABLE. Keep the sealed error-kind-to-exit
+    switch in the UI, exhaustive, never codes in the domain. An unclassified bug is
+    70, not a pass-through child status. There is no ordinary count refusal/exit 1.
+    No-argument invocation and help print help on stdout with exit 0; missing count's
+    file is usage 2. Explicit --help and --version are actions, not negatable switches.
+    JSON is a negatable switch with GO_TEMPLATE_ITOS_JSON; the uppercase project
+    literal must substitute with name's case forms. Flag validation and -- handling
+    retain docs/CLI.md's rules. The public count's scenarios are coordinator-authored
+    before the implementing agent starts; target scenarios for the inherited command
+    line/completion are adapted from the proven source files without generator steps.
+    Install runnable scenario-kind/footer/CI selection together, never a dangling kind;
+    add representative smoke entries with each live feature. Run the built, stamped,
+    cover-enabled binary through godog on Linux, macOS and Windows. Unit domain tests
+    remain fake-backed. Infrastructure tests can fake a failing reader without mocks
+    or platform-dependent unreadable permission assumptions.
+    Harvest source cmd/itos-template main structure; internal/cli UI, flag parsing and
+    four-shell completion; internal/version and tests; the scenario harness, quoted
+    argument tests and real-git resolution, dropping rendering/update fixtures. New
+    root command has count, version, completion and hidden __complete, not generator
+    commands. Completion derives candidates from kong and handles no current word,
+    file fallback and flag prefixes; all four scripts use the new binary name and
+    preserve quoted arguments. No input value is treated as a global flag. Structured
+    logs stay quiet below warnings, JSON off a terminal and text on one, without color.
+    Harvest GoReleaser, reusable release workflow, release version/notes helpers and
+    internal/release, retargeting the hard-coded binary path. Real repository context
+    determines publishing identity; do not globally replace upstream donvargax names
+    or publish to the illustrative module owner. These are made-project binary
+    releases, not a template-tag protocol. In this template, go/cli CI must not invoke
+    binary release on root main where no binary exists; a rendered project's main
+    has the complete release plan. Preserve no generator-specific lint exceptions.
+    Add actual kong/godog/terminal dependencies from source pins, tidy the lockfiles,
+    and regenerate agent rules from actual config. Coordinator docs arrive as separate
+    docs commits. Fresh mutation records cover changed and newly imported test paths;
+    use the target items' actual first-commit parents and all-tests/fail-uncovered,
+    killing survivors, never accepting uncovered sites or editing gates. Close the
+    target checked bootstrap task and public slice only on exact-head green CI and
+    actual proof. Source checks pass before an evidence commit names T-27. Record
+    exact target head/CI; this source task changes no generator behavior. Template
+    render-check CI and credential scanning are the last separate piece, not claimed
+    installed by this task.
+  done_when:
+    - run: >-
+        d=$(mktemp -d) && trap 'rm -rf "$d"' EXIT &&
+        git clone --quiet --branch go/cli https://github.com/donvargax/go-template-itos.git "$d" &&
+        cd "$d" && itos config check && tools/bin/doc-caps &&
+        test -f cmd/go-template-itos/main.go &&
+        test -f .goreleaser.yaml && test -f .github/workflows/release.yml &&
+        go mod verify && go mod tidy -diff &&
+        itos tests smoke check scenario && go test ./... &&
+        go run ./cmd/go-template-itos count README.md --json
