@@ -910,10 +910,7 @@ items:
     title: Upgrade the Go toolchain to clear the standard-library security failures
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      Recovery CI 37862244797 found GO-2026-6604, GO-2026-6600 and GO-2026-6599 in Go 1.27.1; the
-      task in tasks/phase-1.yaml specifies the security patch update before completion resumes.
     tags: [ci]
