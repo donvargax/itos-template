@@ -719,6 +719,12 @@
     was read by nothing. That is gone: it is read by every branch and merges from none, which
     is the ordinary direction. What still needs writing down is that the gates live on a branch
     that holds no code, so a change to them lands nowhere a reader is looking.
+
+    The manifest's first_commit loses its footer for the same reason the branches lose their
+    ledger: the render is committed before the made project has any, so a Task footer there
+    names nothing that exists. In a made project T-1 means Adopt itos, not the template's root,
+    and it arrives with the setup the person runs themselves. The check holds the manifest
+    naming no task at all.
   done_when:
     - run: >-
         d=$(mktemp -d) && trap 'rm -rf "$d"' EXIT &&
