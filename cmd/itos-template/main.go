@@ -38,8 +38,10 @@ type commandLine struct {
 	// and no environment variable.
 	ShowVersion kong.VersionFlag `name:"version" help:"Print the version and the commit it was built from, and exit."`
 
-	New   newproject.CLI `cmd:"" help:"Make a project from a template."`
-	Check check.CLI      `cmd:"" help:"Render every combination a template allows and run its checks."`
+	New        newproject.CLI `cmd:"" help:"Make a project from a template."`
+	Check      check.CLI      `cmd:"" help:"Render every combination a template allows and run its checks."`
+	Completion cli.Completion `cmd:"" help:"Print a shell completion script."`
+	Complete   struct{}       `cmd:"" name:"__complete" hidden:""`
 	// docs/CLI.md, rule 11: version beside --version, printing the same.
 	Version struct{} `cmd:"" help:"Print the version and the commit it was built from."`
 }
@@ -66,6 +68,12 @@ func run(args []string, in io.Reader, stdout, stderr io.Writer, terminal bool) i
 		// A model kong refuses is a bug, reported as one (rule 31).
 		return ui.Fail(err, wantsJSON(args))
 	}
+	if len(args) > 0 && args[0] == "__complete" {
+		for _, line := range cli.Complete(parser.Model, args[1:]) {
+			_, _ = fmt.Fprintln(stdout, line)
+		}
+		return 0
+	}
 	ctx, err := parser.Parse(args)
 	if err != nil {
 		// With --json, the failure's object too (rule 29).
@@ -77,6 +85,8 @@ func run(args []string, in io.Reader, stdout, stderr io.Writer, terminal bool) i
 		return c.New.Run(ui)
 	case "check":
 		return c.Check.Run(ui)
+	case "completion":
+		return c.Completion.Run(ui)
 	case "version":
 		// What --version prints, as kong prints it.
 		_, _ = fmt.Fprintln(stdout, parser.Model.Vars()["version"])

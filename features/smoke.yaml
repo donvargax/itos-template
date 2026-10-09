@@ -32,3 +32,7 @@
   scenarios:
     - id: "@ID-CHECK-01"
       why: check's whole path in one run, every combination of the fixture rendered as new renders it and each one's checks run, on renders small enough to stay fast
+- file: completion.feature
+  scenarios:
+    - id: "@ID-COMPL-01"
+      why: the hidden completion command returns top-level candidates from kong's model and omits itself
