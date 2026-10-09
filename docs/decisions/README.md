@@ -31,5 +31,6 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0028: The owner's own tools, itos and itos-cc, are pinned when out; every other tool waits 7 days](0028-the-owner-s-own-tools-itos-and-itos-cc-are-pinned-when-out-every-other-tool-waits-7-days.md)
 - [ADR-0031: A template using itos lists itos init among its root setup steps, and the generator still names no itos](0031-a-template-using-itos-lists-itos-init-among-its-root-setup-steps-and-the-generator-still-names-no-itos.md)
 - [ADR-0032: A template's branches keep their own itos data, and template_only keeps it out of every render](0032-a-template-s-branches-keep-their-own-itos-data-and-template-only-keeps-it-out-of-every-render.md)
+- [ADR-0033: A made project's first commit carries no footer, so a template stays usable without itos](0033-a-made-project-s-first-commit-carries-no-footer-so-a-template-stays-usable-without-itos.md)
 
 <!-- itos:decisions:end -->
