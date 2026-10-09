@@ -732,15 +732,9 @@ items:
     title: itos-template completes on bash, zsh, fish and PowerShell through a hidden __complete command
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: slice
-    why: >
-      Was shell-completion.
-      Decision 25 and docs/template-contents.md (CLI: shell completion generated). The binary
-      answers the shell from kong's model, a stub script per shell asking it; scenarios run the
-      stubs' question (the __complete command) on three systems. Before first-template, so the
-      template carries it proven.
     tags: [cli]
   - id: T-21
     title: "CI checks the locked install: go mod verify, and go.mod and go.sum tidy"
