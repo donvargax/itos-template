@@ -938,7 +938,7 @@ items:
     title: Add the first template's working Go foundation and full code gates
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: [T-25]
     kind: task
     why: >
