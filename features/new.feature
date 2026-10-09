@@ -207,44 +207,34 @@ Feature: new makes a project from a template
   # redacts it in its own fatal line; we do not. The name is still named, as ID-NEW-19
   # holds, only without its userinfo. 127.0.0.1 on a closed port refuses at once, so the
   # run needs no network and sends the token nowhere.
-  # ADR-0030 puts a template's itos setup on one branch no render starts from, so a render
-  # inherits none. The made project is therefore not an itos project, and what
-  # docs/template-contents.md promises of one has to be created rather than carried.
+
+  # ADR-0031: the itos setup a made project needs is the template's own declaration, a root
+  # setup step naming itos init --agent-rules, run by the setup-steps mechanism ADR-0007
+  # decided. The person sees it before it runs, and a template that does not use itos lists
+  # no such step and its made projects get no itos at all. The generator names no itos, so
+  # itos-template stays runnable on its own.
   #
-  # new does not create it, and does not run itos to create it. itos-template runs on its own
-  # as well as as `itos template`, so a render that needed itos on the PATH would be unusable
-  # for anyone who does not use itos, which is the audience the standalone build is for. An
-  # extension calling the program that invoked it back is the wrong shape whatever the PATH
-  # holds, and the person is right there to run one command. So new says what is missing and
-  # names the command, on stderr where rule 26 puts anything that is not the result, and the
-  # person runs it in the folder new made.
+  # What is left to pin here is what new-setup does not: that a made project left with the
+  # step run is a working itos project, judged by itos's own check and not by our reading of
+  # three files, and what happens when the step cannot run. A step is a shell command, so on
+  # a machine without itos it fails, and a template naming it is not broken: the render was
+  # committed before the step ran, so it stands.
   @ID-NEW-42 @new-itos-setup @wip
-  Scenario: new says the made project has no itos setup and names the command that gives it one
-    Given the template "acme"
-    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"
+  Scenario: with the step run the made project is a sound itos project
+    Given the template "acme" whose root lists the setup step "itos init --agent-rules"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue/fox --trust"
+    Then it exits with code 0
+    And itos config check passes in the folder "made"
+    And the ledger of "made" has the task "T-1" titled "Adopt itos"
+
+  @ID-NEW-43 @new-itos-setup @wip
+  Scenario: a setup step that cannot run leaves the render and says which step failed
+    Given the template "acme" whose root lists the setup step "itos init --agent-rules"
+    When itos-template runs with no itos on the PATH with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue/fox --trust"
     Then it exits with code 0
     And the folder "made" is a git repository with exactly 1 commit
-    And its error output says "itos init"
-    And its error output says "--agent-rules"
-
-  # The hint is true or it is noise: the render carries none of the template's own itos
-  # data, because the template keeps that where no render starts from.
-  @ID-NEW-43 @new-itos-setup @wip
-  Scenario: the render carries none of the template's itos data
-    Given the template "acme"
-    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"
-    Then the path "made/itos.yaml" does not exist
-    And the path "made/tasks" does not exist
-
-  # With --json the result is the object and nothing else. The hint stays on stderr, so a
-  # script reading the object never sees it and a person running the command still does.
-  @ID-NEW-44 @new-itos-setup @wip
-  Scenario: with --json the result is one object and the hint stays on the error output
-    Given the template "acme"
-    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue/fox --json"
-    Then it exits with code 0
-    And its JSON output is one object with ok true
-    And its error output says "itos init"
+    And the path "made/itos.yaml" does not exist
+    And its error output says "itos init --agent-rules"
 
   @ID-NEW-41 @bug-4 @wip
   Scenario: a template URL's credential never reaches new's error output
