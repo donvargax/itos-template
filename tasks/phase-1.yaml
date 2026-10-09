@@ -487,3 +487,21 @@
   done_when:
     - run: "go test ./cmd/itos-template -count=1 -run 'Log'"
     - run: "grep -q 'func Test.*Log' cmd/itos-template/*_test.go"
+- id: T-24
+  type: build
+  title: "Upgrade the Go toolchain to clear the standard-library security failures"
+  why: >
+    Main's recovery run 37862244797, for 116cf50 after slice-11's revert, passed the
+    smoke check but failed govulncheck on GO-2026-6604, GO-2026-6600 and GO-2026-6599.
+    The scan reports Go 1.27.1 affected and Go 1.27.2 fixed. Upgrade the toolchain
+    pin in go.mod to that patch, keeping the language version and module dependencies
+    unchanged unless the official patch requires otherwise. Confirm the patch against
+    Go's release information before changing the pin. This is a security update under
+    T-14's existing policy, which skips the normal release-age wait and schedule; do
+    not disable or narrow govulncheck. The workflows and release tools read the
+    toolchain from go.mod, so no independent version pin is added. Decision 23 makes
+    a toolchain change eligible for a patch release once CI is green. This task is
+    separate from slice-11: restore green main before retrying shell completion.
+  done_when:
+    - run: "grep -qx 'toolchain go1.27.2' go.mod"
+    - run: "go tool govulncheck -test ./..."
