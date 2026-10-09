@@ -930,11 +930,7 @@ items:
     title: Bootstrap the first template's language-neutral root repository
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      First piece of first-template; specified in tasks/phase-1.yaml. The public repository exists
-      and the owner approved MIT distribution. Go and CLI code and template render-check CI are
-      separate later pieces.
     tags: [new, check, ci]
