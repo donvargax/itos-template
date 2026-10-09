@@ -728,13 +728,17 @@
   title: "The template's manifest declares what every render must pass, so check proves something"
   why: >
     check runs and passes today and proves nothing: the template manifest names no checks, so
-    each combination renders and has nothing to run, and its only output is the warning that no
+    each combination renders and has nothing to run, and the only output is the warning that no
     check scans for credentials. Declare checks beside what they check, per branch as
     docs/manifest.md says, so a combination runs the root then the stack then the features in
-    order, and what each branch already runs in CI is what its renders must pass. Pin gitleaks
-    as the root check and mark it scans: [credentials]. No check may be an itos one: a render
-    carries none of the template's own data, so there would be nothing to read.
-    The made project's own setup comes from the template's declared setup steps.
+    order, and what each branch already runs in its CI is what its renders must pass. Pin
+    gitleaks as the root check and mark it scans: [credentials]. No check may be an itos one:
+    after T-28 a render carries none of the template's own data, so there would be nothing to
+    read. The made project's own setup comes from the template's declared setup steps.
+
+    This item is that the checks are declared and run, not that they all pass: the first run of
+    check over the declared checks found a real defect, which is the item render-gofmt. T-31 is
+    where every combination passing is claimed.
   done_when:
     - run: >-
         d=$(mktemp -d) && trap 'rm -rf "$d"' EXIT &&
@@ -744,9 +748,11 @@
         grep -q 'scans:' "$m" &&
         grep -q 'credentials' "$m" &&
         grep -qE '^  - name: go$' "$m" &&
-        grep -q 'gitleaks' "$d/t/tools/bin/pinned" &&
+        git -C "$d/t" show origin/stack/go:tools/bin/pinned | grep -q 'gitleaks' &&
         go build -o "$d/itos-template" ./cmd/itos-template &&
-        ! "$d/itos-template" check https://github.com/donvargax/go-template-itos.git --answer name=blue-fox --answer owner=acme --answer module=example.com/blue/fox 2>&1 | grep -q warning
+        a="--answer name=blue-fox --answer owner=acme --answer module=example.com/blue/fox" &&
+        "$d/itos-template" check https://github.com/donvargax/go-template-itos.git $a > "$d/c.txt" 2>&1;
+        ! grep -q warning "$d/c.txt" && grep -q 'passed:' "$d/c.txt"
 - id: T-31
   type: build
   title: "Prove the first template end to end and say it is ready"
