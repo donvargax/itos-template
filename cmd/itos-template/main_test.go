@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -107,5 +108,15 @@ func TestWantsJSONReadsTheLastJSONFlagBeforeDashDash(t *testing.T) {
 		if got := wantsJSON(c.args); got != c.want {
 			t.Errorf("wantsJSON(%q) = %v, want %v", c.args, got, c.want)
 		}
+	}
+}
+
+func TestRunWithNoArgumentsReturnsUsageError(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	if code := run(nil, strings.NewReader(""), &stdout, &stderr, false); code != 2 {
+		t.Fatalf("run with no arguments returned %d, want usage exit 2", code)
+	}
+	if stderr.Len() == 0 {
+		t.Fatal("run with no arguments did not explain the usage error")
 	}
 }

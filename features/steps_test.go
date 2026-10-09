@@ -50,12 +50,44 @@ func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
 	})
 
 	// Split before {template} is expanded, so a path with a space stays one
-	// argument.
+	// argument. Quotes also preserve empty words for completion requests.
 	sc.Step(`^itos-template runs with "([^"]*)"$`, func(args string) error {
 		return w.runWith(w.env(), args)
 	})
 
 	sc.Step(`^it exits with code (\d+)$`, w.exitsWith)
+	sc.Step(`^its standard output lists "([^"]*)"$`, func(text string) error {
+		if !slices.Contains(outputLines(w.stdout), text) {
+			return fmt.Errorf("standard output does not list %q\n%s", text, w.report())
+		}
+		return nil
+	})
+	sc.Step(`^its standard output does not list "([^"]*)"$`, func(text string) error {
+		if slices.Contains(outputLines(w.stdout), text) {
+			return fmt.Errorf("standard output lists %q\n%s", text, w.report())
+		}
+		return nil
+	})
+	sc.Step(`^the last line of its standard output is "([^"]*)"$`, func(text string) error {
+		lines := outputLines(w.stdout)
+		last := strings.TrimSuffix(lines[len(lines)-1], "\r")
+		if last != text {
+			return fmt.Errorf("the last line of standard output is %q, not %q\n%s", last, text, w.report())
+		}
+		return nil
+	})
+	sc.Step(`^its standard output says "([^"]*)"$`, func(text string) error {
+		if !strings.Contains(w.stdout, text) {
+			return fmt.Errorf("standard output does not say %q\n%s", text, w.report())
+		}
+		return nil
+	})
+	sc.Step(`^its standard output does not say "([^"]*)"$`, func(text string) error {
+		if strings.Contains(w.stdout, text) {
+			return fmt.Errorf("standard output says %q\n%s", text, w.report())
+		}
+		return nil
+	})
 	sc.Step(`^the first line of its standard output is "([^"]*)" and the stamped version$`, func(name string) error {
 		return w.firstLineIs(name + " " + stampedVersion)
 	})
@@ -253,11 +285,57 @@ func (w *world) run(dir, program string, args ...string) error {
 // runWith runs itos-template in the scratch repository with args, split
 // before {template} is expanded, in the environment env.
 func (w *world) runWith(env []string, args string) error {
-	fields := strings.Fields(args)
+	fields, err := commandWords(args)
+	if err != nil {
+		return err
+	}
 	for i, f := range fields {
 		fields[i] = w.expand(f)
 	}
 	return w.runEnv(w.dir, env, w.bin, fields...)
+}
+
+// commandWords splits a scenario's command line without involving a shell.
+// Quotes group words and preserve an explicitly empty argument, as the
+// completion protocol needs for a new token. Backslashes remain literal, so
+// Windows paths survive the acceptance harness.
+func commandWords(line string) ([]string, error) {
+	var words []string
+	var word strings.Builder
+	var quote rune
+	started := false
+	for _, r := range line {
+		if quote != 0 {
+			if r == quote {
+				quote = 0
+				continue
+			}
+			word.WriteRune(r)
+			started = true
+			continue
+		}
+		switch r {
+		case '\'', '"':
+			quote = r
+			started = true
+		case ' ', '\t', '\n', '\r':
+			if started {
+				words = append(words, word.String())
+				word.Reset()
+				started = false
+			}
+		default:
+			word.WriteRune(r)
+			started = true
+		}
+	}
+	if quote != 0 {
+		return nil, fmt.Errorf("unclosed quote in scenario command %q", line)
+	}
+	if started {
+		words = append(words, word.String())
+	}
+	return words, nil
 }
 
 // noGit is the scenarios' environment with no git on the PATH: every folder
@@ -330,6 +408,10 @@ func (w *world) runEnv(dir string, env []string, program string, args ...string)
 
 func (w *world) report() string {
 	return fmt.Sprintf("exit %d\n--- stdout\n%s--- stderr\n%s", w.exit, w.stdout, w.stderr)
+}
+
+func outputLines(output string) []string {
+	return strings.Split(strings.TrimSuffix(output, "\n"), "\n")
 }
 
 func (w *world) exitsWith(code int) error {
