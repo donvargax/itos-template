@@ -1020,11 +1020,11 @@ items:
       docs/upgrading.md already says.
     tags: [ci]
   - id: new-itos-setup
-    title: new says a made project has no itos setup and names the command, and never runs itos itself
+    title: A made project left with the template's itos setup step run is a sound itos project
     phase: 1
     owner: donvargax
     status: todo
-    depends_on: [T-27]
+    depends_on: [new-setup, T-27]
     kind: slice
     why: >
       ADR-0030 leaves a made project with no itos data at all: the template keeps its own on the
