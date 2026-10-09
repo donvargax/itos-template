@@ -1072,3 +1072,30 @@ items:
       asserting it: both combinations render, the checks run, and no credential-scan warning is
       left. It is red today for exactly that reason.
     tags: [check, ci]
+  - id: render-gofmt
+    title: A rendered file is gofmt-clean whatever the substituted project name is
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: [T-30]
+    kind: slice
+    why: >
+      Found 2026-10-09 by the first run of check over the checks T-30 declared, and it is the
+      clearest argument yet for having check at all: the branch own CI cannot see this class of
+      defect, because the branch is gofmt-clean and only a render is not.
+      internal/release/releasetest/releasetest.go holds its fixture file names as the keys of a map
+      literal, and two of those keys carry the project name: cmd/go-template-itos/main.go and its
+      test. gofmt aligns the values of adjacent entries into a column sized by the longest key, so
+      substituting a shorter name moves the column and every line in the block. Verified: the branch
+      is gofmt-clean and the render of it is not. The fix is to break the alignment group rather
+      than to chase a column, so the file is gofmt-clean whatever any name length. A blank line
+      between composite-literal entries does it, which was verified on the same shape: adjacent
+      entries gofmt changes, blank-separated ones do not. Run gofmt after the edit, since the
+      existing padding is then stale. Leave the checks alone. The manifest already declares the
+      gofmt check and check already runs it, so any recurrence is caught without a new rule. The
+      class is wider than this file and the guard is the same for all of it. Touching internal means
+      the item owes the branch full mutation proof over cmd and internal with fresh .metrics/mutate
+      records, fail-uncovered and all-tests. That is why this is its own item and not folded into
+      T-30: weakening the gofmt check to make it green is not an option, and reshaping the fixture
+      to hold no mutation site would be.
+    tags: [ci]
