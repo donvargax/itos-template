@@ -221,3 +221,6 @@ questions:
     question: "What does update's 3-way merge (decision 13: a library or our own code is the person's call)? Recommended: git's own merge through its command line: both renders written to the project's object database as unreferenced trees and merged against HEAD by ort, the old render the base, so renames are followed and conflicts take git's format; go-git stays out, merging only by fast-forward. Or: the old-to-new diff applied with git apply -3, as cruft and copier do (a rename the project already made can fail); or our own merge in Go, a diff3 library or our code."
     answer: "git's own merge through its command line, ort over the two renders written as unreferenced trees, the old render the base; tried on git 2.56, git merge-tree --write-tree --merge-base takes a tree and gives git's conflict stages. The person's call, 2026-10-10."
     decision: 38
+  - id: q-50
+    item: "template-release-command"
+    question: "Does itos-template release push the tags it makes? Recommended: it leaves them local and prints the git push command that publishes every <branch>/<version> tag at once, so publishing stays the person's act, as adopt and update leave their commits to them, and a mistaken release is undone with git tag -d before anyone fetched it. Or: local unless --push, which pushes them atomically; or always push."
