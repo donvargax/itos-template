@@ -848,8 +848,6 @@ items:
       runner, as asked in donvargax/itos#28. When a release carries it, pin it and check CI shows
       the proof.
     tags: [ci]
-    deferred: >
-      Waits for donvargax/itos#28: itos ci run running proof.code.
   - id: upstream-fixes
     title: Take up the itos and itos-cc fixes filed from here as their releases land
     phase: 1
