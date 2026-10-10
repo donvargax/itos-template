@@ -114,13 +114,13 @@ func (w *Worktree) Files(also []string) ([]port.File, error) {
 		case m == fs.ModeIrregular:
 			files = append(files, port.File{Path: p, Mode: m})
 		case differs[p]:
-			f, ok, err := w.read(p)
+			f, err := w.read(p)
 			if err != nil {
 				return nil, err
 			}
-			if ok {
+			if f != nil {
 				f.Mode = m
-				files = append(files, f)
+				files = append(files, *f)
 			}
 		default:
 			oids = append(oids, fields[1])
@@ -145,12 +145,12 @@ func (w *Worktree) Files(also []string) ([]port.File, error) {
 			continue
 		}
 		seen[p] = true
-		f, ok, err := w.read(p)
+		f, err := w.read(p)
 		if err != nil {
 			return nil, err
 		}
-		if ok {
-			files = append(files, f)
+		if f != nil {
+			files = append(files, *f)
 		}
 	}
 	return files, nil
@@ -173,15 +173,15 @@ func (w *Worktree) list(args ...string) ([]string, error) {
 
 // read is the working tree's file p, with /, as the file system holds it:
 // a link's target, a file's contents, its mode executable when any execute
-// bit is set, a folder (a repository of its own) as a submodule is; false
+// bit is set, a folder (a repository of its own) as a submodule is; nil
 // when there is nothing at p.
-func (w *Worktree) read(p string) (port.File, bool, error) {
+func (w *Worktree) read(p string) (*port.File, error) {
 	full := w.path(p)
 	info, err := os.Lstat(full)
 	if errors.Is(err, fs.ErrNotExist) {
-		return port.File{}, false, nil
+		return nil, nil
 	}
-	f := port.File{Path: p, Mode: 0o644}
+	f := &port.File{Path: p, Mode: 0o644}
 	if err == nil {
 		switch {
 		case info.Mode()&fs.ModeSymlink != 0:
@@ -199,9 +199,9 @@ func (w *Worktree) read(p string) (port.File, bool, error) {
 		}
 	}
 	if err != nil {
-		return port.File{}, false, &Unreadable{Path: p, Err: err}
+		return nil, &Unreadable{Path: p, Err: err}
 	}
-	return f, true, nil
+	return f, nil
 }
 
 // path is p, with /, at the top, as the system writes a path.
