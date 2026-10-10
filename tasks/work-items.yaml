@@ -1029,8 +1029,8 @@ items:
   - id: bug-5
     title: An answer or a question name new echoes back holding an invisible character prints escaped, never raw
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: slice
     why: >
