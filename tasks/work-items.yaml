@@ -1238,3 +1238,17 @@ items:
     status: done
     depends_on: []
     kind: task
+  - id: record-name-working-folder
+    title: A relative template path made absolute from a working folder holding a control character reaches the record unvetted
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      bug-6 judges the template as the person named it. template.Recorded joins a relative path to
+      the folder new, check or adopt runs in, so a working folder whose path holds a tab, a line
+      feed or a right-to-left override still puts one in the record, the line new prints and the
+      first commit message, though nothing the person typed held it. The record still reads back, as
+      an absolute path never starts with a tab (go-yaml/yaml#660 needs one first). Judging the
+      recorded name too, or the working folder, would close it.
