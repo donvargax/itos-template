@@ -1245,15 +1245,9 @@ items:
     title: update overwrites an ignored file in the way of a path the release adds, as git merge does
     phase: 1
     owner: null
-    status: todo
+    status: dropped
     depends_on: [slice-13]
     kind: idea
-    why: >
-      update takes the merge into the working tree with git read-tree -m -u, which refuses to
-      overwrite an untracked file, ignored ones included, where git merge overwrites an ignored one.
-      A project holding an ignored file at a path the new release adds stops update with git's own
-      error, exit 70, after the renders were written as unreferenced objects; the index and the
-      working tree stay as they were. Found building slice-13.
     tags: [update]
   - id: update-lost-commit
     title: update names a recorded commit the template no longer holds
