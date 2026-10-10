@@ -1070,8 +1070,8 @@ items:
   - id: check-record-name-slice
     title: check renders a template named by a credential URL without the credential, so a scanning check passes
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: slice
     why: >
