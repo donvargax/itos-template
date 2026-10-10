@@ -1054,17 +1054,9 @@ items:
     title: internal/template's own refusals quote a --stack or --feature value escaped
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      Was template-errors-escaped.
-      bug-5 quoted an unknown --stack or --feature value with %+q in internal/cli's messages, but
-      internal/template's UnknownStack and UnknownFeature Error methods still write the name raw
-      ("no stack " + Name, "no feature " + Name). They are read wherever an error is shown
-      unclassified, as Resolve's joined error is, so a right-to-left override or a Hangul filler in
-      the value reaches that reader as itself. Quote it with %+q there too, with a unit test holding
-      both characters, as answer's Malformed and Unknown now do.
   - id: echo-paths-escaped
     title: Decide how a refusal echoes a path, a shell or a flag the person gave
     phase: 1

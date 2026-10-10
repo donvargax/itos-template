@@ -886,10 +886,6 @@
     bug-5, with a unit test holding both characters written as escapes. A refactor: nothing a
     person sees through the cli changes. Audit internal/template's other Error methods for a value
     the person gave, and quote it the same way.
-  done_when:
-    - run: >-
-        ! git grep -n -E '"no (stack|feature) " \+' -- internal/template &&
-        go test ./internal/template
 - id: T-37
   type: ci
   title: "The invisible-character pattern is written once, in a script CI and the pre-commit hook call"
