@@ -109,7 +109,7 @@ Feature: check renders every combination a template allows and runs its checks
   # answer-invisible: check takes answers through the same check new does (new.feature's
   # ID-NEW-52 says why), and refuses one holding a control character or one drawn as nothing
   # before rendering any combination.
-  @ID-CHECK-24 @answer-invisible @wip
+  @ID-CHECK-24 @answer-invisible
   Scenario: check refuses an answer holding a right-to-left override with exit 2, naming the question and its code point
     Given the template "acme" whose question module has no pattern
     When itos-template runs with "check {template} --answer name=blue-fox --answer module=example.com/blue{U+202E}fox"

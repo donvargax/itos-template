@@ -174,7 +174,7 @@ Feature: new makes a project from a template
   # take a question with none. A command written here cannot hold an invisible character, which
   # T-32's gate refuses in any tracked file, so {U+XXXX} in a command is the character it names.
   # new, check and adopt read answers through one check; adopt's is held by its unit tests.
-  @ID-NEW-52 @answer-invisible @wip
+  @ID-NEW-52 @answer-invisible
   Scenario Outline: new refuses an answer holding <what> with exit 2, naming the question and its code point
     Given the template "acme" whose question module has no pattern
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue{<code>}fox"
@@ -191,7 +191,7 @@ Feature: new makes a project from a template
       | a joiner between Latin letters | U+200C |
 
   # A guard that the refusal stops where a script needs the joiner.
-  @ID-NEW-53 @answer-invisible @wip
+  @ID-NEW-53 @answer-invisible
   Scenario Outline: new takes an answer holding a joiner where <script> spells with it
     Given the template "acme" whose question module has no pattern
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/<word>"

@@ -174,7 +174,15 @@ pins its other tools, run as the root's check so every render is scanned.
 | `default`    | The answer taken with `--defaults`, or by an empty line on a terminal. Optional.        |
 | `case_forms` | `true` to replace the literal in its five case forms; `false` (the default) as written. |
 
-An answer is never empty. A `default` must be an answer its question takes.
+An answer is never empty, and is free text as PRECIS (RFC 8264) takes it, its FreeformClass,
+whatever the pattern: it holds no control character and none that prints as nothing or moves the
+text around it, a right-to-left override, a zero-width space, a Hangul filler or a variation
+selector among them, so an emoji written with U+FE0F is refused. The zero-width non-joiner and
+joiner, U+200C and U+200D, are taken only where a script spells with them, after a virama or
+between letters that join, as Persian and Hindi write; between Latin letters, or the people of a
+family emoji, they are refused. A refusal names the character by its code point, and an answer
+taken is used as given, never normalized. A `default` must be an answer its question takes, and is
+held to this when the manifest is read.
 
 **Case forms.** With `case_forms: true` the literal is written in kebab case, lowercase words of
 letters and digits joined by dashes, two words or more, and its five forms must be five different

@@ -26,8 +26,10 @@ import (
 	"strconv"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 
 	"go.yaml.in/yaml/v3"
+	"golang.org/x/text/secure/precis"
 
 	"github.com/donvargax/itos-template/internal/caseform"
 )
@@ -304,7 +306,7 @@ func (m *Manifest) check() []string {
 		}
 		if q.Default != nil && (q.pattern != nil || q.Pattern == "") {
 			if err := q.Check(*q.Default); err != nil {
-				add("the question %s's default %q is not an answer it takes: %v", q.Name, *q.Default, err)
+				add("the question %s's default %+q is not an answer it takes: %v", q.Name, *q.Default, err)
 			}
 		}
 	}
@@ -443,12 +445,19 @@ func (m *Manifest) Scans(what string) bool {
 	return slices.ContainsFunc(checks, func(c Check) bool { return slices.Contains(c.Scans, what) })
 }
 
-// Check is whether answer is an answer q takes: never empty, the pattern
-// matched whole when there is one, and with case forms, lowercase words
-// joined by dashes.
+// Check is whether answer is an answer q takes: never empty, free text
+// PRECIS takes, the pattern matched whole when there is one, and with case
+// forms, lowercase words joined by dashes. new, check and adopt read every
+// answer through it, given, typed or a default, and an answer lands in
+// file contents, file names, the record and the setup steps new prints, so
+// a question with no pattern still refuses what would print as something
+// else. The character refused is named by its code point, never shown.
 func (q *Question) Check(answer string) error {
 	if answer == "" {
 		return fmt.Errorf("it is empty")
+	}
+	if _, err := freeform.String(answer); err != nil {
+		return fmt.Errorf("it holds %U, a control character, or one that prints as nothing or moves the text around it where no script spells with it, so give it without", firstRefused(answer))
 	}
 	if q.pattern != nil && !q.pattern.MatchString(answer) {
 		return fmt.Errorf("it does not match the pattern %s", q.Pattern)
@@ -459,6 +468,36 @@ func (q *Question) Check(answer string) error {
 		}
 	}
 	return nil
+}
+
+// freeform judges an answer by PRECIS (RFC 8264), its FreeformClass: the
+// IETF's rules for which Unicode free text may hold. It refuses a control
+// character and one drawn as nothing or moving the text around it (a
+// right-to-left override, a zero-width space, a Hangul filler, a variation
+// selector, a line separator), and takes the zero-width non-joiner U+200C
+// and joiner U+200D only where a script spells with them, by Unicode's
+// context rules (RFC 5892's CONTEXTJ): after a virama, or between letters
+// that join, as Persian and Hindi write. The person's call (decision 13), a
+// library over our own rule, as the joiners' rules are the hard part.
+// PRECIS is a validator here: an answer is kept as given, never its
+// normalized form. Setup steps keep drawnAsNothing.
+var freeform = precis.NewFreeform()
+
+// firstRefused is the first character of answer, which freeform refuses,
+// that makes it refused: the one after the longest prefix freeform takes.
+// The longest, not the shortest failing one, as a joiner Persian spells
+// with fails a prefix ending at it, until the letter after it comes.
+func firstRefused(answer string) rune {
+	k := len(answer)
+	for k > 0 {
+		_, size := utf8.DecodeLastRuneInString(answer[:k])
+		k -= size
+		if _, err := freeform.String(answer[:k]); err == nil {
+			break
+		}
+	}
+	r, _ := utf8.DecodeRuneInString(answer[k:])
+	return r
 }
 
 // Question is the question named name.

@@ -91,6 +91,90 @@ func TestCheckTakesAnyAnswerButAnEmptyOneWithoutAPattern(t *testing.T) {
 	}
 }
 
+// owner is a question with no pattern, which takes any answer free text
+// may be.
+func owner(t *testing.T) *Question {
+	t.Helper()
+	m, err := Parse([]byte("version: 1\nstacks: [{name: go}]\nquestions: [{name: owner, literal: Acme Corp, question: \"Owner?\"}]\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	q, _ := m.Question("owner")
+	return q
+}
+
+// An answer lands in files, names, the record and printed setup steps, so
+// even a question with no pattern refuses what PRECIS's FreeformClass
+// does, naming the first character that makes it refused by its code
+// point, never showing it. A joiner is refused where no script spells with
+// it: between Latin letters, or the people of a family emoji.
+func TestCheckRefusesWhatPRECISRefusesNamingTheFirstCharacterToBlame(t *testing.T) {
+	q := owner(t)
+	cases := map[string]string{
+		"blue\x1bfox":         "U+001B",
+		"blue\u0009fox":       "U+0009",
+		"blue fox\u000a":      "U+000A",
+		"blue\u202efox":       "U+202E",
+		"blue\u200bfox":       "U+200B",
+		"blue\u2028fox":       "U+2028",
+		"blue\u3164fox":       "U+3164",
+		"blue\u034ffox":       "U+034F",
+		"My app \u2764\ufe0f": "U+FE0F",
+		"\U0001f468\u200d\U0001f469\u200d\U0001f467": "U+200D",
+		"blue\u200cfox":     "U+200C",
+		"blue\u200cfox\x1b": "U+200C",
+		"\u0645\u06cc\u200c\u062e\u0648\u0627\x1b": "U+001B",
+		"\u0645\u06cc\u200c":                       "U+200C",
+		"\u0915\u094d\u200d\u0937\u202e":           "U+202E",
+	}
+	for answer, code := range cases {
+		err := q.Check(answer)
+		if err == nil {
+			t.Errorf("Check takes %+q", answer)
+			continue
+		}
+		if !strings.Contains(err.Error(), code+",") {
+			t.Errorf("Check's refusal of %+q names no %s: %v", answer, code, err)
+		}
+		for _, r := range answer {
+			if r > 0x7e && strings.ContainsRune(err.Error(), r) {
+				t.Errorf("Check's refusal of %+q shows %U: %v", answer, r, err)
+			}
+		}
+	}
+}
+
+// What PRECIS's FreeformClass takes, an answer takes: an accent, a
+// no-break space, a bare heart, and a joiner where a script spells with
+// it, Persian's non-joiner between letters that join and Hindi's joiner
+// after a virama.
+func TestCheckTakesWhatPRECISTakes(t *testing.T) {
+	q := owner(t)
+	for _, answer := range []string{
+		"Blue Fox & Co",
+		"caf\u00e9",
+		"blue\u00a0fox",
+		"\u2764",
+		"\u0645\u06cc\u200c\u062e\u0648\u0627\u0647\u0645",
+		"\u0915\u094d\u200d\u0937",
+	} {
+		if err := q.Check(answer); err != nil {
+			t.Errorf("Check refuses %+q: %v", answer, err)
+		}
+	}
+}
+
+// A default goes through Check when the manifest is read, so one holding
+// an invisible character is refused there, naming the question and the
+// character's code point, the default quoted escaped.
+func TestParseRefusesADefaultPRECISRefuses(t *testing.T) {
+	_, err := Parse([]byte("version: 1\nstacks: [{name: go}]\nquestions: [{name: owner, literal: Acme Corp, question: Q, default: \"Blue\\u3164Fox\"}]\n"))
+	want := `the question owner's default "Blue\u3164Fox" is not an answer it takes: it holds U+3164, a control character, or one that prints as nothing or moves the text around it where no script spells with it, so give it without`
+	if err == nil || err.Error() != want {
+		t.Errorf("Parse says\n%v\nnot\n%s", err, want)
+	}
+}
+
 func TestReplacementsPutTheLongestLiteralFirst(t *testing.T) {
 	m := acme(t)
 	got := m.Replacements(map[string]string{"name": "blue-fox", "module": "example.com/blue/fox"})

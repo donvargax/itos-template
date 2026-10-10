@@ -83,6 +83,16 @@ func TestEachKindNoScenarioReadsHasItsCodeRuleAndSentence(t *testing.T) {
 	}
 }
 
+// An answer not taken is quoted with every character outside ASCII
+// escaped: a Hangul filler is printable to Go, so plain quoting would show
+// the very character refused.
+func TestANotTakenAnswerIsQuotedEscaped(t *testing.T) {
+	err := &answer.NotTaken{Name: "module", Answer: "blue\u3164fox", Reason: errors.New("cause")}
+	if got, want := Message(err), `the answer to module, "blue\u3164fox", is not one it takes: cause`; got != want {
+		t.Errorf("NotTaken says\n%s, not\n%s", got, want)
+	}
+}
+
 // Asking happens only on a terminal, which no scenario has: the wording of
 // what the domain asks, held whole here, byte for byte, through the domain
 // asking it and prompt asking what this words.

@@ -129,7 +129,7 @@ func (e *Malformed) Error() string { return fmt.Sprintf("the answer %q has no ="
 func (e *Unknown) Error() string   { return "no question " + e.Name }
 func (e *Twice) Error() string     { return "the answer to " + e.Name + " twice" }
 func (e *NotTaken) Error() string {
-	return fmt.Sprintf("the answer to %s, %q: %v", e.Name, e.Answer, e.Reason)
+	return fmt.Sprintf("the answer to %s, %+q: %v", e.Name, e.Answer, e.Reason)
 }
 func (e *Missing) Error() string { return "no answer to " + e.Question.Name }
 func (e *NotAnswered) Error() string {

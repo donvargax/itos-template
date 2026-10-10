@@ -95,6 +95,23 @@ func TestReadTakesADefaultOnlyWhenAskedTo(t *testing.T) {
 	}
 }
 
+// PRECIS only judges an answer: one it would normalize, an accent written
+// as a letter and a combining mark, is kept as given. A refused one is
+// quoted with every character outside ASCII escaped, as a Hangul filler is
+// printable to Go and plain quoting would show the very character refused.
+func TestReadKeepsAnAnswerAsGivenAndQuotesARefusedOneEscaped(t *testing.T) {
+	m := parse(t)
+	answers, _, problems := Read(m, Given{"name=blue-fox", "owner=Cafe\u0301"}, false, false)
+	if len(problems) != 0 || answers["owner"] != "Cafe\u0301" {
+		t.Errorf("Read = %+q, %v", answers, problems)
+	}
+	_, _, problems = Read(m, Given{"name=blue-fox", "owner=Blue\u3164Fox"}, false, false)
+	want := `the answer to owner, "Blue\u3164Fox": ` + m.Questions[1].Check("Blue\u3164Fox").Error()
+	if len(problems) != 1 || problems[0].Error() != want {
+		t.Errorf("problems %+q, not %q", problems, want)
+	}
+}
+
 // Resolve's one error, read as text, names every answer to fix, a line
 // each in the order they were given, the missing ones last: what a reader
 // of the error sees where no one classifies its kinds (internal/cli words

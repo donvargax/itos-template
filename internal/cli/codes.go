@@ -83,7 +83,7 @@ func answerProblem(err answer.Error) (code int, problems []Problem) {
 	case *answer.Twice:
 		code, problems = CodeUsage, one("answer-twice", "the answer to %s is given twice", e.Name)
 	case *answer.NotTaken:
-		code, problems = CodeUsage, one("answer-malformed", "the answer to %s, %q, is not one it takes: %v", e.Name, e.Answer, e.Reason)
+		code, problems = CodeUsage, one("answer-malformed", "the answer to %s, %+q, is not one it takes: %v", e.Name, e.Answer, e.Reason)
 	case *answer.Missing:
 		q := e.Question
 		if q.Default != nil {
