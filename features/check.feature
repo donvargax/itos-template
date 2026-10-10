@@ -118,6 +118,24 @@ Feature: check renders every combination a template allows and runs its checks
     And its error output says "U+202E"
     And its report names no combination
 
+  # check-record-name-slice: check renders each combination as new does, its record and its
+  # first commit holding the template's name, and record-name gave new alone the name a made
+  # project keeps. So a template named by a URL holding a credential put the credential in every
+  # render, and a template whose own checks scan a render for credentials, as go-template-itos's
+  # gitleaks does, failed every combination when checked with a token in its URL, the very run a
+  # CI job makes. check names the template in each render as new records it, through the same
+  # template.Recorded: the userinfo cut, a relative path made absolute. A render is thrown away,
+  # so check says nothing of the credential left out, which new says because a project keeps it.
+  # The fixture's root check fails wherever a render's files or commit messages hold the text.
+  @ID-CHECK-25 @check-record-name-slice @wip
+  Scenario: check renders a template named by a URL with a credential without the credential
+    Given the template "acme" whose root has a check that fails where a render holds "ghp_EXAMPLETOKENNOTREAL"
+    When itos-template runs with git cloning the template for "https://x-access-token:ghp_EXAMPLETOKENNOTREAL@example.invalid/acme.git", with "check https://x-access-token:ghp_EXAMPLETOKENNOTREAL@example.invalid/acme.git --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And its report says "go + cli" passed
+    And its standard output does not say "ghp_EXAMPLETOKENNOTREAL"
+    And its error output does not say "ghp_EXAMPLETOKENNOTREAL"
+
   @ID-CHECK-07 @slice-2
   Scenario: check with no template named checks the repository it runs in
     Given the template "acme"
