@@ -115,6 +115,7 @@ func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
 	w.newSteps(sc)
 	w.checkSteps(sc)
 	w.releaseSteps(sc)
+	w.releaseCutSteps(sc)
 	w.adoptSteps(sc)
 	w.updateSteps(sc)
 }
