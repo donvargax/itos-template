@@ -1235,8 +1235,8 @@ items:
   - id: T-41
     title: Every git the scenarios start runs with auto-maintenance and auto-gc off, so no detached maintenance races a snapshot
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: task
     why: >
