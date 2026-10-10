@@ -258,14 +258,15 @@ items:
     depends_on: [slice-1]
     kind: slice
     tags: [new]
-  - id: new-template-name
-    title: "What the record keeps of how a template was named: a relative path, a URL with credentials"
+  - id: record-name
+    title: "A made project records its template by a name update can reach, never holding a credential"
     phase: 1
     owner: null
     status: todo
     depends_on: [slice-1]
-    kind: idea
+    kind: slice
     why: >
+      Was new-template-name.
       slice-1 records the template exactly as it was named (decision 10). A relative path (../acme)
       reaches the template only from the folder new ran in, so update run from the made project
       cannot; a URL with a user and password (https://user:token@host/…) would put a credential in a
