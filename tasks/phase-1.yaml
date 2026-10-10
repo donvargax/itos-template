@@ -855,3 +855,23 @@
     this repository runs, and itos#20's fix: if a release already pinned carries it, delete the
     lesson whose exit it is in the same push. Prove the proof step can fail: on a scratch branch
     never pushed, a range holding a code change with no fresh .metrics/mutate/ fails the plan.
+- id: T-35
+  type: ci
+  title: "CI's invisible-character gate refuses Unicode's whole Default_Ignorable set, as setup steps do"
+  why: >
+    T-32's gate, made strict by T-33, matches Cf, Zl and Zp, which leaves the characters
+    setup-blank found drawn as nothing though Unicode calls them letters or marks: the Hangul
+    fillers U+115F, U+1160, U+3164, U+FFA0, U+034F and the variation selectors. The editing tool
+    has turned escapes into such characters in three items running, so the gate is the backstop
+    that matters. git grep -P takes \p{Default_Ignorable_Code_Point} (tried 2026-10-09, git 2.56,
+    naming a planted U+3164), so in both plans the pattern becomes
+    [\p{Cf}\p{Default_Ignorable_Code_Point}\p{Zl}\p{Zp}], Cf kept since Unicode's set leaves out a
+    few format characters (U+0600, U+FFF9 to U+FFFB), and T-33's test $? -eq 1 kept, under which a
+    git whose PCRE2 lacks the property fails the gate rather than passing it. No tracked file holds
+    one today. Regenerate AGENTS.md's rules block.
+  done_when:
+    - run: >-
+        test "$(grep -c 'p{Default_Ignorable_Code_Point}' itos.yaml)" -ge 2 &&
+        grep -q 'p{Default_Ignorable_Code_Point}' AGENTS.md &&
+        test "$(grep -c 'test $? -eq 1' itos.yaml)" -ge 2 &&
+        { git grep -P -n -I '[\p{Cf}\p{Default_Ignorable_Code_Point}\p{Zl}\p{Zp}]'; test $? -eq 1; }
