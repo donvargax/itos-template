@@ -1044,8 +1044,8 @@ items:
   - id: T-32
     title: CI refuses a tracked file holding a format character or a Unicode line separator
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: task
     why: >
