@@ -122,6 +122,7 @@ CI runs its plan, `itos ci run`, on every push, in this order, stopping at the f
 - `itos tests smoke check scenario`
 - `itos config check`
 - `tools/bin/doc-caps`
+- `! git grep -P -n -I '[\p{Cf}\p{Zl}\p{Zp}]'`
 - `tools/bin/pinned golangci-lint run ./...`
 - The static checks of the tasks the push's commits name.
 - `go tool govulncheck -test ./...`
@@ -131,6 +132,6 @@ CI runs its plan, `itos ci run`, on every push, in this order, stopping at the f
 - `tools/bin/pinned itos-cc mutation sample --count 10`
 - The other checks of the tasks the push's commits name.
 
-A push that touches only `**/*.md`, `docs/**` and `tasks/**` runs only `itos config check` and `tools/bin/doc-caps`, and the static checks of the tasks its commits name.
+A push that touches only `**/*.md`, `docs/**` and `tasks/**` runs only `itos config check`, `tools/bin/doc-caps` and `! git grep -P -n -I '[\p{Cf}\p{Zl}\p{Zp}]'`, and the static checks of the tasks its commits name.
 
 <!-- itos:end -->
