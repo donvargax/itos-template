@@ -8,7 +8,7 @@
     "internal/cli/cli_test.go": "94f672872f685eadc6bccac62ce19685f1c5a260b4474c103f3dfb63ff2aaf5d",
     "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
     "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
-    "internal/manifest/manifest_test.go": "24e51bc3207389d491350fd9f081b9b1269858e5ba7a1ebbf97940bc34c1c510",
+    "internal/manifest/manifest_test.go": "6dbca91788342556cecbb5d4e7eeb44b50a76d4907454f085e54d1e650ab22ec",
     "internal/manifest/property_test.go": "f94ec42da7843087706957fc590194e1049302b2bb10f4203ad349a6117b2e17",
     "internal/manifest/shell_test.go": "b7038b14982dfe57bf22ba1b0c47deac4476ace8ae50eae39f1d9dc7404c8527",
     "internal/newproject/newproject_test.go": "1fb9a8d9a0257b54475f5c08f84a0c906f85a58d15c53d7b6ee31af714fe7a40",
@@ -38,7 +38,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/manifest.Step",
@@ -50,21 +51,22 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/manifest.Manifest",
       "name": "checkSetup",
-      "hash": "eaab7d4039b8d251",
-      "start_line": 42,
-      "end_line": 66,
-      "killed": 18,
+      "hash": "0590843835f56365",
+      "start_line": 46,
+      "end_line": 74,
+      "killed": 22,
       "survived": 0,
       "uncovered": 0,
-      "sites": 18,
+      "sites": 22,
       "mutants": [
         {
-          "line": 44,
+          "line": 48,
           "column": 12,
           "offset": 113,
           "original": "!=",
@@ -73,7 +75,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 44,
+          "line": 48,
           "column": 19,
           "offset": 120,
           "original": "&&",
@@ -82,7 +84,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 44,
+          "line": 48,
           "column": 32,
           "offset": 133,
           "original": "<",
@@ -91,7 +93,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 48,
+          "line": 52,
           "column": 23,
           "offset": 262,
           "original": "==",
@@ -100,7 +102,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 48,
+          "line": 52,
           "column": 26,
           "offset": 265,
           "original": "0",
@@ -109,7 +111,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 48,
+          "line": 52,
           "column": 28,
           "offset": 267,
           "original": "||",
@@ -118,7 +120,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 48,
+          "line": 52,
           "column": 42,
           "offset": 281,
           "original": "0",
@@ -127,7 +129,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 48,
+          "line": 52,
           "column": 45,
           "offset": 284,
           "original": "==",
@@ -136,7 +138,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 49,
+          "line": 53,
           "column": 100,
           "offset": 391,
           "original": "+",
@@ -145,7 +147,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 49,
+          "line": 53,
           "column": 101,
           "offset": 392,
           "original": "1",
@@ -154,7 +156,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 52,
+          "line": 56,
           "column": 61,
           "offset": 497,
           "original": ">=",
@@ -163,7 +165,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 52,
+          "line": 56,
           "column": 64,
           "offset": 500,
           "original": "0",
@@ -172,7 +174,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 54,
+          "line": 58,
           "column": 198,
           "offset": 749,
           "original": "+",
@@ -181,7 +183,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 54,
+          "line": 58,
           "column": 199,
           "offset": 750,
           "original": "1",
@@ -190,42 +192,90 @@
           "scope": "all-tests"
         },
         {
-          "line": 61,
+          "line": 60,
+          "column": 53,
+          "offset": 820,
+          "original": ">=",
+          "replacement": ">",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 60,
+          "column": 56,
+          "offset": 823,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 62,
+          "column": 241,
+          "offset": 1115,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 62,
+          "column": 242,
+          "offset": 1116,
+          "original": "1",
+          "replacement": "0",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 69,
           "column": 20,
-          "offset": 858,
+          "offset": 1224,
           "original": "+",
           "replacement": "-",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 61,
+          "line": 69,
           "column": 27,
-          "offset": 865,
+          "offset": 1231,
           "original": "+",
           "replacement": "-",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 64,
+          "line": 72,
           "column": 22,
-          "offset": 937,
+          "offset": 1303,
           "original": "+",
           "replacement": "-",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 64,
+          "line": 72,
           "column": 33,
-          "offset": 948,
+          "offset": 1314,
           "original": "+",
           "replacement": "-",
           "outcome": "killed",
           "scope": "all-tests"
         }
       ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/manifest",
+      "name": "invisible",
+      "hash": "9da0768939de0144",
+      "start_line": 79,
+      "end_line": 81,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/manifest.Manifest",
@@ -237,7 +287,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     }
   ]
 }
