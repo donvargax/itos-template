@@ -3,12 +3,14 @@
   "file": "internal/project/project.go",
   "language": "go",
   "tests": {
+    "internal/adopt/adopt_test.go": "3498983581410317dd8b7a835ab84b7a0b6cb519d7cc037e918952286319b3eb",
+    "internal/adoption/adoption_test.go": "3984fe6ea1035dc0f837402661d3371b0b1b3adcdc870fabdf06c8e753a3017a",
     "internal/check/check_test.go": "19867f988c0ccd5a52034cf5b0239e2646df6003c1bbc096aebfe31df3fbfe5f",
-    "internal/cli/cli_test.go": "516eee21ede0679da5787092c6f8aa86a55449935222c9fa41ea139b6c1196af",
+    "internal/cli/cli_test.go": "23c0ef64626e04f1a721fe4c8792d0e6b6c9ea3496a5b3c1052eb788bb5ee132",
     "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
     "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
     "internal/newproject/newproject_test.go": "0cb6019a3fbedc92035018cf3f5adb58ff800545c763533bf6d07c3d57e12f44",
-    "internal/project/project_test.go": "60c6e029796268aeffed231947c4622317da1d35b365642d61ff7b81f5869da4",
+    "internal/project/project_test.go": "736cc92ddbe4448560ab146237674fa7522a0023698e4a100eaa72cf32e3d100",
     "internal/project/property_test.go": "e6d64b2daa9a6301e85a6f39de9caf6a7e52d52d355779168830943ed5b842b1",
     "internal/template/check_test.go": "6b408881490821ea2726f0e2820f1b3479116d53e8f91c91860f6778dff0b0f1",
     "internal/template/choose_test.go": "3f099f90d705b4f635377a4f1f20634e645221961545cdf088dab9ea7bbe1368",
@@ -17,9 +19,98 @@
     "internal/template/property_test.go": "7970a0416c599941f2ef9a15b771bcb9e0bafca49a38dd5f3420140cf853c33c",
     "internal/template/redact_test.go": "8d8616c4910b1e3cd723bde408501d9ab626cbee1a74bbfef5682d89322adeb0",
     "internal/template/release_test.go": "443a18400e896b3be6ddf7617e062ce0177c1192fac505431ab998cea0046e43",
-    "internal/template/template_test.go": "298134f337ce8b115d7995d1b00cf8fc725fae4c624b11bec01346b4a85c54c4"
+    "internal/template/template_test.go": "d31eed5a0ee962a350bcbea3ad1b1ba9bb5263aed335be4c6fbc226a161a72e4"
   },
   "units": [
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/project.Record",
+      "name": "File",
+      "hash": "7f41255b8c1c12f4",
+      "start_line": 77,
+      "end_line": 84,
+      "killed": 1,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 1,
+      "mutants": [
+        {
+          "line": 80,
+          "column": 9,
+          "offset": 105,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/project.Writer",
+      "name": "Write",
+      "hash": "c041dc789435bc50",
+      "start_line": 132,
+      "end_line": 168,
+      "killed": 6,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 6,
+      "mutants": [
+        {
+          "line": 133,
+          "column": 8,
+          "offset": 131,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 134,
+          "column": 35,
+          "offset": 174,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 141,
+          "column": 9,
+          "offset": 322,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 151,
+          "column": 48,
+          "offset": 585,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 155,
+          "column": 13,
+          "offset": 663,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 159,
+          "column": 9,
+          "offset": 779,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
     {
       "namespace": "github.com/donvargax/itos-template/internal/project.Project",
       "name": "commitMessage",
@@ -58,7 +149,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/project.Record",
@@ -89,7 +181,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     }
   ]
 }

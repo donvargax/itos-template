@@ -1,0 +1,642 @@
+{
+  "version": 1,
+  "file": "internal/adoption/adoption.go",
+  "language": "go",
+  "tests": {
+    "internal/adopt/adopt_test.go": "3498983581410317dd8b7a835ab84b7a0b6cb519d7cc037e918952286319b3eb",
+    "internal/adoption/adoption_test.go": "3984fe6ea1035dc0f837402661d3371b0b1b3adcdc870fabdf06c8e753a3017a",
+    "internal/cli/cli_test.go": "23c0ef64626e04f1a721fe4c8792d0e6b6c9ea3496a5b3c1052eb788bb5ee132",
+    "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
+    "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098"
+  },
+  "units": [
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption",
+      "name": "Open",
+      "hash": "198851dfb96ad846",
+      "start_line": 86,
+      "end_line": 113,
+      "killed": 7,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 7,
+      "mutants": [
+        {
+          "line": 89,
+          "column": 11,
+          "offset": 116,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 91,
+          "column": 7,
+          "offset": 150,
+          "original": "!",
+          "replacement": "",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 93,
+          "column": 7,
+          "offset": 222,
+          "original": "!",
+          "replacement": "",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 99,
+          "column": 5,
+          "offset": 331,
+          "original": "!",
+          "replacement": "",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 102,
+          "column": 24,
+          "offset": 431,
+          "original": ">",
+          "replacement": ">=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 102,
+          "column": 26,
+          "offset": 433,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 106,
+          "column": 9,
+          "offset": 549,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption",
+      "name": "Adopt",
+      "hash": "91d661c4ef72addb",
+      "start_line": 122,
+      "end_line": 155,
+      "killed": 11,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 11,
+      "mutants": [
+        {
+          "line": 128,
+          "column": 9,
+          "offset": 282,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 131,
+          "column": 62,
+          "offset": 373,
+          "original": ">",
+          "replacement": ">=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 131,
+          "column": 64,
+          "offset": 375,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 133,
+          "column": 64,
+          "offset": 495,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 140,
+          "column": 24,
+          "offset": 589,
+          "original": ">",
+          "replacement": ">=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 140,
+          "column": 26,
+          "offset": 591,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 140,
+          "column": 28,
+          "offset": 593,
+          "original": "&&",
+          "replacement": "||",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 140,
+          "column": 31,
+          "offset": 596,
+          "original": "!",
+          "replacement": "",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 144,
+          "column": 9,
+          "offset": 696,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 147,
+          "column": 49,
+          "offset": 774,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 153,
+          "column": 14,
+          "offset": 897,
+          "original": "true",
+          "replacement": "false",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption",
+      "name": "Compare",
+      "hash": "9924c81c2355b6b2",
+      "start_line": 160,
+      "end_line": 183,
+      "killed": 7,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 7,
+      "mutants": [
+        {
+          "line": 167,
+          "column": 8,
+          "offset": 208,
+          "original": "!",
+          "replacement": "",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 169,
+          "column": 15,
+          "offset": 333,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 169,
+          "column": 25,
+          "offset": 343,
+          "original": "||",
+          "replacement": "&&",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 169,
+          "column": 28,
+          "offset": 346,
+          "original": "!",
+          "replacement": "",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 171,
+          "column": 48,
+          "offset": 472,
+          "original": "||",
+          "replacement": "&&",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 172,
+          "column": 25,
+          "offset": 510,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 177,
+          "column": 26,
+          "offset": 611,
+          "original": "!",
+          "replacement": "",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption",
+      "name": "diffs",
+      "hash": "aa6cd691fdeaf211",
+      "start_line": 187,
+      "end_line": 204,
+      "killed": 8,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 8,
+      "mutants": [
+        {
+          "line": 193,
+          "column": 15,
+          "offset": 265,
+          "original": "||",
+          "replacement": "&&",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 193,
+          "column": 29,
+          "offset": 279,
+          "original": "&&",
+          "replacement": "||",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 193,
+          "column": 48,
+          "offset": 298,
+          "original": "||",
+          "replacement": "&&",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 193,
+          "column": 61,
+          "offset": 311,
+          "original": "&&",
+          "replacement": "||",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 193,
+          "column": 78,
+          "offset": 328,
+          "original": "||",
+          "replacement": "&&",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 194,
+          "column": 15,
+          "offset": 345,
+          "original": "&&",
+          "replacement": "||",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 194,
+          "column": 28,
+          "offset": 358,
+          "original": "&&",
+          "replacement": "||",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 199,
+          "column": 10,
+          "offset": 522,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption",
+      "name": "side",
+      "hash": "e68a059935988ef8",
+      "start_line": 207,
+      "end_line": 212,
+      "killed": 1,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 1,
+      "mutants": [
+        {
+          "line": 208,
+          "column": 5,
+          "offset": 51,
+          "original": "!",
+          "replacement": "",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption",
+      "name": "byPath",
+      "hash": "e329a83d275e5dd2",
+      "start_line": 214,
+      "end_line": 220,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption",
+      "name": "binary",
+      "hash": "37b4837cb88fce01",
+      "start_line": 225,
+      "end_line": 227,
+      "killed": 2,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 2,
+      "mutants": [
+        {
+          "line": 226,
+          "column": 28,
+          "offset": 59,
+          "original": "&&",
+          "replacement": "||",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 226,
+          "column": 86,
+          "offset": 117,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption",
+      "name": "submodule",
+      "hash": "fbdb6895a5a2129b",
+      "start_line": 229,
+      "end_line": 229,
+      "killed": 2,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 2,
+      "mutants": [
+        {
+          "line": 229,
+          "column": 67,
+          "offset": 66,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 229,
+          "column": 70,
+          "offset": 69,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption.NotRepository",
+      "name": "adoptionError",
+      "hash": "205a40c7d8e699fc",
+      "start_line": 261,
+      "end_line": 261,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption.NoWorkTree",
+      "name": "adoptionError",
+      "hash": "eb77bd73f9738891",
+      "start_line": 262,
+      "end_line": 262,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption.NoCommit",
+      "name": "adoptionError",
+      "hash": "b96d2fee6e9a8d5e",
+      "start_line": 263,
+      "end_line": 263,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption.Dirty",
+      "name": "adoptionError",
+      "hash": "4e1ebc322cb410b2",
+      "start_line": 264,
+      "end_line": 264,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption.HasRecord",
+      "name": "adoptionError",
+      "hash": "de390c35b00e91f2",
+      "start_line": 265,
+      "end_line": 265,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption.Differs",
+      "name": "adoptionError",
+      "hash": "476ec517fc43796a",
+      "start_line": 266,
+      "end_line": 266,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption.NotRepository",
+      "name": "Error",
+      "hash": "17b688b976690498",
+      "start_line": 268,
+      "end_line": 268,
+      "killed": 1,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 1,
+      "mutants": [
+        {
+          "line": 268,
+          "column": 74,
+          "offset": 73,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption.NoWorkTree",
+      "name": "Error",
+      "hash": "d0c2aa9a8d110971",
+      "start_line": 269,
+      "end_line": 269,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption.NoCommit",
+      "name": "Error",
+      "hash": "3395543f4a325397",
+      "start_line": 270,
+      "end_line": 270,
+      "killed": 1,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 1,
+      "mutants": [
+        {
+          "line": 270,
+          "column": 65,
+          "offset": 64,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption.Dirty",
+      "name": "Error",
+      "hash": "edc1d5ff9206be0d",
+      "start_line": 271,
+      "end_line": 271,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption.HasRecord",
+      "name": "Error",
+      "hash": "1a82f78fa88a04ed",
+      "start_line": 272,
+      "end_line": 272,
+      "killed": 2,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 2,
+      "mutants": [
+        {
+          "line": 272,
+          "column": 61,
+          "offset": 60,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 272,
+          "column": 70,
+          "offset": 69,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/adoption.Differs",
+      "name": "Error",
+      "hash": "17eaf3fe928f6cbb",
+      "start_line": 273,
+      "end_line": 273,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    }
+  ]
+}
