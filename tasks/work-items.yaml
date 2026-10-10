@@ -1056,14 +1056,6 @@ items:
     title: The invisible-character gate passes only when git grep finds nothing, never when it fails
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      Was invisible-gate-error-passes.
-      T-32's step, ! git grep -P -n -I '[\p{Cf}\p{Zl}\p{Zp}]', inverts every non-zero exit, so git
-      grep's own error (exit 128) reads as a pass: a git built without PCRE2, as some local clones'
-      are, or a broken pattern after an edit, turns the gate off silently. Seen while proving T-32:
-      a pattern missing its closing bracket exits 0. A step that passes only on git grep's exit 1
-      (no match) and fails on 0 and on anything else would hold; whether itos's ci step should
-      express that, or a tools/bin script of ours, is the person's call (decision 13).
