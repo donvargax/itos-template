@@ -364,3 +364,12 @@ Feature: check renders every combination a template allows and runs its checks
     When itos-template runs in the folder "ci" with "check --answer name=blue-fox --defaults"
     Then it exits with code 2
     And its error output says "no default branch"
+
+  # bug-6: check names a template as new does, so it judges the name by the same rule before any
+  # clone (new.feature's ID-NEW-64 says why).
+  @ID-CHECK-28 @bug-6 @wip
+  Scenario: check refuses a template named with a tab with exit 2, naming its code point
+    When itos-template runs with "check acme{U+0009}widget --answer name=blue-fox --defaults"
+    Then it exits with code 2
+    And its error output says "template"
+    And its error output says "U+0009"

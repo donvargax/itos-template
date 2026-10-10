@@ -344,6 +344,35 @@ Feature: new makes a project from a template
       | an answer with no =        | U+3164 | blue{U+3164}fox | blue\u3164fox |
       | a question it does not ask | U+202E | na{U+202E}me=x  | na\u202eme    |
 
+  # bug-6: the template as it was named is the one string a record holds that nothing vetted,
+  # and new also prints it and writes it into the first commit message. go.yaml.in/yaml/v3 writes
+  # a string starting with a tab and holding a newline as a block scalar it cannot read back
+  # (go-yaml/yaml#660), so a record named so would stop update. new, check and adopt judge the
+  # template name by the PRECIS rule an answer is judged by (answer-invisible, above), before any
+  # clone: exit 2 naming the template and the character's code point, nothing written. The
+  # person's call, 2026-10-10, over quoting around the library. The name is refused, never
+  # normalized; a real path's spaces and letters outside ASCII stay taken (ID-NEW-65).
+  @ID-NEW-64 @bug-6 @wip
+  Scenario Outline: new refuses a template named with <what> with exit 2, naming its code point, and writes nothing
+    When itos-template runs with "new acme{<code>}widget made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 2
+    And its error output says "template"
+    And its error output says "<code>"
+    And the path "made" does not exist
+
+    Examples:
+      | what                     | code   |
+      | a tab                    | U+0009 |
+      | a line feed              | U+000A |
+      | a right-to-left override | U+202E |
+
+  @ID-NEW-65 @bug-6 @wip
+  Scenario: new takes a template whose path holds a space and a letter outside ASCII, and records it as named
+    Given the template "acme" in a folder named "my templates/ácme"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And the record in "made" names the template as "{template}"
+
   @ID-NEW-14 @slice-1
   Scenario: new refuses an answer that does not match its question's pattern with exit 2, and writes nothing
     Given the template "acme"
