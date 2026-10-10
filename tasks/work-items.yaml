@@ -1022,14 +1022,15 @@ items:
       and an emoji's selector, which PRECIS already refuses. Weigh what else PRECIS refuses in a
       step that drawnAsNothing takes (unassigned code points, some symbols) against the steps
       templates write, and keep the message naming the code point.
-  - id: invisible-pattern-once
+  - id: T-37
     title: The invisible-character pattern is written once, not in three places
     phase: 1
     owner: null
     status: todo
     depends_on: []
-    kind: idea
+    kind: task
     why: >
+      Was invisible-pattern-once.
       T-35 left the pattern [\p{Cf}\p{Default_Ignorable_Code_Point}\p{Zl}\p{Zp}] written three
       times: ci.steps, the prose plan's steps and tools/hooks/pre-commit. Nothing checks they agree,
       so widening one (as T-35 did all three by hand) can leave the hook looser than CI and a
