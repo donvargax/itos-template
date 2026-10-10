@@ -1083,3 +1083,18 @@ items:
       [credentials]) would find the token there and fail every combination, and every check can read
       it on disk. Render with the name template.Recorded gives, as new does; check prints no name on
       success, and bug-4 covers its errors.
+  - id: check-here-record
+    title: check records the template it runs in by a name update can reach, not .
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      check-record-name-slice found, 2026-10-09, that check run with no template named records each
+      render's template as git.Here, a dot. In a render that names the render itself, so a template
+      check that runs update in a render, or reads the record's template, reaches nothing. new never
+      sees the dot, since it is always named a template. Recording the repository's top as an
+      absolute path, as Recorded makes a relative one, would give such a check a name it can reach;
+      the working folder is not that name, being possibly a subfolder.
+    refs: [check-record-name-slice]
