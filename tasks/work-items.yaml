@@ -11,6 +11,7 @@
 phases:
   1: donvargax # the ledger's phase 1: a handle, or null
 queue:
+  - bug-6
   - slice-13
   - mutation-suite-repeats
 items:
