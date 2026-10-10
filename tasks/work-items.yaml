@@ -1184,3 +1184,18 @@ items:
       so the baseline mutation run is measured with unchanged tools. Read the release notes between
       rc.3 and 7.0.0 first: a fix there may retire a lesson in docs/ORCHESTRATING.md (itos#21,
       itos#34) or an entry in upstream-fixes.
+  - id: self-adopt
+    title: itos-template adopts go-template-itos and takes its first update, proving decision 24
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [slice-12, slice-13]
+    kind: idea
+    why: >
+      Decision 24: this repository adopts the template it came from and keeps current by update,
+      each update one ordinary commit through its gates. Adopt alone proves little; the first update
+      after it is the proof. Waits on a go-template-itos release to adopt (none tagged on
+      2026-10-10; cut with itos-template release from that repository, through its own registry).
+      Once slice-12 lands, a dry-run adopt of this repository against go-template-itos is the cheap
+      first look, nothing written, at whether the preview reads well on a project this size. Becomes
+      a task, naming the release it adopts, once slice-13 lands. The person agreed 2026-10-10.
