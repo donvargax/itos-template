@@ -1053,8 +1053,8 @@ items:
   - id: T-36
     title: internal/template's own refusals quote a --stack or --feature value escaped
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: task
     why: >
