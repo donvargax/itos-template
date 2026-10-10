@@ -1049,14 +1049,15 @@ items:
     status: done
     depends_on: []
     kind: task
-  - id: invisible-gate-error-passes
-    title: The invisible-character step passes when git grep itself fails
+  - id: T-33
+    title: The invisible-character gate passes only when git grep finds nothing, never when it fails
     phase: 1
     owner: null
     status: todo
     depends_on: []
-    kind: idea
+    kind: task
     why: >
+      Was invisible-gate-error-passes.
       T-32's step, ! git grep -P -n -I '[\p{Cf}\p{Zl}\p{Zp}]', inverts every non-zero exit, so git
       grep's own error (exit 128) reads as a pass: a git built without PCRE2, as some local clones'
       are, or a broken pattern after an edit, turns the gate off silently. Seen while proving T-32:
