@@ -1037,8 +1037,8 @@ items:
   - id: T-37
     title: The invisible-character pattern is written once, not in three places
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: task
     why: >
