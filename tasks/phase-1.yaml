@@ -862,5 +862,4 @@
         git grep -q 415df6017f451beef8d6e12ea15e8b638f625f1a -- .github/workflows/ci.yml &&
         git grep -q 415df6017f451beef8d6e12ea15e8b638f625f1a -- .github/workflows/release.yml &&
         ! git grep -q 'version: 6.0.0' -- .github &&
-        itos ci plan --whole > /dev/null &&
-        itos ci plan --whole 2>&1 | grep -qi 'proof'
+        itos ci plan 4b8132b~1 4b8132b --json | jq -e '[.order[] | select(.proof)] | length == 1'
