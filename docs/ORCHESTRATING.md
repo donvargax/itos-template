@@ -61,8 +61,3 @@ Each lesson names its exit and its two dates; at most ten.
   this repository, and denies it, so new-steps' agent fell back to `git commit-tree`. The guard
   follows `-C`, and a folder itos does not manage gets no answer. Briefs say so. Exit: itos#34
   fixed and pinned.
-- **An invisible character in a test is written as an escape, never as itself** (2026-10-09,
-  seen 2026-10-09). setup-invisible's agent found its edits had put literal U+FEFF and kin into a
-  Go raw string, caught only because Go refuses a BOM there; a U+202E would have compiled
-  unseen. Briefs touching such characters say to write `\uXXXX` in an interpreted string and to
-  scan the diff for them before committing. Exit: T-32.
