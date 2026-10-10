@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "file": "internal/check/check.go",
+  "language": "go",
+  "tests": {
+    "cmd/itos-template/main_test.go": "9e36580f77a88e3eadeed409f12517b12aa45a208524ec9f57b449d35cb7ed59"
+  },
+  "units": [
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/check",
+      "name": "Handle",
+      "hash": "1a502cf3d70616de",
+      "start_line": 180,
+      "end_line": 215,
+      "killed": 7,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 7,
+      "mutants": [
+        {
+          "line": 182,
+          "column": 9,
+          "offset": 157,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 188,
+          "column": 10,
+          "offset": 301,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 194,
+          "column": 9,
+          "offset": 418,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 198,
+          "column": 9,
+          "offset": 488,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 201,
+          "column": 16,
+          "offset": 528,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 203,
+          "column": 10,
+          "offset": 570,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 209,
+          "column": 9,
+          "offset": 757,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    }
+  ]
+}
