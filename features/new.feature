@@ -221,8 +221,8 @@ Feature: new makes a project from a template
 
     Examples:
       | what                       | code   | given           | escaped       |
-      | an answer with no =        | U+3164 | blue{U+3164}fox | blueㅤfox |
-      | a question it does not ask | U+202E | na{U+202E}me=x  | na‮me    |
+      | an answer with no =        | U+3164 | blue{U+3164}fox | blue\u3164fox |
+      | a question it does not ask | U+202E | na{U+202E}me=x  | na\u202eme    |
 
   @ID-NEW-14 @slice-1
   Scenario: new refuses an answer that does not match its question's pattern with exit 2, and writes nothing
