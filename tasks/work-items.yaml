@@ -1105,8 +1105,8 @@ items:
   - id: T-38
     title: TestShReadsQuotedWordsBackByteForByte fails on Windows when it draws a carriage return
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: task
     why: >
