@@ -421,13 +421,34 @@ template written for a later itos-template is refused by an earlier one rather t
 ## The record a made project keeps
 
 `new` writes `.itos-template.yaml` at the made project's top and commits it with the render
-(decision 10): the template as it was named, the stack, the features, the answers, and the commit
-each of the template's branches was at, the root included. A template may not hold a file of that
-name.
+(decision 10): the template, the stack, the features, the answers, and the commit each of the
+template's branches was at, the root included. A template may not hold a file of that name.
+
+The template is recorded by a name `update` can reach again from anywhere on the machine, holding
+no credential, though `new` clones it by the name as given (record-name):
+
+- A URL's userinfo is left out: `https://x-access-token:<token>@host/acme.git` is recorded as
+  `https://host/acme.git`, as bug-4 leaves it out of every error. The record is committed, so a
+  credential there would sit in the made project's history; `update` reaches the template through
+  git's credential helper instead (decision 9, `git help credentials`), and `new` says so once on
+  its error output. The same name is the one `new` prints, puts in `--json`'s `template` and in the
+  first commit's message.
+- A relative path (`../acme`) is recorded as the absolute path it named from the folder `new` ran
+  in, written as the system writes a path: `/home/you/acme`, or `C:\Users\you\acme` on Windows,
+  whichever separators it was given with. Recorded as given it would reach the template only from
+  that folder. A made project published elsewhere then carries that machine's path, which names a
+  folder, never a secret.
+- An absolute path, a URL with no userinfo and an scp-like name (`git@host:path`, a user and no
+  secret) are recorded as given. Each kind is told as git tells it, so the name recorded is the
+  template git cloned; on Windows a path starting with a drive (`C:\acme`, `C:acme`) or a share
+  (`\\server\share`) is absolute.
+
+The clone `new` renders from is a bare repository in a temporary folder, its origin the name as
+given, removed when `new` ends; the made project is a repository of its own, with no remote.
 
 ```yaml
 version: 1
-template: ../acme
+template: /home/you/acme
 stack: go
 features:
   - cli

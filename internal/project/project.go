@@ -27,10 +27,10 @@ import (
 // RecordFile is the made project's record of its render.
 const RecordFile = ".itos-template.yaml"
 
-// Record is what a project was rendered from (decision 10): the template as
-// it was named, the stack, the features, the answers, and the commit each of
-// the template's branches was at. Its version is the file's format, which
-// new's --json leaves out.
+// Record is what a project was rendered from (decision 10): the template, by
+// the name template.Recorded gives new (record-name), the stack, the
+// features, the answers, and the commit each of the template's branches was
+// at. Its version is the file's format, which new's --json leaves out.
 type Record struct {
 	Version  int               `yaml:"version" json:"-"`
 	Template string            `yaml:"template" json:"template"`
@@ -43,10 +43,11 @@ type Record struct {
 // RecordVersion is the record's format, the version a Record is written in.
 const RecordVersion = 1
 
-const recordHeader = `# What itos-template new rendered this project from: the template as it was
-# named, the stack, the features, the answers, and the commit each of the
-# template's branches was at. itos-template update reads it; edit it only to
-# change what an update renders.
+const recordHeader = `# What itos-template new rendered this project from: the template, by a
+# name update can reach (an absolute path, a URL with no credential), the
+# stack, the features, the answers, and the commit each of the template's
+# branches was at. itos-template update reads it; edit it only to change
+# what an update renders.
 `
 
 // Marshal is r as .itos-template.yaml holds it, under a comment saying what

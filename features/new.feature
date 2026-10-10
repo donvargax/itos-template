@@ -118,7 +118,7 @@ Feature: new makes a project from a template
   # The scenarios reach a URL with no network: git's url.<base>.insteadOf, set for the run only,
   # has git clone the fixture for a URL on example.invalid, which never resolves, while new sees and
   # records the URL as the person gave it. The credential is a fake one.
-  @ID-NEW-55 @record-name @wip
+  @ID-NEW-55 @record-name
   Scenario: a template URL's credential reaches neither the made project nor what new prints
     Given the template "acme"
     When itos-template runs with git cloning the template for "https://x-access-token:ghp_EXAMPLETOKENNOTREAL@example.invalid/acme.git", with "new https://x-access-token:ghp_EXAMPLETOKENNOTREAL@example.invalid/acme.git made --stack go --answer name=blue-fox --defaults"
@@ -129,7 +129,7 @@ Feature: new makes a project from a template
     And its error output does not say "ghp_EXAMPLETOKENNOTREAL"
     And its error output says "credential helper"
 
-  @ID-NEW-56 @record-name @wip
+  @ID-NEW-56 @record-name
   Scenario: with --json the template new names holds no credential either
     Given the template "acme"
     When itos-template runs with git cloning the template for "https://x-access-token:ghp_EXAMPLETOKENNOTREAL@example.invalid/acme.git", with "new https://x-access-token:ghp_EXAMPLETOKENNOTREAL@example.invalid/acme.git made --stack go --answer name=blue-fox --defaults --json"
@@ -140,7 +140,7 @@ Feature: new makes a project from a template
   # {template-relative} is the fixture template's path relative to the folder itos-template runs
   # in, as a person types ../acme; the record must name the template by {template}, its absolute
   # path, whatever folder update later runs in.
-  @ID-NEW-57 @record-name @wip
+  @ID-NEW-57 @record-name
   Scenario: a template named by a relative path is recorded by its absolute path
     Given the template "acme"
     When itos-template runs with "new {template-relative} made --stack go --answer name=blue-fox --defaults"

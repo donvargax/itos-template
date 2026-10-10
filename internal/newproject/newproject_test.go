@@ -73,3 +73,14 @@ func TestShowPrintsNothingAboutSetupWhenThereIsNoStep(t *testing.T) {
 		}
 	}
 }
+
+// A credential cut from the template's URL is said on the error output
+// alone, naming git's credential helper.
+func TestCredentialLeftOutSaysSoOnTheErrorOutput(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	credentialLeftOut(&cli.UI{Stdout: &stdout, Stderr: &stderr})("https://example.invalid/acme.git")
+	want := "itos-template: the record names the template https://example.invalid/acme.git, the credential its URL held left out: itos-template update will reach the template through git's credential helper (git help credentials)\n"
+	if stdout.String() != "" || stderr.String() != want {
+		t.Errorf("credentialLeftOut printed\n%s---\n%s", stdout.String(), stderr.String())
+	}
+}

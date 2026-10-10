@@ -34,7 +34,10 @@ import (
 // Template is a template's repository and its manifest, read from its root
 // branch.
 type Template struct {
-	Name     string // the template as it was named
+	// Name is the template as its made project's record names it: as it
+	// was named, which git cloned, unless the caller sets it to the name
+	// Recorded gives (new does).
+	Name     string
 	Manifest *manifest.Manifest
 
 	repo       port.Repository
