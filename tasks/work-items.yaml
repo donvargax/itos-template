@@ -1242,3 +1242,27 @@ items:
       message. The person's call, 2026-10-10: vet it by PRECIS as an answer is, not quote around the
       library. The property TestARecordWrittenAndReadBackIsTheSameRecord then draws only what real
       input can give, answers and template both through the checks new uses.
+  - id: T-41
+    title: Every git the scenarios start runs with auto-maintenance and auto-gc off, so no detached maintenance races a snapshot
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: task
+    why: >
+      Was the idea adopt-snapshot-maintenance-lock. Main is red on macOS at 8229b45 (run
+      38085782278, failed twice), and T-40's run 38083566107 needed two reruns: adopt's scenarios
+      fail at the adoption snapshot of made, the only difference .git/objects/maintenance.lock, or
+      at the snapshot's lstat of it vanishing. The Given steps commit in made, git 2.55 starts its
+      auto-maintenance detached, and the snapshot, which covers all of .git to prove adopt writes
+      nothing there, meets its lock. Locally it fails one run in three under taskset -c 0,1. The
+      harness's base environment (features/steps_test.go, env) sets neither maintenance.auto nor
+      gc.auto. Set both off there, for every git the scenarios start, the Given steps' and the
+      binary's under test alike, without changing what the snapshot records or excluding any path
+      from it: the snapshot proving adopt writes nothing in .git stays whole. knowingNoOne and
+      withGitConfig set GIT_CONFIG_COUNT=1 themselves, which would drop a key the base env set the
+      same way, so the settings must survive both: a harness-written global config file in place of
+      GIT_CONFIG_GLOBAL=/dev/null, or GIT_CONFIG_COUNT merged, the implementer's choice, saying why.
+      Proof is the push's CI green on Linux, macOS and Windows, and the load run passing three times
+      in a row locally. The coordinator fixes forward rather than reverting slice-12, which would
+      take adopt out (2026-10-10).
