@@ -60,7 +60,7 @@ items:
     title: itos-template update brings a project to a newer template release by a 3-way merge of the old and new renders
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: [slice-1]
     kind: slice
     why: >
