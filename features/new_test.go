@@ -56,6 +56,15 @@ func (w *world) newSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^the template "([^"]*)" whose root lists a setup step whose word holds an escape character$`, func(name string) error {
 		return w.templateWithSetup(name, []string{"echo", "made\x1b[2K"}, nil)
 	})
+	// A character named by its code point, U+XXXX, inside a word, so the
+	// word reads as one that holds nothing else.
+	sc.Step(`^the template "([^"]*)" whose root lists a setup step whose word holds the character U\+([0-9A-F]{4,6})$`, func(name, hex string) error {
+		r, err := strconv.ParseUint(hex, 16, 32)
+		if err != nil {
+			return err
+		}
+		return w.templateWithSetup(name, []string{"echo", "ma" + string(rune(r)) + "de"}, nil)
+	})
 	sc.Step(`^an empty git repository "([^"]*)"$`, func(dir string) error {
 		if err := os.MkdirAll(w.path(dir), 0o755); err != nil {
 			return err
