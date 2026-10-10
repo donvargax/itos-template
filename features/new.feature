@@ -367,6 +367,43 @@ Feature: new makes a project from a template
       | a zero-width space        | U+200B |
       | a line separator          | U+2028 |
 
+  # setup-blank: Cf, Zl and Zp leave characters drawn as nothing that are letters or marks to
+  # Unicode: the Hangul fillers U+115F, U+1160, U+3164 and U+FFA0 (Lo), the combining grapheme
+  # joiner U+034F (Mn) and the variation selectors (Mn). Unicode lists all of them, with the
+  # format characters, as Default_Ignorable_Code_Point: what a renderer shows nothing for when it
+  # has no glyph, and what it may show nothing for when it does. So the manifest refuses a step
+  # word holding any default ignorable code point, Cf, Unicode's Other_Default_Ignorable_Code_Point
+  # and Variation_Selector from Go's unicode tables, beside Cc, Zl and Zp, with the same message
+  # naming the code point, setup-invisible's.
+  #
+  # The person's call, 2026-10-09: Unicode's set, a standard that grows with Unicode and is named
+  # in Go's tables, over a list of our own, and over refusing every character outside ASCII,
+  # which would refuse a step echoing an accented word or naming a path that holds one. The set
+  # lives in one place so the answers that answer-invisible refuses are the same characters.
+  #
+  # The set holds the marks many emoji are built from: U+FE0F after a heart or a check mark, and
+  # the joiner U+200D, Cf and so refused since setup-invisible, between the people of a family.
+  # Such an emoji is refused with them, in a step and in an answer alike: the person's call,
+  # 2026-10-09, over an exception for a selector or a joiner following an emoji, which would need
+  # the Extended_Pictographic data Go's tables lack (rivo/uniseg, or a table of ours), and over
+  # strict steps beside lenient answers. A template writes the emoji without its selector, which
+  # most terminals draw the same.
+  @ID-NEW-51 @setup-blank @wip
+  Scenario Outline: new refuses a manifest whose setup step holds <what>, drawn as nothing, with exit 2, naming its code point
+    Given the template "acme" whose root lists a setup step whose word holds the character <code>
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 2
+    And its error output says "itos-template.yaml"
+    And its error output says "setup"
+    And its error output says "<code>"
+    And the path "made" does not exist
+
+    Examples:
+      | what                          | code   |
+      | a Hangul filler               | U+3164 |
+      | the combining grapheme joiner | U+034F |
+      | a variation selector          | U+FE0F |
+
   @ID-NEW-41 @bug-4 @wip
   Scenario: a template URL's credential never reaches new's error output
     When itos-template runs with "new https://x-access-token:ghp_EXAMPLETOKENNOTREAL@127.0.0.1:1/acme.git made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"
