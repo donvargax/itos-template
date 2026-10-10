@@ -1199,3 +1199,24 @@ items:
       q-48 kept update to answering the questions a new release adds; changing what the record holds
       was left for later. A changed answer re-renders every file that holds its literal, so the
       merge is noisy; a feature added is the branch merged into the new render.
+  - id: T-40
+    title: Pin itos 7.0.0, the release after the rc.3 this repository runs
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: task
+    why: >
+      Was the idea pin-itos-7, the person's call of 2026-10-10, after T-39 so the baseline was
+      measured with unchanged tools. itos 7.0.0 is rc.3 plus 274 commits. Its one breaking change
+      since rc.3 is that numbered items are minted from a shared counter: task add, work add of a
+      slice, task or bug, and work promote refuse an ID given them, and ideas keep their slugs; itos
+      task next-id printed T-40 here, so nothing needs seeding. It also adds the bug kind (bug-<n>,
+      work add --kind bug), tests next-id claiming scenario IDs, and itos init --policy. Tried
+      2026-10-10 in a scratch worktree: itos pin 7.0.0 changes only itos.yaml (version 7.0.0,
+      checksums fdff7164d0711138ea119cc86f72bd4c3676efb455a7cfc1c4aa469d8ffc786c), and itos config
+      check passes. Every donvargax/itos action in ci.yml and release.yml moves to 7.0.0's commit,
+      4618aeb201c8c15b2ffb947cc355b85747929a17, its tag in the comment. Regenerate AGENTS.md's rules
+      block with itos init --agent-rules and commit what changes. itos#21 and itos#34 are still
+      open, so their lessons in docs/ORCHESTRATING.md stay. Any text here that tells a reader to
+      give an item an ID changes to let itos mint it.
