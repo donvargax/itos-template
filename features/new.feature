@@ -208,7 +208,7 @@ Feature: new makes a project from a template
   # holds, only without its userinfo. 127.0.0.1 on a closed port refuses at once, so the
   # run needs no network and sends the token nowhere.
 
-  # ADR-0031: the itos setup a made project needs is the template's own declaration, a root
+  # ADR-0034: the itos setup a made project needs is the template's own declaration, a root
   # setup step naming itos init --agent-rules, through the setup steps ADR-0007 decided. The
   # person sees it before it runs, and a template that does not use itos lists no such step and
   # its made projects get no itos at all. The generator names no itos, so itos-template stays
