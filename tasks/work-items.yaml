@@ -994,6 +994,11 @@ items:
       fails or cannot start leaves (the render is committed before any step, so it stands), whether
       later steps still run, and the exit code; ADR-0031's consequences describe the failing case
       under --trust.
+
+      The person's idea for the flag, 2026-10-09: a name that says what it risks, as Claude Code's
+      --dangerously-skip-permissions does, such as --dangerously-run-template-steps (kebab-case, as
+      every flag here is), rather than copier's --trust, which names what the person feels rather
+      than what new does. Weigh it when promoting.
   - id: setup-answer-controls
     title: A setup step an answer gives a control character is not printed raw
     phase: 1
