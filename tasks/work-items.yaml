@@ -997,3 +997,19 @@ items:
     depends_on: [T-30]
     kind: slice
     tags: [ci]
+  - id: new-trust
+    title: new runs the chosen branches' setup steps under --trust, naming a step that fails and leaving the render
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      new-steps prints a template's setup steps and runs none: a step is a template's code, and
+      running it because a flag said so is how a clone of an unfamiliar repository executes what it
+      never chose to. Copier's --trust is the shape for running them once someone needs it, under a
+      name that says what it risks. q-43 moved it out of new-itos-setup, whose scenario runs the
+      printed steps itself. Settle when promoted: whether the flag is --trust, what a step that
+      fails or cannot start leaves (the render is committed before any step, so it stands), whether
+      later steps still run, and the exit code; ADR-0031's consequences describe the failing case
+      under --trust.
