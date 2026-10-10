@@ -1090,3 +1090,19 @@ items:
       absolute path, as Recorded makes a relative one, would give such a check a name it can reach;
       the working folder is not that name, being possibly a subfolder.
     refs: [check-record-name-slice]
+  - id: check-here-resolved
+    title: check and new can name one folder in two forms
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      check-here found, 2026-10-09, that check records the repository it runs in by git's top, which
+      git gives with its links followed and, on Windows, likely its 8.3 short names made long
+      (macOS's /var is /private/var to it), while new records a relative path from the working
+      folder as the process holds it, unresolved. So the same folder can be recorded as /var/... by
+      new and /private/var/... by check. Both reach it; whether a made project's record should be
+      one canonical form, and which, is the person's call. ID-CHECK-26's fixture accepts either form
+      for that reason.
+    refs: [check-here]
