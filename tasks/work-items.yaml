@@ -839,7 +839,7 @@ items:
     title: Pin itos 7.0.0-rc.3, with the code proof judged as a step of every CI run
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: []
     kind: task
     why: >
