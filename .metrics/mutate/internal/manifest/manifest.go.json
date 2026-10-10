@@ -3,20 +3,27 @@
   "file": "internal/manifest/manifest.go",
   "language": "go",
   "tests": {
-    "internal/answer/answer_test.go": "1c64f7fc79cbbf7e1f8bf4f27b774afcdac97d3b951a9e674a10f865dc1c6a35",
+    "internal/adopt/adopt_test.go": "3498983581410317dd8b7a835ab84b7a0b6cb519d7cc037e918952286319b3eb",
+    "internal/answer/answer_test.go": "be098dd2e6740fe0d2b4b98661592e9483fb0c31ffbbb7a469d0f26ee350d739",
     "internal/answer/property_test.go": "9236f807a05507a0cd5fd1d9792bb72ad0d54b9e176c987161bbf28f926fbd26",
-    "internal/cli/cli_test.go": "d237a7af140886075607b51cc76a71de84f905597b15779d08b067af1e7562a9",
+    "internal/check/check_test.go": "19867f988c0ccd5a52034cf5b0239e2646df6003c1bbc096aebfe31df3fbfe5f",
+    "internal/cli/cli_test.go": "14c31ba94c803c236f309ce05a71f4b015e0afcf89b90149c3c04cece3be157a",
     "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
     "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
-    "internal/manifest/manifest_test.go": "ac700db981b3c29672b6c679cfe86acb7f42d3864cf90d5384bb60b538fe7d2c",
+    "internal/manifest/manifest_test.go": "549b88a61ef8e31355d219f0ff1b18f2bff6df5e7df50f488fbbc090ab73e083",
     "internal/manifest/property_test.go": "f94ec42da7843087706957fc590194e1049302b2bb10f4203ad349a6117b2e17",
     "internal/manifest/setup_test.go": "f837d2c7f564812471dca12121cd70500a699fea42bc308b70372d5f41369f5b",
-    "internal/manifest/shell_test.go": "b7038b14982dfe57bf22ba1b0c47deac4476ace8ae50eae39f1d9dc7404c8527",
-    "internal/newproject/newproject_test.go": "1fb9a8d9a0257b54475f5c08f84a0c906f85a58d15c53d7b6ee31af714fe7a40",
+    "internal/manifest/shell_test.go": "56a88c921789d5e84c3d5807bd0582fd422e87411c706fef4dd0b5b908fddddd",
+    "internal/newproject/newproject_test.go": "0cb6019a3fbedc92035018cf3f5adb58ff800545c763533bf6d07c3d57e12f44",
+    "internal/project/property_test.go": "3d2c8394ca66f27744b9c76c7eab3a10c1c29a26324fbad423d871026d2518dd",
     "internal/template/check_test.go": "6b408881490821ea2726f0e2820f1b3479116d53e8f91c91860f6778dff0b0f1",
     "internal/template/choose_test.go": "3f099f90d705b4f635377a4f1f20634e645221961545cdf088dab9ea7bbe1368",
-    "internal/template/property_test.go": "a0fcdbaa3c137e4ebc37d7c13817e3f24a2f088c5b8d51a4ed394c8003be18a4",
-    "internal/template/template_test.go": "298134f337ce8b115d7995d1b00cf8fc725fae4c624b11bec01346b4a85c54c4"
+    "internal/template/errors_test.go": "a0020df66b30147a26d58d1225527c71a78239c997e27c21d7a668fb336bbc58",
+    "internal/template/name_test.go": "840b7006177164391a2fa15dc2963b49b40c4287fba665e864b01d74f3f69afd",
+    "internal/template/property_test.go": "7970a0416c599941f2ef9a15b771bcb9e0bafca49a38dd5f3420140cf853c33c",
+    "internal/template/redact_test.go": "8d8616c4910b1e3cd723bde408501d9ab626cbee1a74bbfef5682d89322adeb0",
+    "internal/template/release_test.go": "443a18400e896b3be6ddf7617e062ce0177c1192fac505431ab998cea0046e43",
+    "internal/template/template_test.go": "d31eed5a0ee962a350bcbea3ad1b1ba9bb5263aed335be4c6fbc226a161a72e4"
   },
   "units": [
     {
@@ -462,18 +469,19 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/manifest.Question",
       "name": "Check",
-      "hash": "da731d25c9ffee84",
+      "hash": "4445d6267664e993",
       "start_line": 455,
       "end_line": 471,
-      "killed": 6,
+      "killed": 5,
       "survived": 0,
       "uncovered": 0,
-      "sites": 6,
+      "sites": 5,
       "mutants": [
         {
           "line": 456,
@@ -485,18 +493,9 @@
           "scope": "all-tests"
         },
         {
-          "line": 459,
-          "column": 44,
-          "offset": 148,
-          "original": "!=",
-          "replacement": "==",
-          "outcome": "killed",
-          "scope": "all-tests"
-        },
-        {
           "line": 462,
           "column": 15,
-          "offset": 362,
+          "offset": 336,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",
@@ -505,7 +504,7 @@
         {
           "line": 462,
           "column": 22,
-          "offset": 369,
+          "offset": 343,
           "original": "&&",
           "replacement": "||",
           "outcome": "killed",
@@ -514,7 +513,7 @@
         {
           "line": 462,
           "column": 25,
-          "offset": 372,
+          "offset": 346,
           "original": "!",
           "replacement": "",
           "outcome": "killed",
@@ -523,9 +522,58 @@
         {
           "line": 466,
           "column": 44,
-          "offset": 536,
+          "offset": 510,
           "original": "!=",
           "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/manifest",
+      "name": "Refused",
+      "hash": "cc40bb30f4d28476",
+      "start_line": 478,
+      "end_line": 483,
+      "killed": 4,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 4,
+      "mutants": [
+        {
+          "line": 479,
+          "column": 42,
+          "offset": 92,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 480,
+          "column": 10,
+          "offset": 110,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 480,
+          "column": 13,
+          "offset": 113,
+          "original": "false",
+          "replacement": "true",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 482,
+          "column": 29,
+          "offset": 150,
+          "original": "true",
+          "replacement": "false",
           "outcome": "killed",
           "scope": "all-tests"
         }
@@ -569,7 +617,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/manifest.Manifest",
