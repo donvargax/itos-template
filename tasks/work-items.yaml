@@ -1218,19 +1218,9 @@ items:
     title: A template named with a character PRECIS refuses is refused, as an answer is, so every record reads back
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: bug
-    why: >
-      Was the idea record-answer-tab. T-39's run drew a record whose answer was a tab then a
-      newline, which go.yaml.in/yaml/v3 v3.0.5 writes as a block scalar it cannot read back
-      (go-yaml/yaml#660, open; tried 2026-10-10, any string starting with a tab and holding a
-      newline). No answer reaches the record so, since manifest.Check refuses it by PRECIS, and git
-      refuses control characters in refs, so the one string a record holds unvetted is the template
-      as it was named, which new, check and adopt also print and new writes into the first commit
-      message. The person's call, 2026-10-10: vet it by PRECIS as an answer is, not quote around the
-      library. The property TestARecordWrittenAndReadBackIsTheSameRecord then draws only what real
-      input can give, answers and template both through the checks new uses.
   - id: T-41
     title: Every git the scenarios start runs with auto-maintenance and auto-gc off, so no detached maintenance races a snapshot
     phase: 1
