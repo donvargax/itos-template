@@ -54,7 +54,7 @@ jobs:
       cancel-in-progress: false
     steps:
       # Every action pinned to a commit, as ci.yml pins them: actions/checkout v4.4.0,
-      # actions/setup-go v7.0.0, itos's own action at v7.0.0-rc.1 (the release itos.yaml pins),
+      # actions/setup-go v7.0.0, itos's own action at v7.0.0-rc.3 (the release itos.yaml pins),
       # actions/attest-build-provenance v4.2.2.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -72,9 +72,7 @@ jobs:
       # The global itos, for the notes' Upgrading footers (itos commit footers); itos.yaml's pin
       # chooses the itos that runs.
       - if: steps.version.outputs.next != ''
-        uses: donvargax/itos@1b9f1f9995be5d20aed3b4f8877a453bbd1e98a3 # v7.0.0-rc.1
-        with:
-          version: 6.0.0
+        uses: donvargax/itos@415df6017f451beef8d6e12ea15e8b638f625f1a # v7.0.0-rc.3
       # The GitHub CLI, to publish the draft: pinned from its release tarball and checked against
       # its SHA-256, as itos installs it, so the runner's own copy does not decide what runs.
       - name: GitHub CLI

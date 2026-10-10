@@ -51,12 +51,13 @@ owner or a status by hand.
 ## Finishing
 
 The gates run themselves: commit and read what they say, never run them by hand first. An item
-touching `cmd` or `internal` closes only on its code proof (itos.yaml's `proof`). Before its last
-push run `tools/bin/pinned itos-cc mutation run --since <the parent of its first commit>
---fail-uncovered --all-tests --no-annotate cmd internal` (an item about code it does not change
-names that code's files, without `--since`), commit `.metrics/mutate/`, and kill each survivor
-with a test. A truly equivalent one is excepted (`itos-cc mutation except`) with its reason, for
-the person to review; an uncovered one needs a test, never an exception.
+touching `cmd` or `internal` lands only on its code proof (itos.yaml's `proof`), which CI judges
+over the push's range, not `itos work done`. Before its last push run `tools/bin/pinned itos-cc
+mutation run --since <the parent of its first commit> --fail-uncovered --all-tests --no-annotate
+cmd internal` (an item about code it does not change names that code's files, without `--since`),
+commit `.metrics/mutate/`, and kill each survivor with a test. A truly equivalent one is excepted
+(`itos-cc mutation except`) with its reason, for the person to review; an uncovered one needs a
+test, never an exception.
 
 Push with `itos push` in the background, watched with a Monitor, never a wait loop. Done is its
 run green; report its URL. A gap the work leaves is an idea (`itos work add`), never a commit

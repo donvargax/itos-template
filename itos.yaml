@@ -6,8 +6,8 @@ version: 1
 # The itos release this repository runs: a global itos fetches it, checks it
 # against these checksums and runs it. itos pin moves it to the newest.
 pin:
-  version: "7.0.0-rc.1"
-  checksums: "b4061c97aa46939e7dc289bf519c6a294d93aa476787d380794f33933c67122c" # the SHA-256 of the release's checksums.txt
+  version: "7.0.0-rc.3"
+  checksums: "6aa0ae5ee02c40414e4c3e5ee64c0329bb147d8334547ff16b25a86c2bfc5734" # the SHA-256 of the release's checksums.txt
 
 # The tasks: every commit but a feat, a fix or a docs names one in its Task
 # footer (itos commit --task T-1), and itos task T-1 runs its checks.
@@ -89,11 +89,14 @@ hooks:
 work:
   tags: [new, check, update, sync, cli, ci, windows]
 
-# The code proof (T-20): itos work done closes an item whose commits touch these paths only once
-# the check exits 0, {base} the parent of the item's first commit. It runs no test: it reads the
-# results itos-cc mutation run recorded in .metrics/mutate/, committed with the code, so each
-# function the item changed has fresh results, no survivor itos-cc.yaml does not except, and no
-# uncovered mutant (AGENTS.md, Finishing). The check names cmd and internal, so it judges exactly
+# The code proof (T-20, judged in CI since T-34): itos ci run makes the check a step of a push's
+# plan when its range touches these paths, among the static steps and before the tests, {base}
+# the range's start, so every commit since the last green run is judged; a failure fails the run,
+# and so the release. No step in ci.steps declares it: itos adds it from this key (itos#28), and
+# itos ci plan lists it. A plan with no range start, a whole run, has none. It runs no test: it
+# reads the results itos-cc mutation run recorded in .metrics/mutate/, committed with the code, so
+# each function the range changed has fresh results, no survivor itos-cc.yaml does not except, and
+# no uncovered mutant (AGENTS.md, Finishing). The check names cmd and internal, so it judges exactly
 # the paths that make it run: paths decides whether it runs, not what it judges (itos#24), and
 # without them a change elsewhere (a comment in tools/bin) would need mutation results too.
 proof:
