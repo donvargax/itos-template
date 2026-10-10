@@ -204,3 +204,4 @@ questions:
   - id: q-46
     item: "update-merges"
     question: "Does update make the commit itself? Decision 3 has it land as an ordinary commit through the project's gates, and a made itos project's chore needs a Task footer itos-template cannot know. Recommended: update leaves the merge and the new record in the working tree and the index, staged, and prints a message naming the old and new releases for the person to commit through their own gates, as adopt leaves its record. Or: update commits when nothing conflicts, its message from a manifest key as first_commit; or update always commits, conflict markers included."
+    answer: "Leave it staged: update writes the merge and the new record to the working tree and the index, commits nothing, and prints a message naming the old and new releases for the person to commit through their own gates. The person's call, 2026-10-10."
