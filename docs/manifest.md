@@ -296,9 +296,14 @@ A step is the template's code, shown to a person who has not yet chosen to trust
 cannot make a control character safe to print: an escape sequence in a word can make a terminal
 show another step than the one pasted. So a word holding a control character (tab, CR and LF
 included) is a manifest refused, exit 2, each named with its line, before anything is written.
-A word holding a format character (Unicode Cf: a right-to-left override, a zero-width space) or a
-line or paragraph separator (U+2028, U+2029) is refused the same way, named by its code point:
-it prints as nothing or moves the text around it, so the step read is not the step run.
+A word holding a character Unicode lists as Default_Ignorable_Code_Point, or a line or paragraph
+separator (U+2028, U+2029), is refused the same way, named by its code point: it prints as nothing
+or moves the text around it, so the step read is not the step run. The set is Unicode's, from Go's
+tables: every format character (Cf: a right-to-left override, a zero-width space or joiner), the
+Hangul fillers (U+115F, U+1160, U+3164, U+FFA0), the combining grapheme joiner U+034F and the
+variation selectors among them. An emoji written with a variation selector (U+FE0F after a heart)
+or with joiners (U+200D between the people of a family) is refused with them: write it without
+the selector, which most terminals draw the same.
 
 ### Paths only the template keeps
 

@@ -38,11 +38,14 @@ func (s Step) MarshalYAML() (any, error) { return []string(s.Words), nil }
 // invisible one. A step is printed for the person to read and paste, from a
 // template not yet trusted, and quoting cannot make either safe to print: an
 // escape sequence can make a terminal show a step other than the one
-// pasted, and a format character (Unicode Cf, a right-to-left override or a
-// zero-width space) or a line or paragraph separator (U+2028, U+2029)
-// prints as nothing or moves the text around it, the Trojan Source attack
-// (CVE-2021-42574). A word holding both kinds is named once for each, by
-// the first character of that kind.
+// pasted, and a character drawnAsNothing holds (a right-to-left override, a
+// zero-width space, a Hangul filler, a variation selector, a line
+// separator) prints as nothing or moves the text around it, the Trojan
+// Source attack (CVE-2021-42574) and the invisible identifier beside it. A
+// word holding both kinds is named once for each, by the first character of
+// that kind, and the word is quoted with every character outside ASCII
+// escaped: a Hangul filler or a variation selector is a printable letter or
+// mark to Go, so plain quoting would print the very character refused.
 func (m *Manifest) checkSetup(add func(string, ...any)) {
 	each := func(where string, steps []Step) {
 		if steps != nil && m.Version < 5 {
@@ -55,11 +58,11 @@ func (m *Manifest) checkSetup(add func(string, ...any)) {
 			for j, word := range step.Words {
 				if at := strings.IndexFunc(word, unicode.IsControl); at >= 0 {
 					r, _ := utf8.DecodeRuneInString(word[at:])
-					add("line %d: %s setup step %d holds a control character, %U, in the word %q: a terminal shown it can show another step than the one run, so write the word without it", step.lines[j], where, i+1, r, word)
+					add("line %d: %s setup step %d holds a control character, %U, in the word %+q: a terminal shown it can show another step than the one run, so write the word without it", step.lines[j], where, i+1, r, word)
 				}
-				if at := strings.IndexFunc(word, invisible); at >= 0 {
+				if at := strings.IndexFunc(word, drawnAsNothing); at >= 0 {
 					r, _ := utf8.DecodeRuneInString(word[at:])
-					add("line %d: %s setup step %d holds %U, a character that prints as nothing or moves the text around it, in the word %q: a terminal shown it can show another step than the one run, so write the word without it", step.lines[j], where, i+1, r, word)
+					add("line %d: %s setup step %d holds %U, a character that prints as nothing or moves the text around it, in the word %+q: a terminal shown it can show another step than the one run, so write the word without it", step.lines[j], where, i+1, r, word)
 				}
 			}
 		}
@@ -73,11 +76,18 @@ func (m *Manifest) checkSetup(add func(string, ...any)) {
 	}
 }
 
-// invisible says whether r prints as nothing or moves the text around it
-// though it is no control character: a format character, or a line or
-// paragraph separator.
-func invisible(r rune) bool {
-	return unicode.In(r, unicode.Cf, unicode.Zl, unicode.Zp)
+// drawnAsNothing says whether r is one of Unicode's Default_Ignorable_Code_Point,
+// what a renderer shows nothing for, or a line or paragraph separator, which
+// breaks the line where a terminal or an editor honours it though it is no
+// control character. The set is built from its sources in Go's tables, so it
+// grows with Unicode: every format character (Cf), a right-to-left override
+// and a zero-width joiner among them, Other_Default_Ignorable_Code_Point (the
+// Hangul fillers, the combining grapheme joiner U+034F) and the variation
+// selectors, U+FE0F after an emoji included, with Zl and Zp. Cf is taken
+// whole, a few format characters a renderer draws (U+0600, the Arabic number
+// sign) with it: none has a use in a command.
+func drawnAsNothing(r rune) bool {
+	return unicode.In(r, unicode.Cf, unicode.Other_Default_Ignorable_Code_Point, unicode.Variation_Selector, unicode.Zl, unicode.Zp)
 }
 
 // SetupOf are the setup steps of the combination c, in the order check runs

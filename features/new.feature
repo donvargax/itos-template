@@ -440,7 +440,7 @@ Feature: new makes a project from a template
   # the Extended_Pictographic data Go's tables lack (rivo/uniseg, or a table of ours), and over
   # strict steps beside lenient answers. A template writes the emoji without its selector, which
   # most terminals draw the same.
-  @ID-NEW-51 @setup-blank @wip
+  @ID-NEW-51 @setup-blank
   Scenario Outline: new refuses a manifest whose setup step holds <what>, drawn as nothing, with exit 2, naming its code point
     Given the template "acme" whose root lists a setup step whose word holds the character <code>
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
