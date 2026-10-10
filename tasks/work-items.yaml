@@ -1019,14 +1019,15 @@ items:
       than the template's, yet the printed line can still mislead or break a terminal. Settle in a
       scenario: refuse such an answer where it lands in a step, or refuse a control character in any
       answer.
-  - id: setup-format-chars
-    title: A setup step word holding a format character (a bidi override, a zero-width one) is refused or shown
+  - id: setup-invisible
+    title: The manifest refuses a setup step word holding a format character or a Unicode line separator
     phase: 1
     owner: null
     status: todo
     depends_on: [new-steps]
-    kind: idea
+    kind: slice
     why: >
+      Was setup-format-chars.
       new-steps refuses control characters (Unicode Cc) in a setup word, as the person settled.
       Format characters (Cf: U+202E right-to-left override, U+200B zero-width space and their kin)
       are not controls, yet can make a printed step read otherwise than the bytes a shell runs (the
