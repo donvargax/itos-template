@@ -4,7 +4,7 @@
   "language": "go",
   "tests": {
     "cmd/itos-template/main_test.go": "9e36580f77a88e3eadeed409f12517b12aa45a208524ec9f57b449d35cb7ed59",
-    "internal/cli/cli_test.go": "d237a7af140886075607b51cc76a71de84f905597b15779d08b067af1e7562a9",
+    "internal/cli/cli_test.go": "3cfcdd6485246563ce6033e6f422366e06e4f90a2dc195294471baa5b6cf390f",
     "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
     "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
     "internal/newproject/newproject_test.go": "1fb9a8d9a0257b54475f5c08f84a0c906f85a58d15c53d7b6ee31af714fe7a40"
@@ -12,8 +12,39 @@
   "units": [
     {
       "namespace": "github.com/donvargax/itos-template/internal/cli",
+      "name": "templateProblem",
+      "hash": "2372f8810e642825",
+      "start_line": 20,
+      "end_line": 59,
+      "killed": 2,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 2,
+      "mutants": [
+        {
+          "line": 28,
+          "column": 19,
+          "offset": 520,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 28,
+          "column": 22,
+          "offset": 523,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/cli",
       "name": "answerProblem",
-      "hash": "4a98e11d404f1188",
+      "hash": "dbdd2327a94a1e79",
       "start_line": 76,
       "end_line": 98,
       "killed": 1,
@@ -24,7 +55,7 @@
         {
           "line": 89,
           "column": 16,
-          "offset": 777,
+          "offset": 779,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",

@@ -3,9 +3,9 @@
   "file": "internal/answer/answer.go",
   "language": "go",
   "tests": {
-    "internal/answer/answer_test.go": "1c64f7fc79cbbf7e1f8bf4f27b774afcdac97d3b951a9e674a10f865dc1c6a35",
+    "internal/answer/answer_test.go": "be098dd2e6740fe0d2b4b98661592e9483fb0c31ffbbb7a469d0f26ee350d739",
     "internal/answer/property_test.go": "9236f807a05507a0cd5fd1d9792bb72ad0d54b9e176c987161bbf28f926fbd26",
-    "internal/cli/cli_test.go": "d237a7af140886075607b51cc76a71de84f905597b15779d08b067af1e7562a9",
+    "internal/cli/cli_test.go": "3cfcdd6485246563ce6033e6f422366e06e4f90a2dc195294471baa5b6cf390f",
     "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
     "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
     "internal/newproject/newproject_test.go": "1fb9a8d9a0257b54475f5c08f84a0c906f85a58d15c53d7b6ee31af714fe7a40",
@@ -18,6 +18,30 @@
   },
   "units": [
     {
+      "namespace": "github.com/donvargax/itos-template/internal/answer.Malformed",
+      "name": "Error",
+      "hash": "4d0074b18f48907b",
+      "start_line": 132,
+      "end_line": 132,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/answer.Unknown",
+      "name": "Error",
+      "hash": "7cfb72993192eb12",
+      "start_line": 133,
+      "end_line": 133,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
       "namespace": "github.com/donvargax/itos-template/internal/answer.NotTaken",
       "name": "Error",
       "hash": "63b18948256e8434",
@@ -27,7 +51,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     }
   ]
 }
