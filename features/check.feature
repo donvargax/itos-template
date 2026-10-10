@@ -143,6 +143,25 @@ Feature: check renders every combination a template allows and runs its checks
     Then it exits with code 0
     And its report says "go + cli" passed
 
+  # check-here: run with no template named, check checks the repository it runs in and recorded
+  # that template in each render as git.Here, a dot, which inside a render names the render itself:
+  # a template's check that reads a render's record, or runs update there, reaches nothing. Each
+  # render now records the repository's top by its absolute path, as record-name records a
+  # relative path, whatever subfolder check ran in, so the name reaches the template from
+  # anywhere on that machine. The fixture's root check fails unless a render's record names the
+  # template by the fixture's own absolute path, written as the system writes paths.
+  @ID-CHECK-26 @check-here @wip
+  Scenario Outline: check with no template named records the repository by its absolute path, run from <where>
+    Given the template "acme" whose root has a check that fails unless a render's record names the template by its absolute path
+    When itos-template runs in the template's folder "<folder>" with "check --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And its report says "go + cli" passed
+
+    Examples:
+      | where       | folder            |
+      | its top     | .                 |
+      | a subfolder | .github/workflows |
+
   @ID-CHECK-08 @slice-2
   Scenario: check refuses a template git cannot reach with exit 3, naming it
     When itos-template runs with "check nosuch-template --answer name=blue-fox --defaults"
