@@ -1231,7 +1231,9 @@ items:
       baseline failed at the adoption snapshot of made is unchanged, the only difference removed
       .git/objects/maintenance.lock. The Given steps commit in made, git 2.55 then runs its
       auto-maintenance detached, and the snapshot is taken while its lock is there. Same runner
-      image and git as the last green run, and the suite passes locally. The harness's git env
+      image and git as the last green run; the rerun's ci job failed so again at the baseline. It
+      fails so locally under load, taskset -c 0,1 go test -count=1 -failfast ./... failing one run
+      in three, and passes on an idle machine. The harness's git env
       (features/steps_test.go) sets no maintenance.auto or gc.auto, so a fix likely turns
       auto-maintenance off there, without changing what the snapshot holds.
   - id: workflow-action-comments
