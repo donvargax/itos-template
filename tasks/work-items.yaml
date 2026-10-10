@@ -1033,17 +1033,9 @@ items:
     title: The manifest refuses a setup step word holding any character Unicode says is drawn as nothing
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: slice
-    why: >
-      Was setup-blank-letters.
-      setup-invisible refuses the format characters (Cf) and the line and paragraph separators in a
-      setup step word, by category. Some characters of other categories print as blank too: the
-      Hangul fillers U+115F, U+1160, U+3164 and U+FFA0 are letters (Lo), and the variation selectors
-      and combining marks such as U+034F are marks (Mn), so a word holding one still reads otherwise
-      than it runs, the invisible-identifier trick beside Trojan Source. Decide whether to refuse a
-      listed set of them, or every character a terminal draws as nothing.
   - id: T-32
     title: CI refuses a tracked file holding a format character or a Unicode line separator
     phase: 1
