@@ -3,13 +3,14 @@
   "file": "internal/manifest/manifest.go",
   "language": "go",
   "tests": {
-    "internal/answer/answer_test.go": "98a906bfc6fb6e4a7cb0c0ca78145a7c76d3613b7e1fe4cceb7ae36a0c5f4de0",
+    "internal/answer/answer_test.go": "1c64f7fc79cbbf7e1f8bf4f27b774afcdac97d3b951a9e674a10f865dc1c6a35",
     "internal/answer/property_test.go": "9236f807a05507a0cd5fd1d9792bb72ad0d54b9e176c987161bbf28f926fbd26",
-    "internal/cli/cli_test.go": "94f672872f685eadc6bccac62ce19685f1c5a260b4474c103f3dfb63ff2aaf5d",
+    "internal/cli/cli_test.go": "d237a7af140886075607b51cc76a71de84f905597b15779d08b067af1e7562a9",
     "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
     "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
-    "internal/manifest/manifest_test.go": "24e51bc3207389d491350fd9f081b9b1269858e5ba7a1ebbf97940bc34c1c510",
+    "internal/manifest/manifest_test.go": "ac700db981b3c29672b6c679cfe86acb7f42d3864cf90d5384bb60b538fe7d2c",
     "internal/manifest/property_test.go": "f94ec42da7843087706957fc590194e1049302b2bb10f4203ad349a6117b2e17",
+    "internal/manifest/setup_test.go": "f837d2c7f564812471dca12121cd70500a699fea42bc308b70372d5f41369f5b",
     "internal/manifest/shell_test.go": "b7038b14982dfe57bf22ba1b0c47deac4476ace8ae50eae39f1d9dc7404c8527",
     "internal/newproject/newproject_test.go": "1fb9a8d9a0257b54475f5c08f84a0c906f85a58d15c53d7b6ee31af714fe7a40",
     "internal/template/check_test.go": "6b408881490821ea2726f0e2820f1b3479116d53e8f91c91860f6778dff0b0f1",
@@ -21,16 +22,16 @@
     {
       "namespace": "github.com/donvargax/itos-template/internal/manifest.Manifest",
       "name": "check",
-      "hash": "fb1db4cc8839733a",
-      "start_line": 213,
-      "end_line": 322,
+      "hash": "3ac88150445da922",
+      "start_line": 215,
+      "end_line": 324,
       "killed": 48,
       "survived": 0,
       "uncovered": 0,
       "sites": 48,
       "mutants": [
         {
-          "line": 216,
+          "line": 218,
           "column": 15,
           "offset": 178,
           "original": "<",
@@ -39,7 +40,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 216,
+          "line": 218,
           "column": 17,
           "offset": 180,
           "original": "1",
@@ -48,7 +49,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 216,
+          "line": 218,
           "column": 19,
           "offset": 182,
           "original": "||",
@@ -57,7 +58,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 216,
+          "line": 218,
           "column": 32,
           "offset": 195,
           "original": ">",
@@ -66,7 +67,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 219,
+          "line": 221,
           "column": 15,
           "offset": 310,
           "original": "==",
@@ -75,7 +76,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 219,
+          "line": 221,
           "column": 18,
           "offset": 313,
           "original": "1",
@@ -84,7 +85,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 227,
+          "line": 229,
           "column": 19,
           "offset": 505,
           "original": "==",
@@ -93,7 +94,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 227,
+          "line": 229,
           "column": 22,
           "offset": 508,
           "original": "0",
@@ -102,7 +103,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 233,
+          "line": 235,
           "column": 8,
           "offset": 619,
           "original": "!",
@@ -111,7 +112,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 238,
+          "line": 240,
           "column": 20,
           "offset": 847,
           "original": "true",
@@ -120,7 +121,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 243,
+          "line": 245,
           "column": 8,
           "offset": 936,
           "original": "!",
@@ -129,7 +130,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 245,
+          "line": 247,
           "column": 8,
           "offset": 1080,
           "original": "!",
@@ -138,7 +139,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 250,
+          "line": 252,
           "column": 26,
           "offset": 1294,
           "original": "true",
@@ -147,7 +148,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 254,
+          "line": 256,
           "column": 12,
           "offset": 1378,
           "original": "==",
@@ -156,7 +157,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 254,
+          "line": 256,
           "column": 22,
           "offset": 1388,
           "original": "||",
@@ -165,7 +166,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 254,
+          "line": 256,
           "column": 25,
           "offset": 1391,
           "original": "!",
@@ -174,7 +175,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 254,
+          "line": 256,
           "column": 42,
           "offset": 1408,
           "original": "+",
@@ -183,7 +184,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 254,
+          "line": 256,
           "column": 46,
           "offset": 1412,
           "original": "+",
@@ -192,7 +193,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 264,
+          "line": 266,
           "column": 8,
           "offset": 1670,
           "original": "!",
@@ -201,7 +202,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 269,
+          "line": 271,
           "column": 19,
           "offset": 1923,
           "original": "true",
@@ -210,7 +211,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 270,
+          "line": 272,
           "column": 17,
           "offset": 1944,
           "original": "==",
@@ -219,7 +220,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 273,
+          "line": 275,
           "column": 16,
           "offset": 2026,
           "original": "==",
@@ -228,7 +229,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 278,
+          "line": 280,
           "column": 16,
           "offset": 2130,
           "original": "!=",
@@ -237,7 +238,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 279,
+          "line": 281,
           "column": 46,
           "offset": 2183,
           "original": "+",
@@ -246,7 +247,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 279,
+          "line": 281,
           "column": 58,
           "offset": 2195,
           "original": "+",
@@ -255,7 +256,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 279,
+          "line": 281,
           "column": 71,
           "offset": 2208,
           "original": "!=",
@@ -264,7 +265,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 285,
+          "line": 287,
           "column": 53,
           "offset": 2399,
           "original": "!=",
@@ -273,7 +274,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 289,
+          "line": 291,
           "column": 20,
           "offset": 2556,
           "original": "<",
@@ -282,7 +283,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 293,
+          "line": 295,
           "column": 51,
           "offset": 2750,
           "original": "!=",
@@ -291,7 +292,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 300,
+          "line": 302,
           "column": 39,
           "offset": 3018,
           "original": "&&",
@@ -300,7 +301,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 300,
+          "line": 302,
           "column": 48,
           "offset": 3027,
           "original": "!=",
@@ -309,7 +310,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 305,
+          "line": 307,
           "column": 16,
           "offset": 3162,
           "original": "!=",
@@ -318,7 +319,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 305,
+          "line": 307,
           "column": 23,
           "offset": 3169,
           "original": "&&",
@@ -327,7 +328,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 305,
+          "line": 307,
           "column": 37,
           "offset": 3183,
           "original": "!=",
@@ -336,7 +337,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 305,
+          "line": 307,
           "column": 44,
           "offset": 3190,
           "original": "||",
@@ -345,7 +346,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 305,
+          "line": 307,
           "column": 57,
           "offset": 3203,
           "original": "==",
@@ -354,7 +355,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 306,
+          "line": 308,
           "column": 39,
           "offset": 3250,
           "original": "!=",
@@ -363,99 +364,206 @@
           "scope": "all-tests"
         },
         {
-          "line": 312,
+          "line": 314,
           "column": 56,
-          "offset": 3456,
+          "offset": 3457,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 317,
+          "line": 319,
           "column": 8,
-          "offset": 3626,
+          "offset": 3627,
           "original": "==",
           "replacement": "!=",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 317,
+          "line": 319,
           "column": 14,
-          "offset": 3632,
+          "offset": 3633,
           "original": "||",
           "replacement": "&&",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 317,
+          "line": 319,
           "column": 31,
-          "offset": 3649,
+          "offset": 3650,
           "original": "||",
           "replacement": "&&",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 317,
+          "line": 319,
           "column": 59,
-          "offset": 3677,
+          "offset": 3678,
           "original": "||",
           "replacement": "&&",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 317,
+          "line": 319,
           "column": 76,
-          "offset": 3694,
+          "offset": 3695,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 317,
+          "line": 319,
           "column": 81,
-          "offset": 3699,
+          "offset": 3700,
           "original": "||",
           "replacement": "&&",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 317,
+          "line": 319,
           "column": 86,
-          "offset": 3704,
+          "offset": 3705,
           "original": "==",
           "replacement": "!=",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 317,
+          "line": 319,
           "column": 93,
-          "offset": 3711,
+          "offset": 3712,
           "original": "||",
           "replacement": "&&",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 317,
+          "line": 319,
           "column": 124,
-          "offset": 3742,
+          "offset": 3743,
           "original": "||",
           "replacement": "&&",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 317,
+          "line": 319,
           "column": 129,
-          "offset": 3747,
+          "offset": 3748,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/manifest.Question",
+      "name": "Check",
+      "hash": "da731d25c9ffee84",
+      "start_line": 455,
+      "end_line": 471,
+      "killed": 6,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 6,
+      "mutants": [
+        {
+          "line": 456,
+          "column": 12,
+          "offset": 59,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 459,
+          "column": 44,
+          "offset": 148,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 462,
+          "column": 15,
+          "offset": 362,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 462,
+          "column": 22,
+          "offset": 369,
+          "original": "&&",
+          "replacement": "||",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 462,
+          "column": 25,
+          "offset": 372,
+          "original": "!",
+          "replacement": "",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 466,
+          "column": 44,
+          "offset": 536,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/manifest",
+      "name": "firstRefused",
+      "hash": "5ab13c465c1c81bb",
+      "start_line": 490,
+      "end_line": 501,
+      "killed": 2,
+      "survived": 1,
+      "uncovered": 0,
+      "sites": 3,
+      "mutants": [
+        {
+          "line": 492,
+          "column": 8,
+          "offset": 65,
+          "original": ">",
+          "replacement": ">=",
+          "outcome": "survived",
+          "scope": "all-tests"
+        },
+        {
+          "line": 492,
+          "column": 10,
+          "offset": 67,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 495,
+          "column": 49,
+          "offset": 184,
           "original": "==",
           "replacement": "!=",
           "outcome": "killed",
@@ -473,7 +581,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/manifest",
@@ -485,7 +594,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     }
   ]
 }

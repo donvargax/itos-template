@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "file": "internal/answer/answer.go",
+  "language": "go",
+  "tests": {
+    "internal/answer/answer_test.go": "1c64f7fc79cbbf7e1f8bf4f27b774afcdac97d3b951a9e674a10f865dc1c6a35",
+    "internal/answer/property_test.go": "9236f807a05507a0cd5fd1d9792bb72ad0d54b9e176c987161bbf28f926fbd26",
+    "internal/cli/cli_test.go": "d237a7af140886075607b51cc76a71de84f905597b15779d08b067af1e7562a9",
+    "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
+    "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
+    "internal/newproject/newproject_test.go": "1fb9a8d9a0257b54475f5c08f84a0c906f85a58d15c53d7b6ee31af714fe7a40",
+    "internal/project/project_test.go": "4b8542f14f88274f2ee6299a9f987fbb4af9edc2a4e145f59cdccbb9dad318ce",
+    "internal/project/property_test.go": "e6d64b2daa9a6301e85a6f39de9caf6a7e52d52d355779168830943ed5b842b1",
+    "internal/template/check_test.go": "6b408881490821ea2726f0e2820f1b3479116d53e8f91c91860f6778dff0b0f1",
+    "internal/template/choose_test.go": "3f099f90d705b4f635377a4f1f20634e645221961545cdf088dab9ea7bbe1368",
+    "internal/template/property_test.go": "a0fcdbaa3c137e4ebc37d7c13817e3f24a2f088c5b8d51a4ed394c8003be18a4",
+    "internal/template/template_test.go": "298134f337ce8b115d7995d1b00cf8fc725fae4c624b11bec01346b4a85c54c4"
+  },
+  "units": [
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/answer.NotTaken",
+      "name": "Error",
+      "hash": "63b18948256e8434",
+      "start_line": 131,
+      "end_line": 133,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    }
+  ]
+}

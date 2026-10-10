@@ -1,0 +1,10 @@
+mutation:
+  exceptions:
+    - file: internal/manifest/manifest.go
+      function: github.com/donvargax/itos-template/internal/manifest#firstRefused
+      hash: 5ab13c465c1c81bb
+      line_in_function: 3
+      column: 8
+      original: '>'
+      replacement: '>='
+      reason: 'Equivalent: with >= the loop runs once more only at k = 0, where it tests the empty prefix, which PRECIS FreeformClass takes (precis.NewFreeform sets no DisallowEmpty), so it breaks with k still 0 and names the same first rune.'

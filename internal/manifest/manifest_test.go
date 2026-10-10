@@ -122,6 +122,8 @@ func TestCheckRefusesWhatPRECISRefusesNamingTheFirstCharacterToBlame(t *testing.
 		"My app \u2764\ufe0f": "U+FE0F",
 		"\U0001f468\u200d\U0001f469\u200d\U0001f467": "U+200D",
 		"blue\u200cfox":     "U+200C",
+		"\x1bblue":          "U+001B",
+		"\u202eblue":        "U+202E",
 		"blue\u200cfox\x1b": "U+200C",
 		"\u0645\u06cc\u200c\u062e\u0648\u0627\x1b": "U+001B",
 		"\u0645\u06cc\u200c":                       "U+200C",
