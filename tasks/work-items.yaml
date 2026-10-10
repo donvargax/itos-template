@@ -187,8 +187,8 @@ items:
   - id: new-steps
     title: "new prints the setup steps the chosen branches declare, for the person to run"
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: [slice-1]
     kind: slice
     why: >
