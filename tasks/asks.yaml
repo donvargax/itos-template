@@ -232,3 +232,4 @@ questions:
   - id: q-52
     item: "template-release-command"
     question: "Which versions can itos-template release cut? Recommended: any semver vX.Y.Z, a pre-release suffix allowed, that no listed branch already carries as <branch>/<version>, a partial release included; a version lower than the newest is a backport, allowed, and never becomes the default since the newest is the highest stable complete one (decision 36). Or: only a version higher than the newest, as the idea first said."
+    answer: "Any unused semver version, pre-releases and backports allowed; refused, one any listed branch already carries, and one that is not vX.Y.Z with an optional pre-release. The person's call, 2026-10-10."
