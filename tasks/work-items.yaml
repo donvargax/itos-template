@@ -1045,21 +1045,9 @@ items:
     title: CI's invisible-character gate refuses Unicode's whole Default_Ignorable set, as setup steps do
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      Was gate-default-ignorable.
-      T-32's gate matches Cf, Zl and Zp, which leaves the characters setup-blank found drawn as
-      nothing though Unicode calls them letters or marks: the Hangul fillers U+115F, U+1160, U+3164,
-      U+FFA0, U+034F and the variation selectors. setup-blank's agent found the editing tool had
-      again turned escapes into such characters, which the gate would not have seen. git grep -P
-      takes \p{Default_Ignorable_Code_Point} (tried 2026-10-09 with git 2.56: it names a planted
-      U+3164), so the pattern becomes [\p{Cf}\p{Default_Ignorable_Code_Point}\p{Zl}\p{Zp}], Cf kept
-      since Unicode's set leaves out a few format characters (U+0600, U+FFF9 to U+FFFB) that
-      drawnAsNothing refuses, and T-33's test $? -eq 1 kept, under which a git whose PCRE2 lacks the
-      property fails the gate rather than passing it. Check first that no tracked file holds one, an
-      emoji's U+FE0F in a doc included.
   - id: setup-precis
     title: Setup steps are judged by PRECIS as answers are, the joiners still refused
     phase: 1

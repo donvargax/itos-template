@@ -873,10 +873,3 @@
     leaves the clone: the coordinator committed and pushed a U+202E and a U+3164 the editing tool
     had written into ID-NEW-54's table (4ca60c3), caught only by CI's gate after the push. The
     hook's message names each file and line and says to write the character as an escape.
-  done_when:
-    - run: >-
-        grep -q 'p{Default_Ignorable_Code_Point}' tools/hooks/pre-commit &&
-        test "$(grep -c 'p{Default_Ignorable_Code_Point}' itos.yaml)" -ge 2 &&
-        grep -q 'p{Default_Ignorable_Code_Point}' AGENTS.md &&
-        test "$(grep -c 'test $? -eq 1' itos.yaml)" -ge 2 &&
-        { git grep -P -n -I '[\p{Cf}\p{Default_Ignorable_Code_Point}\p{Zl}\p{Zp}]'; test $? -eq 1; }
