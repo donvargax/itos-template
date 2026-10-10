@@ -16,3 +16,11 @@ mutation:
       original: "0"
       replacement: "1"
       reason: 'Equivalent: report starts code at 0 only as the identity of max over its leaves. leaves always gives at least one error (err itself, or each a join holds; errors.Join drops nils and returns nil for none, fmt.Errorf''s joins hold two or more), and every classify gives a code of at least 1, so max(0, c) and max(1, c) are the same code. Only an error type of no package here, whose Unwrap() []error is empty, would tell them apart.'
+    - file: internal/template/name.go
+      function: github.com/donvargax/itos-template/internal/template.System#isPath
+      hash: 6781f81717c92631
+      line_in_function: 4
+      column: 42
+      original: <
+      replacement: <=
+      reason: 'slash < colon becoming slash <= colon changes nothing: slash and colon index different bytes of the name, so they are equal only when both are -1, and colon < 0 has already returned true before the comparison is read'
