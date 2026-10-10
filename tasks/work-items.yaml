@@ -1117,6 +1117,9 @@ items:
       <branch>/v1.2.0 on the others), refusing a version already used, one lower than the newest, or
       a tree with a failing combination. Settle when promoted: whether it pushes the tags or leaves
       that to the person, annotated or lightweight tags, and how a template's CI runs it.
+
+      Decision 36 supersedes the tag names above: every branch, the root included, carries
+      <branch>/<version> (main/v1.2.0, stack/go/v1.2.0, go/cli/v1.2.0), never a bare vX.Y.Z.
   - id: invisible-chars-test
     title: A test holds tools/bin/invisible-chars to its exit rule
     phase: 1
