@@ -23,12 +23,12 @@ func templateProblem(err template.Error) (code int, problems []Problem) {
 	case *template.NoStack:
 		code, problems = CodeUsage, one("stack-missing", "no stack chosen: name one with --stack (%s)", strings.Join(e.Stacks, ", "))
 	case *template.UnknownStack:
-		code, problems = CodeUsage, one("stack-unknown", "the template has no stack %s: its stacks are %s", e.Name, strings.Join(e.Stacks, ", "))
+		code, problems = CodeUsage, one("stack-unknown", "the template has no stack %+q: its stacks are %s", e.Name, strings.Join(e.Stacks, ", "))
 	case *template.UnknownFeature:
 		if len(e.Known) == 0 {
-			code, problems = CodeUsage, one("feature-unknown", "the template has no feature %s", e.Name)
+			code, problems = CodeUsage, one("feature-unknown", "the template has no feature %+q", e.Name)
 		} else {
-			code, problems = CodeUsage, one("feature-unknown", "the template has no feature %s: the stack %s's features are %s", e.Name, e.Stack, strings.Join(e.Known, ", "))
+			code, problems = CodeUsage, one("feature-unknown", "the template has no feature %+q: the stack %s's features are %s", e.Name, e.Stack, strings.Join(e.Known, ", "))
 		}
 	case *template.OtherStack:
 		code, problems = CodeRefused, one("feature-other-stack", "the feature %s is the stack %s's, not the stack %s's: a project has one stack's features", e.Feature.Branch(), e.Feature.Stack, e.Stack)
@@ -77,9 +77,9 @@ func answerProblem(err answer.Error) (code int, problems []Problem) {
 	code, problems = CodeInternal, internal(err)
 	switch e := err.(type) {
 	case *answer.Malformed:
-		code, problems = CodeUsage, one("answer-malformed", "--answer takes name=answer, and %q has no =", e.Given)
+		code, problems = CodeUsage, one("answer-malformed", "--answer takes name=answer, and %+q has no =", e.Given)
 	case *answer.Unknown:
-		code, problems = CodeUsage, one("answer-unknown", "the template asks no question %s: its questions are %s", e.Name, strings.Join(e.Questions, ", "))
+		code, problems = CodeUsage, one("answer-unknown", "the template asks no question %+q: its questions are %s", e.Name, strings.Join(e.Questions, ", "))
 	case *answer.Twice:
 		code, problems = CodeUsage, one("answer-twice", "the answer to %s is given twice", e.Name)
 	case *answer.NotTaken:

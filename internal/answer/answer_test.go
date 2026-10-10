@@ -120,7 +120,7 @@ func TestResolvesErrorReadsAsEveryProblemALineEach(t *testing.T) {
 	m := parse(t)
 	_, err := Resolve(m, Given{"nope", "who=x", "name=Blue", "name=red"}, false)
 	want := `the answer "nope" has no =
-no question who
+no question "who"
 the answer to name, "Blue": ` + m.Questions[0].Check("Blue").Error() + `
 the answer to name twice
 no answer to owner`
@@ -139,5 +139,26 @@ func TestNotAnsweredKeepsWhyTheQuestionWasNotAnswered(t *testing.T) {
 	}
 	if want := "no answer to owner: unexpected EOF"; err.Error() != want {
 		t.Errorf("NotAnswered reads %q, not %q", err.Error(), want)
+	}
+}
+
+// A refusal echoing what the person gave, an answer with no = or a question
+// the template does not ask, quotes it with every character outside ASCII
+// escaped, as NotTaken does: Go prints a Hangul filler as itself under %q,
+// and a right-to-left override reaching a terminal raw can turn the rest of
+// the line around (bug-5).
+func TestARefusalEchoesWhatThePersonGaveEscaped(t *testing.T) {
+	m := parse(t)
+	cases := []struct{ given, want string }{
+		{"blue\u3164fox", `the answer "blue\u3164fox" has no =`},
+		{"blue\u202efox", `the answer "blue\u202efox" has no =`},
+		{"na\u3164me=x", `no question "na\u3164me"`},
+		{"na\u202eme=x", `no question "na\u202eme"`},
+	}
+	for _, c := range cases {
+		_, _, problems := Read(m, Given{"name=blue-fox", "owner=x", c.given}, false, false)
+		if len(problems) != 1 || problems[0].Error() != c.want {
+			t.Errorf("%+q: problems %+q, not %+q", c.given, problems, c.want)
+		}
 	}
 }

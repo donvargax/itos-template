@@ -82,7 +82,11 @@ func hasKey(m Set, k string) bool {
 }
 
 // Error is an answer that cannot be taken, a sealed set (decision 17):
-// internal/cli gives each kind its exit code.
+// internal/cli gives each kind its exit code. Each quotes what the person
+// gave and the template does not take, an answer or a question's name, with
+// %+q, every character outside ASCII escaped: Go counts a Hangul filler as
+// printable, so %q would print the very character refused (bug-5). A name
+// given twice or missing is one the template asks, and stays as it is.
 //
 //sumtype:decl
 type Error interface {
@@ -125,8 +129,8 @@ func (*NotTaken) answerError()    {}
 func (*Missing) answerError()     {}
 func (*NotAnswered) answerError() {}
 
-func (e *Malformed) Error() string { return fmt.Sprintf("the answer %q has no =", e.Given) }
-func (e *Unknown) Error() string   { return "no question " + e.Name }
+func (e *Malformed) Error() string { return fmt.Sprintf("the answer %+q has no =", e.Given) }
+func (e *Unknown) Error() string   { return fmt.Sprintf("no question %+q", e.Name) }
 func (e *Twice) Error() string     { return "the answer to " + e.Name + " twice" }
 func (e *NotTaken) Error() string {
 	return fmt.Sprintf("the answer to %s, %+q: %v", e.Name, e.Answer, e.Reason)

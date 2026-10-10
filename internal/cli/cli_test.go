@@ -127,3 +127,33 @@ questions:
 		t.Error("an asker with no terminal")
 	}
 }
+
+// A refusal echoing what the person gave, an answer with no =, a question
+// the template does not ask, or a --stack or a --feature it does not have,
+// quotes it with every character outside ASCII escaped, as an answer not
+// taken is: Go prints a Hangul filler as itself under %q, and a right-to-left
+// override reaching a terminal raw can turn the rest of the line around
+// (bug-5). ID-NEW-54 reads the first two; the sentences are checked whole.
+func TestARefusalEchoesWhatThePersonGaveEscaped(t *testing.T) {
+	questions := []string{"name", "module"}
+	cases := []struct {
+		err     error
+		message string
+	}{
+		{&answer.Malformed{Given: "blue\u3164fox"}, `--answer takes name=answer, and "blue\u3164fox" has no =`},
+		{&answer.Malformed{Given: "blue\u202efox"}, `--answer takes name=answer, and "blue\u202efox" has no =`},
+		{&answer.Unknown{Name: "na\u3164me", Questions: questions}, `the template asks no question "na\u3164me": its questions are name, module`},
+		{&answer.Unknown{Name: "na\u202eme", Questions: questions}, `the template asks no question "na\u202eme": its questions are name, module`},
+		{&template.UnknownStack{Name: "g\u3164o", Stacks: []string{"go", "python"}}, `the template has no stack "g\u3164o": its stacks are go, python`},
+		{&template.UnknownStack{Name: "g\u202eo", Stacks: []string{"go", "python"}}, `the template has no stack "g\u202eo": its stacks are go, python`},
+		{&template.UnknownFeature{Name: "c\u3164li", Stack: "go"}, `the template has no feature "c\u3164li"`},
+		{&template.UnknownFeature{Name: "c\u202eli", Stack: "go"}, `the template has no feature "c\u202eli"`},
+		{&template.UnknownFeature{Name: "c\u3164li", Stack: "go", Known: []string{"cli", "web"}}, `the template has no feature "c\u3164li": the stack go's features are cli, web`},
+		{&template.UnknownFeature{Name: "c\u202eli", Stack: "go", Known: []string{"cli", "web"}}, `the template has no feature "c\u202eli": the stack go's features are cli, web`},
+	}
+	for _, c := range cases {
+		if got := Message(c.err); got != c.message {
+			t.Errorf("%T says\n%+q, not\n%+q", c.err, got, c.message)
+		}
+	}
+}

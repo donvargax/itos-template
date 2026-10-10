@@ -211,7 +211,7 @@ Feature: new makes a project from a template
   # around. Every refusal that echoes an answer or a question name the person gave quotes it as
   # NotTaken does, in internal/answer and in internal/cli alike. A name given twice is a name
   # the template asks, so it holds none of these.
-  @ID-NEW-54 @bug-5 @wip
+  @ID-NEW-54 @bug-5
   Scenario Outline: new echoes <what> holding <code> escaped, never raw, with exit 2
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults --answer <given>"
