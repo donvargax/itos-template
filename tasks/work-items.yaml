@@ -1173,3 +1173,18 @@ items:
       write a record that update cannot read when an answer is a tab then a newline. Seed
       3687866012010028852; it failed once in the coverage run and 0 times in 30 reruns at 100 cases,
       so CI's one case a push rarely meets it. A fix item: a bug scenario first.
+  - id: mutation-suite-repeats
+    title: Whole-suite mutation outcomes repeat from one run to the next
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      T-39's baseline (docs/mutation-baseline.md, 2026-10-10) reran every mutant of 18 files with
+      the scope its outcome was recorded under: all 412 own-tests outcomes repeated, but 20 of 168
+      decided with --all-tests did not (18 survivors killed, 2 kills survived), and one more flipped
+      in a second sample; none was a timeout, and the unmutated suite passed 8 of 8 runs four at a
+      time. Until the cause is known (our tests sharing something across itos-cc's workers, or
+      itos-cc itself), a survivor or a kill only the whole suite decides is not a fact, and mutation
+      sample can fail a push on a record that was honest.
