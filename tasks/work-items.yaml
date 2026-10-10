@@ -1063,8 +1063,8 @@ items:
   - id: slice-14
     title: itos-template release tags every branch of a template with one version once check passes over their published heads
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: [releases]
     kind: slice
     why: >
