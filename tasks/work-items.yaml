@@ -188,20 +188,9 @@ items:
     title: "new prints the setup steps the chosen branches declare, for the person to run"
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: [slice-1]
     kind: slice
-    why: >
-      Was new-setup.
-      Decision 7, superseding 5 and 6: the generator knows no itos and no stack's hook tool. The
-      manifest lists setup steps per branch (the root of a template using itos lists itos hook
-      install; stack/go its git config lines for tools/hooks/pre-commit; vite-plus none, its package
-      install setting its hooks up). new runs the chosen branches' steps after rendering, and a
-      setup command (itos template setup, the same code) runs them in a clone new did not make.
-      Steps are a template's code, so as copier's --trust: shown and asked on a terminal, or run
-      under --trust, never silently. Settle in its scenarios: the steps' shape in the manifest,
-      their order across root, stack and features, what a refused or failed step leaves, and where
-      new records what the clone command reads.
     tags: [new]
   - id: new-picker
     title: new picks the stack and features from lists on a terminal, with charmbracelet/huh
