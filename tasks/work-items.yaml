@@ -1077,8 +1077,8 @@ items:
   - id: check-here
     title: check run with no template named records the repository's top by its absolute path, not .
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: slice
     why: >
