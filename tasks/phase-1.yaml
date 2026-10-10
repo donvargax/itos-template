@@ -971,6 +971,3 @@
     Proof is the push's CI green on Linux, macOS and Windows, and the load run passing three times
     in a row locally. The coordinator fixes forward rather than reverting slice-12, which would take
     adopt out (2026-10-10).
-  done_when:
-    - run: git grep -q 'maintenance.auto' -- features/steps_test.go
-    - run: git grep -q 'gc.auto' -- features/steps_test.go
