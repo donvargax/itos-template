@@ -1,0 +1,95 @@
+{
+  "version": 1,
+  "file": "internal/project/project.go",
+  "language": "go",
+  "tests": {
+    "internal/check/check_test.go": "19867f988c0ccd5a52034cf5b0239e2646df6003c1bbc096aebfe31df3fbfe5f",
+    "internal/cli/cli_test.go": "516eee21ede0679da5787092c6f8aa86a55449935222c9fa41ea139b6c1196af",
+    "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
+    "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
+    "internal/newproject/newproject_test.go": "0cb6019a3fbedc92035018cf3f5adb58ff800545c763533bf6d07c3d57e12f44",
+    "internal/project/project_test.go": "60c6e029796268aeffed231947c4622317da1d35b365642d61ff7b81f5869da4",
+    "internal/project/property_test.go": "e6d64b2daa9a6301e85a6f39de9caf6a7e52d52d355779168830943ed5b842b1",
+    "internal/template/check_test.go": "6b408881490821ea2726f0e2820f1b3479116d53e8f91c91860f6778dff0b0f1",
+    "internal/template/choose_test.go": "3f099f90d705b4f635377a4f1f20634e645221961545cdf088dab9ea7bbe1368",
+    "internal/template/errors_test.go": "a0020df66b30147a26d58d1225527c71a78239c997e27c21d7a668fb336bbc58",
+    "internal/template/name_test.go": "c295a061d1f9f9359abcf7de21f0029cab0ba7281e33e14756ded82332e39b7c",
+    "internal/template/property_test.go": "7970a0416c599941f2ef9a15b771bcb9e0bafca49a38dd5f3420140cf853c33c",
+    "internal/template/redact_test.go": "8d8616c4910b1e3cd723bde408501d9ab626cbee1a74bbfef5682d89322adeb0",
+    "internal/template/release_test.go": "443a18400e896b3be6ddf7617e062ce0177c1192fac505431ab998cea0046e43",
+    "internal/template/template_test.go": "298134f337ce8b115d7995d1b00cf8fc725fae4c624b11bec01346b4a85c54c4"
+  },
+  "units": [
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/project.Project",
+      "name": "commitMessage",
+      "hash": "019a374a05081673",
+      "start_line": 158,
+      "end_line": 165,
+      "killed": 3,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 3,
+      "mutants": [
+        {
+          "line": 160,
+          "column": 21,
+          "offset": 90,
+          "original": ">",
+          "replacement": ">=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 160,
+          "column": 23,
+          "offset": 92,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 161,
+          "column": 30,
+          "offset": 125,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/project.Record",
+      "name": "AtRelease",
+      "hash": "af07738573c28316",
+      "start_line": 169,
+      "end_line": 174,
+      "killed": 2,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 2,
+      "mutants": [
+        {
+          "line": 170,
+          "column": 15,
+          "offset": 52,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 173,
+          "column": 28,
+          "offset": 102,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    }
+  ]
+}

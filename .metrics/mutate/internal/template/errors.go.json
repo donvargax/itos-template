@@ -3,19 +3,45 @@
   "file": "internal/template/errors.go",
   "language": "go",
   "tests": {
-    "internal/cli/cli_test.go": "24c5974726c5fa711819e9f225b00e7de1f26842720fdea368cec4deb12769d5",
+    "internal/check/check_test.go": "19867f988c0ccd5a52034cf5b0239e2646df6003c1bbc096aebfe31df3fbfe5f",
+    "internal/cli/cli_test.go": "516eee21ede0679da5787092c6f8aa86a55449935222c9fa41ea139b6c1196af",
     "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
     "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
-    "internal/newproject/newproject_test.go": "595d0ab89c460a3b6551f0e7070308ef45c3cd621c0440e542fd20f66d7c228f",
+    "internal/newproject/newproject_test.go": "0cb6019a3fbedc92035018cf3f5adb58ff800545c763533bf6d07c3d57e12f44",
     "internal/template/check_test.go": "6b408881490821ea2726f0e2820f1b3479116d53e8f91c91860f6778dff0b0f1",
     "internal/template/choose_test.go": "3f099f90d705b4f635377a4f1f20634e645221961545cdf088dab9ea7bbe1368",
     "internal/template/errors_test.go": "a0020df66b30147a26d58d1225527c71a78239c997e27c21d7a668fb336bbc58",
     "internal/template/name_test.go": "c295a061d1f9f9359abcf7de21f0029cab0ba7281e33e14756ded82332e39b7c",
-    "internal/template/property_test.go": "a0fcdbaa3c137e4ebc37d7c13817e3f24a2f088c5b8d51a4ed394c8003be18a4",
+    "internal/template/property_test.go": "7970a0416c599941f2ef9a15b771bcb9e0bafca49a38dd5f3420140cf853c33c",
     "internal/template/redact_test.go": "8d8616c4910b1e3cd723bde408501d9ab626cbee1a74bbfef5682d89322adeb0",
+    "internal/template/release_test.go": "443a18400e896b3be6ddf7617e062ce0177c1192fac505431ab998cea0046e43",
     "internal/template/template_test.go": "298134f337ce8b115d7995d1b00cf8fc725fae4c624b11bec01346b4a85c54c4"
   },
   "units": [
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/template.NoRelease",
+      "name": "templateError",
+      "hash": "4ca979180dfb6270",
+      "start_line": 124,
+      "end_line": 124,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/template.Incomplete",
+      "name": "templateError",
+      "hash": "c45479a2c3a85840",
+      "start_line": 125,
+      "end_line": 125,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
     {
       "namespace": "github.com/donvargax/itos-template/internal/template.NoStack",
       "name": "Error",
@@ -26,7 +52,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/template.UnknownStack",
@@ -38,7 +65,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/template.UnknownFeature",
@@ -50,7 +78,60 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
+      "mutants": [],
+      "stale": true
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/template.NoRelease",
+      "name": "Error",
+      "hash": "13e8ca2fedfd9ad0",
+      "start_line": 150,
+      "end_line": 150,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
       "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/template.Incomplete",
+      "name": "Error",
+      "hash": "f4874217888633f5",
+      "start_line": 151,
+      "end_line": 153,
+      "killed": 3,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 3,
+      "mutants": [
+        {
+          "line": 152,
+          "column": 24,
+          "offset": 61,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 152,
+          "column": 36,
+          "offset": 73,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 152,
+          "column": 59,
+          "offset": 96,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
     }
   ]
 }

@@ -1,0 +1,71 @@
+{
+  "version": 1,
+  "file": "internal/template/port/port.go",
+  "language": "go",
+  "tests": {
+    "internal/cli/cli_test.go": "516eee21ede0679da5787092c6f8aa86a55449935222c9fa41ea139b6c1196af",
+    "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
+    "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
+    "internal/disk/disk_test.go": "1d12a3a019d60fe6a60b5089f9ebaf7d7cbc0a5a97722e6dea5023b65fcce093",
+    "internal/git/git_test.go": "a9a8a59a7ce106ec082c98eb76505c0c80321785566320990304ff5c2f52a6ae",
+    "internal/newproject/newproject_test.go": "0cb6019a3fbedc92035018cf3f5adb58ff800545c763533bf6d07c3d57e12f44",
+    "internal/project/project_test.go": "60c6e029796268aeffed231947c4622317da1d35b365642d61ff7b81f5869da4",
+    "internal/project/property_test.go": "e6d64b2daa9a6301e85a6f39de9caf6a7e52d52d355779168830943ed5b842b1",
+    "internal/render/leftover_test.go": "5e22aa539bf017872037d34d4bbc876d897295b19e181f3dfd4ae6d8c4fc13d7",
+    "internal/render/property_test.go": "6772f263787d84c9c42566748da2dfbea18d162c80df42529454222d88b49c58",
+    "internal/render/render_test.go": "9c8ec4cdc9bd18735acd36803a81cf3162dbd507c26c6b02c0720b11964c5a3c",
+    "internal/tempdir/tempdir_test.go": "9c128f226e5490ad20d727b798d62440102fa02e5eff5cff213fa3586cc016fe",
+    "internal/template/check_test.go": "6b408881490821ea2726f0e2820f1b3479116d53e8f91c91860f6778dff0b0f1",
+    "internal/template/choose_test.go": "3f099f90d705b4f635377a4f1f20634e645221961545cdf088dab9ea7bbe1368",
+    "internal/template/errors_test.go": "a0020df66b30147a26d58d1225527c71a78239c997e27c21d7a668fb336bbc58",
+    "internal/template/name_test.go": "c295a061d1f9f9359abcf7de21f0029cab0ba7281e33e14756ded82332e39b7c",
+    "internal/template/port/port_test.go": "8ceb937fb44511a269d67d804b6b2ffb84fa96051e7fa776215d9b278184c945",
+    "internal/template/port/porttest/porttest_test.go": "4944220343bd20effb83fe1a857ed6089765839309d42a76d46a493fda3d643a",
+    "internal/template/property_test.go": "7970a0416c599941f2ef9a15b771bcb9e0bafca49a38dd5f3420140cf853c33c",
+    "internal/template/redact_test.go": "8d8616c4910b1e3cd723bde408501d9ab626cbee1a74bbfef5682d89322adeb0",
+    "internal/template/release_test.go": "443a18400e896b3be6ddf7617e062ce0177c1192fac505431ab998cea0046e43",
+    "internal/template/template_test.go": "298134f337ce8b115d7995d1b00cf8fc725fae4c624b11bec01346b4a85c54c4"
+  },
+  "units": [
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/template/port.Conflict",
+      "name": "Error",
+      "hash": "d54d0b5dc9f5e246",
+      "start_line": 72,
+      "end_line": 74,
+      "killed": 3,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 3,
+      "mutants": [
+        {
+          "line": 73,
+          "column": 27,
+          "offset": 62,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 73,
+          "column": 48,
+          "offset": 83,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 73,
+          "column": 74,
+          "offset": 109,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    }
+  ]
+}

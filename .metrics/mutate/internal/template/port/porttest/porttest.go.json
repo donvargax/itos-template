@@ -1,0 +1,311 @@
+{
+  "version": 1,
+  "file": "internal/template/port/porttest/porttest.go",
+  "language": "go",
+  "tests": {
+    "internal/project/project_test.go": "60c6e029796268aeffed231947c4622317da1d35b365642d61ff7b81f5869da4",
+    "internal/render/leftover_test.go": "5e22aa539bf017872037d34d4bbc876d897295b19e181f3dfd4ae6d8c4fc13d7",
+    "internal/render/render_test.go": "9c8ec4cdc9bd18735acd36803a81cf3162dbd507c26c6b02c0720b11964c5a3c",
+    "internal/template/check_test.go": "6b408881490821ea2726f0e2820f1b3479116d53e8f91c91860f6778dff0b0f1",
+    "internal/template/choose_test.go": "3f099f90d705b4f635377a4f1f20634e645221961545cdf088dab9ea7bbe1368",
+    "internal/template/port/porttest/porttest_test.go": "4944220343bd20effb83fe1a857ed6089765839309d42a76d46a493fda3d643a",
+    "internal/template/property_test.go": "7970a0416c599941f2ef9a15b771bcb9e0bafca49a38dd5f3420140cf853c33c",
+    "internal/template/release_test.go": "443a18400e896b3be6ddf7617e062ce0177c1192fac505431ab998cea0046e43",
+    "internal/template/template_test.go": "298134f337ce8b115d7995d1b00cf8fc725fae4c624b11bec01346b4a85c54c4"
+  },
+  "units": [
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/template/port/porttest",
+      "name": "tagCommit",
+      "hash": "5dc8caf46e8671bf",
+      "start_line": 62,
+      "end_line": 62,
+      "killed": 1,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 1,
+      "mutants": [
+        {
+          "line": 62,
+          "column": 52,
+          "offset": 51,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/template/port/porttest.Repository",
+      "name": "tree",
+      "hash": "5c7d49a1460b3c05",
+      "start_line": 65,
+      "end_line": 75,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/template/port/porttest.Repository",
+      "name": "File",
+      "hash": "aef874e7d878069a",
+      "start_line": 78,
+      "end_line": 88,
+      "killed": 5,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 5,
+      "mutants": [
+        {
+          "line": 80,
+          "column": 9,
+          "offset": 108,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 81,
+          "column": 15,
+          "offset": 131,
+          "original": "false",
+          "replacement": "true",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 84,
+          "column": 5,
+          "offset": 170,
+          "original": "!",
+          "replacement": "",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 85,
+          "column": 15,
+          "offset": 190,
+          "original": "false",
+          "replacement": "true",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 87,
+          "column": 17,
+          "offset": 220,
+          "original": "true",
+          "replacement": "false",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/template/port/porttest.Repository",
+      "name": "Merge",
+      "hash": "811d41c46504b7f5",
+      "start_line": 95,
+      "end_line": 120,
+      "killed": 7,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 7,
+      "mutants": [
+        {
+          "line": 99,
+          "column": 10,
+          "offset": 165,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 105,
+          "column": 35,
+          "offset": 334,
+          "original": "&&",
+          "replacement": "||",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 105,
+          "column": 51,
+          "offset": 350,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 105,
+          "column": 61,
+          "offset": 360,
+          "original": "||",
+          "replacement": "&&",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 105,
+          "column": 84,
+          "offset": 383,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 111,
+          "column": 21,
+          "offset": 500,
+          "original": ">",
+          "replacement": ">=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 111,
+          "column": 23,
+          "offset": 502,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/template/port/porttest.Repository",
+      "name": "Tags",
+      "hash": "2039f08726296e0a",
+      "start_line": 124,
+      "end_line": 133,
+      "killed": 1,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 1,
+      "mutants": [
+        {
+          "line": 125,
+          "column": 14,
+          "offset": 63,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/template/port/porttest.Repository",
+      "name": "IsAncestor",
+      "hash": "ec9d166f67ff5d84",
+      "start_line": 137,
+      "end_line": 149,
+      "killed": 10,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 10,
+      "mutants": [
+        {
+          "line": 139,
+          "column": 31,
+          "offset": 139,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 140,
+          "column": 11,
+          "offset": 158,
+          "original": "false",
+          "replacement": "true",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 143,
+          "column": 12,
+          "offset": 187,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 144,
+          "column": 10,
+          "offset": 204,
+          "original": "true",
+          "replacement": "false",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 148,
+          "column": 12,
+          "offset": 306,
+          "original": "&&",
+          "replacement": "||",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 148,
+          "column": 22,
+          "offset": 316,
+          "original": "&&",
+          "replacement": "||",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 148,
+          "column": 32,
+          "offset": 326,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 148,
+          "column": 38,
+          "offset": 332,
+          "original": "&&",
+          "replacement": "||",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 148,
+          "column": 53,
+          "offset": 347,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 148,
+          "column": 61,
+          "offset": 355,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    }
+  ]
+}

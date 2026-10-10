@@ -1,0 +1,261 @@
+{
+  "version": 1,
+  "file": "internal/git/repo.go",
+  "language": "go",
+  "tests": {
+    "internal/check/check_test.go": "19867f988c0ccd5a52034cf5b0239e2646df6003c1bbc096aebfe31df3fbfe5f",
+    "internal/cli/cli_test.go": "516eee21ede0679da5787092c6f8aa86a55449935222c9fa41ea139b6c1196af",
+    "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
+    "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
+    "internal/git/git_test.go": "a9a8a59a7ce106ec082c98eb76505c0c80321785566320990304ff5c2f52a6ae",
+    "internal/newproject/newproject_test.go": "0cb6019a3fbedc92035018cf3f5adb58ff800545c763533bf6d07c3d57e12f44"
+  },
+  "units": [
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/git.Repo",
+      "name": "Merge",
+      "hash": "0eae534ee94a8918",
+      "start_line": 104,
+      "end_line": 127,
+      "killed": 12,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 12,
+      "mutants": [
+        {
+          "line": 105,
+          "column": 20,
+          "offset": 81,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 106,
+          "column": 40,
+          "offset": 123,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 107,
+          "column": 9,
+          "offset": 143,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 110,
+          "column": 31,
+          "offset": 203,
+          "original": "1",
+          "replacement": "0",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 112,
+          "column": 20,
+          "offset": 329,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 112,
+          "column": 23,
+          "offset": 332,
+          "original": "1",
+          "replacement": "0",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 114,
+          "column": 37,
+          "offset": 436,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 114,
+          "column": 39,
+          "offset": 438,
+          "original": "1",
+          "replacement": "0",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 114,
+          "column": 55,
+          "offset": 454,
+          "original": "1",
+          "replacement": "0",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 116,
+          "column": 10,
+          "offset": 472,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 120,
+          "column": 121,
+          "offset": 689,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 121,
+          "column": 10,
+          "offset": 705,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/git.Repo",
+      "name": "Tags",
+      "hash": "2ba65abdeccc4d9b",
+      "start_line": 132,
+      "end_line": 150,
+      "killed": 7,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 7,
+      "mutants": [
+        {
+          "line": 134,
+          "column": 9,
+          "offset": 198,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 141,
+          "column": 15,
+          "offset": 358,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 143,
+          "column": 10,
+          "offset": 385,
+          "original": "1",
+          "replacement": "0",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 143,
+          "column": 13,
+          "offset": 388,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 144,
+          "column": 41,
+          "offset": 441,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 145,
+          "column": 13,
+          "offset": 472,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 146,
+          "column": 41,
+          "offset": 525,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/git.Repo",
+      "name": "IsAncestor",
+      "hash": "eb5736113e2a0529",
+      "start_line": 154,
+      "end_line": 160,
+      "killed": 4,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 4,
+      "mutants": [
+        {
+          "line": 156,
+          "column": 19,
+          "offset": 139,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 156,
+          "column": 22,
+          "offset": 142,
+          "original": "1",
+          "replacement": "0",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 157,
+          "column": 10,
+          "offset": 155,
+          "original": "false",
+          "replacement": "true",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 159,
+          "column": 13,
+          "offset": 181,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    }
+  ]
+}
