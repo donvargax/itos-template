@@ -42,6 +42,9 @@ type world struct {
 	selection []string                    // the template's branches the scenario's project was rendered from
 	snapshots map[string]map[string]entry // each folder's saved snapshot
 	trash     string                      // where the scenario moves what it takes out of the way
+
+	made  []string          // the folders of the projects the scenario made by new
+	heads map[string]string // each folder's saved HEAD and refs
 }
 
 func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
@@ -113,6 +116,7 @@ func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
 	w.checkSteps(sc)
 	w.releaseSteps(sc)
 	w.adoptSteps(sc)
+	w.updateSteps(sc)
 }
 
 // setUp makes the scenario's scratch repository, an empty git repository on

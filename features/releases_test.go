@@ -107,11 +107,28 @@ func releaseCheck(text string) string {
 // release the same way, release.txt holding heads, untagged. The root
 // branch is checked out at the end, so it stays the default branch.
 func (w *world) release(src, dir string, versions []string) error {
+	return w.releaseChanging(src, dir, versions, nil)
+}
+
+// releaseChanging is release, each version changes names changed first: its
+// change made on the root branch, checked out, before release.txt is
+// written, and committed with it or before it, so the release holds the
+// change, the releases before it do not, and the ones after it, and the
+// heads, keep it.
+func (w *world) releaseChanging(src, dir string, versions []string, changes map[string]func(dir string) error) error {
 	branches, err := branchList(src)
 	if err != nil {
 		return err
 	}
 	for _, v := range append(versions[:len(versions):len(versions)], "heads") {
+		if change := changes[v]; change != nil {
+			if err := w.gitIn(dir, "checkout", "-q", branches[0].name); err != nil {
+				return err
+			}
+			if err := change(dir); err != nil {
+				return err
+			}
+		}
 		if err := w.mergeDown(dir, branches, v); err != nil {
 			return err
 		}

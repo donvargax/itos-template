@@ -276,6 +276,15 @@ func (w *world) changedTemplateIn(name, key string, change func(dir string, top 
 // checked out, its manifest's top mapping changed by change, the commit's
 // message naming key.
 func (w *world) changeManifest(dir, key string, change func(top *yaml.Node) error) error {
+	if err := rewriteManifest(dir, change); err != nil {
+		return err
+	}
+	return w.gitIn(dir, "commit", "-q", "-a", "-m", "Change the manifest: "+key)
+}
+
+// rewriteManifest writes the manifest of the template in dir, checked out,
+// its top mapping changed by change, and commits nothing.
+func rewriteManifest(dir string, change func(top *yaml.Node) error) error {
 	file := filepath.Join(dir, "itos-template.yaml")
 	data, err := os.ReadFile(file)
 	if err != nil {
@@ -300,10 +309,7 @@ func (w *world) changeManifest(dir, key string, change func(top *yaml.Node) erro
 	if err := enc.Close(); err != nil {
 		return err
 	}
-	if err := os.WriteFile(file, out.Bytes(), 0o644); err != nil {
-		return err
-	}
-	return w.gitIn(dir, "commit", "-q", "-a", "-m", "Change the manifest: "+key)
+	return os.WriteFile(file, out.Bytes(), 0o644)
 }
 
 // cloneOfTemplate clones the scenario's template into the folder name of the

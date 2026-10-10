@@ -33,7 +33,7 @@ func (w *world) adoptSteps(sc *godog.ScenarioContext) {
 
 	sc.Step(`^a committed project change to "([^"]*)" containing "([^"]*)"$`, w.committedChange)
 	sc.Step(`^a committed binary change to "([^"]*)" containing "([^"]*)" after a NUL$`, w.committedBinaryChange)
-	sc.Step(`^a committed deletion of "([^"]*)"$`, w.committedDeletion)
+	sc.Step(`^a committed (?:project )?deletion of "([^"]*)"$`, w.committedDeletion)
 	sc.Step(`^a committed (?:project-only )?file "([^"]*)" containing "([^"]*)"$`, w.committedFile)
 	sc.Step(`^"([^"]*)" has a committed executable mode unlike the baseline$`, w.committedExecutable)
 	sc.Step(`^"([^"]*)" has a committed ignore rule for "([^"]*)"$`, w.committedIgnoreRule)
@@ -46,8 +46,8 @@ func (w *world) adoptSteps(sc *godog.ScenarioContext) {
 	})
 	sc.Step(`^"([^"]*)" is (a folder outside any git repository|a bare git repository|a git repository without a commit)$`, w.projectIs)
 
-	sc.Step(`^a saved adoption snapshot of "([^"]*)"$`, w.saveSnapshot)
-	sc.Step(`^the adoption snapshot of "([^"]*)" is unchanged$`, func(dir string) error {
+	sc.Step(`^a saved (?:adoption )?snapshot of "([^"]*)"$`, w.saveSnapshot)
+	sc.Step(`^the (?:adoption )?snapshot of "([^"]*)" is unchanged$`, func(dir string) error {
 		return w.snapshotUnchanged(dir, false)
 	})
 	sc.Step(`^the adoption snapshot of "([^"]*)" is unchanged except for the new unstaged record$`, func(dir string) error {
@@ -433,15 +433,28 @@ func writeFile(p, text string) error {
 // projectIs makes the project dir what state says. Its .git, and the
 // scratch folder's, are moved out of the way rather than removed: a folder
 // of git's objects, which git makes read-only, is not removed alike on
-// every system, and the scenario's trash is removed after it.
+// every system, and the scenario's trash is removed after it. A folder the
+// scenario has not made yet is made empty first, a folder of no project.
 //
 //   - a folder outside any git repository: its files with no .git, in no
 //     repository, the scratch folder's .git moved out too;
-//   - a bare git repository: a bare clone of the project in its place;
+//   - a bare git repository: a bare clone of the project in its place, or a
+//     new bare repository where there was no folder;
 //   - a git repository without a commit: its files in a new repository,
 //     none of them committed.
 func (w *world) projectIs(dir, state string) error {
 	project := w.path(dir)
+	if _, err := os.Lstat(project); errors.Is(err, fs.ErrNotExist) {
+		if state == "a bare git repository" {
+			return w.gitIn(w.dir, "init", "-q", "--bare", "--", project)
+		}
+		if err := os.MkdirAll(project, 0o755); err != nil {
+			return err
+		}
+		if err := w.gitIn(project, "init", "-q", "-b", "main"); err != nil {
+			return err
+		}
+	}
 	switch state {
 	case "a folder outside any git repository":
 		if err := w.moveAway(filepath.Join(project, ".git")); err != nil {
