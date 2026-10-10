@@ -241,27 +241,9 @@ items:
     title: new renders a template's newest release or the one --ref names, and check proves its heads or --ref's
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: [slice-1]
     kind: slice
-    why: >
-      Was template-releases.
-      Decision 9 has --ref pick a tag, by default the newest release; decision 10 left how one
-      release is tagged across a template's branches for later, the recorded commits being enough to
-      reproduce a render. new-renders renders the branches' heads; this item settles the tagging (a
-      tag per branch under one version, say stack/go/v1.2.0, or one tag on a commit reaching every
-      branch), then new's --ref and its default, and the record's release field.
-
-      The person's calls, 2026-10-09. Tagging: a tag per branch under one version, v1.2.0 on the
-      root branch and <branch>/v1.2.0 on each other (stack/go/v1.2.0, go/cli/v1.2.0), plain git tags
-      any clone fetches; a release is complete when every branch the manifest lists has its tag, and
-      new refuses an incomplete one, over one tag with a file naming the other commits and over a
-      ref namespace of ours. Newest: the highest stable vX.Y.Z that is complete, pre-releases taken
-      only when --ref names one, over the newest by tag date, which would let a backport made later
-      win. A template with no release renders its branch heads as today (decision 21), saying so.
-      Cutting: a command, itos-template release (the idea template-release-command), so this item
-      only reads releases: new's --ref and its default, check's, and the record's release field.
-      Offer the person a decision record for the tagging, which sets a direction beyond this item.
     tags: [new, update]
   - id: slice-6
     title: The manifest gives a made project's first commit its message, so the project's own commit rules pass it
