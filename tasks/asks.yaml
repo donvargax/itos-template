@@ -229,3 +229,6 @@ questions:
     item: "template-release-command"
     question: "Are a template release's tags annotated or lightweight? Recommended: annotated, each carrying who cut it, when, and a message naming the version, so git describe and GitHub treat them as releases and they can be signed later without changing the scheme; new and check read either kind. Or: lightweight, plain refs as the test fixture makes them."
     answer: "Annotated, each naming its version in its message. The person's call, 2026-10-10."
+  - id: q-52
+    item: "template-release-command"
+    question: "Which versions can itos-template release cut? Recommended: any semver vX.Y.Z, a pre-release suffix allowed, that no listed branch already carries as <branch>/<version>, a partial release included; a version lower than the newest is a backport, allowed, and never becomes the default since the newest is the highest stable complete one (decision 36). Or: only a version higher than the newest, as the idea first said."
