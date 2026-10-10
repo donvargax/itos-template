@@ -873,3 +873,42 @@
     leaves the clone: the coordinator committed and pushed a U+202E and a U+3164 the editing tool
     had written into ID-NEW-54's table (4ca60c3), caught only by CI's gate after the push. The
     hook's message names each file and line and says to write the character as an escape.
+- id: T-36
+  type: refactor
+  title: "internal/template's own refusals quote a --stack or --feature value escaped"
+  why: >
+    Was template-errors-escaped. bug-5 quoted an unknown --stack or --feature value with %+q in
+    internal/cli's messages, but internal/template's UnknownStack and UnknownFeature Error methods
+    still write the name raw ("no stack " + Name, "no feature " + Name). The cli words both itself,
+    so no scenario reaches them; they are read wherever an error is shown unclassified, as Resolve's
+    joined error is, where a right-to-left override or a Hangul filler in the value reaches the
+    reader as itself. Quote the value with %+q in both, as answer's Malformed and Unknown do since
+    bug-5, with a unit test holding both characters written as escapes. A refactor: nothing a
+    person sees through the cli changes. Audit internal/template's other Error methods for a value
+    the person gave, and quote it the same way.
+  done_when:
+    - run: >-
+        ! git grep -n -E '"no (stack|feature) " \+' -- internal/template &&
+        go test ./internal/template
+- id: T-37
+  type: ci
+  title: "The invisible-character pattern is written once, in a script CI and the pre-commit hook call"
+  why: >
+    Was invisible-pattern-once. T-35 left [\p{Cf}\p{Default_Ignorable_Code_Point}\p{Zl}\p{Zp}]
+    written three times, in ci.steps, the docs-only plan and tools/hooks/pre-commit, and nothing
+    keeps them alike: widening one by hand can leave the hook looser than CI, and a character the
+    hook passes reaches the push. One script, tools/bin/invisible-chars, holds the pattern and T-33's
+    exit rule (git grep's 1 passes, 0 and any error refuse), searching the tracked files, or the
+    staged ones under --cached, and printing on a refusal the matches and the line saying to write
+    the character as an escape. Both CI plans run it, and the hook runs it with --cached first, as
+    it runs the pattern today; no other tracked file outside tasks/ and docs/ holds the pattern.
+    The coordinator's call, routine: a script of ours, as tools/bin/doc-caps is. It follows
+    tools/bin's existing style and tests, if tools/bin has tests. Regenerate AGENTS.md's rules
+    block, which then names the script.
+  done_when:
+    - run: >-
+        test -x tools/bin/invisible-chars &&
+        test "$(grep -c 'tools/bin/invisible-chars' itos.yaml)" -ge 2 &&
+        grep -q 'tools/bin/invisible-chars --cached' tools/hooks/pre-commit &&
+        test "$(git grep -l -F 'p{Default_Ignorable_Code_Point}' -- . ':!tasks' ':!docs' | wc -l)" -eq 1 &&
+        tools/bin/invisible-chars
