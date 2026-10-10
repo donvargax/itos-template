@@ -150,7 +150,7 @@ Feature: check renders every combination a template allows and runs its checks
   # relative path, whatever subfolder check ran in, so the name reaches the template from
   # anywhere on that machine. The fixture's root check fails unless a render's record names the
   # template by the fixture's own absolute path, written as the system writes paths.
-  @ID-CHECK-26 @check-here @wip
+  @ID-CHECK-26 @check-here
   Scenario Outline: check with no template named records the repository by its absolute path, run from <where>
     Given the template "acme" whose root has a check that fails unless a render's record names the template by its absolute path
     When itos-template runs in the template's folder "<folder>" with "check --answer name=blue-fox --defaults"

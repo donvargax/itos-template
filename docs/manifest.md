@@ -446,7 +446,10 @@ no credential, though `new` clones it by the name as given (record-name):
 `check` records each of its renders' template by the same name, in its record and its first commit
 (check-record-name-slice), so a template's own credential scan finds no credential its URL held in
 a render; a render is thrown away, so `check` says nothing of the credential left out. The
-repository `check` runs in, when it names none, is recorded as `.`.
+repository `check` runs in, when it names none, is recorded by its top's absolute path, whatever
+folder of it `check` ran in, written as the system writes a path, as a relative one is above
+(check-here): `.` would name the render itself, so a template's check reading the record, or
+running `update` in a render, would reach nothing.
 
 The clone `new` renders from is a bare repository in a temporary folder, its origin the name as
 given, removed when `new` ends; the made project is a repository of its own, with no remote.

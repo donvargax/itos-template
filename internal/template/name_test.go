@@ -86,6 +86,11 @@ func TestRecordedMakesARelativePathAbsoluteAsTheSystemWritesOne(t *testing.T) {
 		{"from a share's top", `\acme`, `\\server\share\you`, Windows, `\\server\share\acme`},
 		{"from a share's top, the folder the share", `acme`, `\\server\share`, Windows, `\\server\share\acme`},
 		{"a share written with slashes", "acme", "//server/share/you", Windows, `\\server\share\you\acme`},
+		// check-here: the repository check runs in, a dot from its top as
+		// git gives it, with / on Windows too.
+		{"the folder itself", ".", "/home/you/acme", Unix, "/home/you/acme"},
+		{"the folder itself, given with slashes", ".", "C:/Users/you/acme", Windows, `C:\Users\you\acme`},
+		{"the folder itself, a share given with slashes", ".", "//server/share/acme", Windows, `\\server\share\acme`},
 	}
 	for _, c := range cases {
 		got, cut := Recorded(c.given, c.dir, c.sys)

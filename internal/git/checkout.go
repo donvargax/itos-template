@@ -6,10 +6,10 @@ import "strings"
 // repository it runs in.
 const Here = "."
 
-// CloneHere copies the repository the working folder is in, from its top
-// whatever folder of it that is, bare into dir, which must not exist: the
-// template check reads when none is named, a CI checkout as git clone or
-// actions/checkout leaves one. Each branch is the local branch of its name,
+// CloneHere copies the repository whose top is top, as Top gives the
+// working folder's, whatever folder of it that is, bare into dir, which must
+// not exist: the template check reads when none is named, a CI checkout as
+// git clone or actions/checkout leaves one. Each branch is the local branch of its name,
 // else origin's remote-tracking branch of that name, so the branches a
 // checkout holds only as origin's are read with no fetch of them first.
 //
@@ -21,11 +21,7 @@ const Here = "."
 //
 // A failure is an *Unreachable naming Here, or a *Missing when git cannot be
 // run.
-func CloneHere(dir string) (*Repo, error) {
-	top, err := topLevel()
-	if err != nil {
-		return nil, err
-	}
+func CloneHere(top, dir string) (*Repo, error) {
 	if _, err := run("", "init", "--bare", "--quiet", dir); err != nil {
 		return nil, err
 	}
@@ -51,10 +47,11 @@ func CloneHere(dir string) (*Repo, error) {
 	return r, nil
 }
 
-// topLevel is the top folder of the repository the working folder is in, as
-// git gives it (with / on windows too), or a bare repository's own folder;
-// an *Unreachable naming Here when the working folder is in no repository.
-func topLevel() (string, error) {
+// Top is the top folder of the repository the working folder is in, an
+// absolute path as git gives it (with / on windows too), or a bare
+// repository's own folder; an *Unreachable naming Here when the working
+// folder is in no repository, or a *Missing when git cannot be run.
+func Top() (string, error) {
 	if out, err := run("", "rev-parse", "--show-toplevel"); err == nil {
 		return strings.TrimSpace(string(out)), nil
 	}

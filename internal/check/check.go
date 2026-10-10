@@ -174,21 +174,28 @@ type Query struct {
 // so a template's own credential scan finds none in its renders, and a
 // relative path made absolute. A render is thrown away, so nothing is said
 // of a credential left out, as new says it. The repository check runs in,
-// when none is named, is recorded as git.Here. A failure before any combination is checked (the template
-// unreachable, its manifest refused, an answer missing) is returned,
-// nothing given to opened or each, and so is an error each returns.
+// when none is named, is git.Here from that repository's top (git.Top), so
+// recorded as the top's absolute path whatever subfolder check runs in
+// (check-here): a dot would name the render itself. A failure before any
+// combination is checked (the template unreachable, its manifest refused,
+// an answer missing) is returned, nothing given to opened or each, and so
+// is an error each returns.
 func Handle(q Query, opened func(*manifest.Manifest), each func(template.Result) error) error {
 	tmp, err := tempdir.Make("itos-template-template-")
 	if err != nil {
 		return err
 	}
 	defer tempdir.Discard(tmp)
+	// from is the folder name is relative to.
 	name, into := q.Template, filepath.Join(tmp, "template.git")
 	var repo *git.Repo
+	var from string
 	if name == "" {
 		name = git.Here
-		repo, err = git.CloneHere(into)
-	} else {
+		if from, err = git.Top(); err == nil {
+			repo, err = git.CloneHere(from, into)
+		}
+	} else if from, err = os.Getwd(); err == nil {
 		repo, err = git.Clone(name, into)
 	}
 	if err != nil {
@@ -198,13 +205,7 @@ func Handle(q Query, opened func(*manifest.Manifest), each func(template.Result)
 	if err != nil {
 		return err
 	}
-	if q.Template != "" {
-		dir, err := os.Getwd()
-		if err != nil {
-			return err
-		}
-		t.Name, _ = template.Recorded(q.Template, dir, template.SystemOf(runtime.GOOS))
-	}
+	t.Name, _ = template.Recorded(name, from, template.SystemOf(runtime.GOOS))
 	answers, err := answer.Resolve(t.Manifest, q.Answers, q.Defaults)
 	if err != nil {
 		return err
