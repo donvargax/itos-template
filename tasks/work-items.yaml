@@ -1101,14 +1101,15 @@ items:
       one canonical form, and which, is the person's call. ID-CHECK-26's fixture accepts either form
       for that reason.
     refs: [check-here]
-  - id: sh-cr-flake
+  - id: T-38
     title: TestShReadsQuotedWordsBackByteForByte fails on Windows when it draws a carriage return
     phase: 1
     owner: null
     status: todo
     depends_on: []
-    kind: idea
+    kind: task
     why: >
+      Was sh-cr-flake.
       check-here's push, 2026-10-10, went red on the windows platform job alone (run 38029057617) in
       internal/manifest, which it did not touch: RAPID_CHECKS=1 draws one random case a run, and the
       case was the word "\r", which Git for Windows' sh read back as nothing, so main goes red at
