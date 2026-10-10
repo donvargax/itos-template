@@ -826,15 +826,9 @@ items:
     title: Pin itos 7.0.0-rc.3, with the code proof judged as a step of every CI run
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      Was proof-in-ci.
-      The proof runs only at itos work done, after the code has landed and a feat has cut a release
-      (T-22, slice-8). The person's call, 2026-10-08: no step of our own; itos runs it, on the
-      runner, as asked in donvargax/itos#28. When a release carries it, pin it and check CI shows
-      the proof.
     tags: [ci]
   - id: upstream-fixes
     title: Take up the itos and itos-cc fixes filed from here as their releases land

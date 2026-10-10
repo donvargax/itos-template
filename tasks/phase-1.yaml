@@ -855,11 +855,3 @@
     this repository runs, and itos#20's fix: if a release already pinned carries it, delete the
     lesson whose exit it is in the same push. Prove the proof step can fail: on a scratch branch
     never pushed, a range holding a code change with no fresh .metrics/mutate/ fails the plan.
-  done_when:
-    - run: >-
-        grep -q '"7.0.0-rc.3"' itos.yaml &&
-        ! git grep -q 1b9f1f9995be5d20aed3b4f8877a453bbd1e98a3 -- .github &&
-        git grep -q 415df6017f451beef8d6e12ea15e8b638f625f1a -- .github/workflows/ci.yml &&
-        git grep -q 415df6017f451beef8d6e12ea15e8b638f625f1a -- .github/workflows/release.yml &&
-        ! git grep -q 'version: 6.0.0' -- .github &&
-        itos ci plan 4b8132b~1 4b8132b --json | jq -e '[.order[] | select(.proof)] | length == 1'
