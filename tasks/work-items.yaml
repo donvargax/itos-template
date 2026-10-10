@@ -900,7 +900,7 @@ items:
     title: A template URL's credential never reaches itos-template's own output
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: []
     kind: slice
     why: >
