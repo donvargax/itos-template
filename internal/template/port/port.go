@@ -156,6 +156,59 @@ type CheckoutState struct {
 	Changed    []string
 }
 
+// Project is a made or adopted project's git repository, opened in a folder
+// of it, as update reads it and merges a template's change into it: HEAD's
+// tree read, and the index and the working tree written as git merge
+// writes them. HEAD, every ref and every commit are left as they are; the
+// objects a merge writes are referred to by nothing but the index.
+type Project interface {
+	// Look says what the folder the project was opened in is, as a
+	// Checkout's Look says it.
+	Look() (CheckoutState, error)
+	// Committed is the file path's contents, with /, in HEAD's tree, and
+	// false when the tree holds no file there.
+	Committed(path string) ([]byte, bool, error)
+	// Merge merges into HEAD the change from base to target, each a whole
+	// tree's files with / in their paths, base the merge's base, as git's
+	// merge does: what merges cleanly is written to the working tree and
+	// staged, and a conflict is left as git merge leaves one, marked in
+	// the working tree's file and unmerged in the index (stages 1, 2 and 3:
+	// base, HEAD and target). It returns what the merge changes from HEAD
+	// and what it leaves conflicted.
+	Merge(base, target []File) (Merged, error)
+}
+
+// Merged is what a Project's Merge did: each path it changed from HEAD,
+// sorted by path, and each path it left conflicted, sorted.
+type Merged struct {
+	Changes   []Change
+	Conflicts []Unmerged
+}
+
+// Change is a path a merge changes from HEAD, with /: how, and for a rename
+// the path it had.
+type Change struct {
+	Path string     `json:"path"`
+	Kind ChangeKind `json:"kind"`
+	From string     `json:"from,omitempty"`
+}
+
+// ChangeKind is how a merge changes a path from HEAD.
+type ChangeKind string
+
+// The kinds of a Change. A change of a file's mode or type is Modified.
+const (
+	Added    ChangeKind = "added"
+	Modified ChangeKind = "modified"
+	Removed  ChangeKind = "removed"
+	Renamed  ChangeKind = "renamed"
+)
+
+// Unmerged is a path, with /, a merge left conflicted.
+type Unmerged struct {
+	Path string `json:"path"`
+}
+
 // Differ shows how a file changes from one side to the other, as git's own
 // diff shows it, a/ the side it changes from and b/ the side it changes to.
 type Differ interface {

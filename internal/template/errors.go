@@ -117,6 +117,10 @@ type Incomplete struct {
 	Branches []string
 }
 
+// Unrecorded is a branch a record's render needs, Branch, that the record
+// names no commit of.
+type Unrecorded struct{ Branch string }
+
 func (*BadName) templateError()         {}
 func (*NoStack) templateError()         {}
 func (*UnknownStack) templateError()    {}
@@ -133,6 +137,7 @@ func (*MergeConflict) templateError()   {}
 func (*HoldsRecord) templateError()     {}
 func (*NoRelease) templateError()       {}
 func (*Incomplete) templateError()      {}
+func (*Unrecorded) templateError()      {}
 
 func (e *BadName) Error() string {
 	return fmt.Sprintf("the template %+q holds %U", e.Name, e.Char)
@@ -161,6 +166,7 @@ func (e *MergeConflict) Error() string {
 }
 func (e *HoldsRecord) Error() string { return "the template holds " + e.File }
 func (e *NoRelease) Error() string   { return fmt.Sprintf("no release %+q", e.Version) }
+func (e *Unrecorded) Error() string  { return "the record names no commit of " + e.Branch }
 func (e *Incomplete) Error() string {
 	return "the release " + e.Version + " without a tag on " + strings.Join(e.Branches, ", ")
 }

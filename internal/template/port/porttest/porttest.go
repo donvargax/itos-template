@@ -323,6 +323,118 @@ func (c *Checkout) Create(p string, data []byte) error {
 	return nil
 }
 
+// Project is a made project's repository held in memory: what Look says of
+// it, HEAD's tree, and, once Merge has run, its working tree and the
+// conflicted paths' index stages. Merge merges each path as a whole file,
+// as git does when both sides change a file, so a change both sides make
+// to one file conflicts, however far apart its lines; it follows no
+// rename. Fail is why HEAD cannot be read or merged into, when it cannot.
+type Project struct {
+	State port.CheckoutState
+	Head  map[string]port.File
+	Fail  error
+
+	// Tree is the working tree after Merge, each path's file; a conflicted
+	// one is HEAD's side, or the target's when HEAD has none.
+	Tree map[string]port.File
+	// Stages are the conflicted paths' index entries after Merge: base,
+	// HEAD and target, nil for a side with no file.
+	Stages map[string][3]*port.File
+	// Merges counts the merges made.
+	Merges int
+}
+
+var _ port.Project = (*Project)(nil)
+
+// Look is State.
+func (p *Project) Look() (port.CheckoutState, error) { return p.State, nil }
+
+// Committed is Head's file path, or Fail.
+func (p *Project) Committed(path string) ([]byte, bool, error) {
+	if p.Fail != nil {
+		return nil, false, p.Fail
+	}
+	f, ok := p.Head[path]
+	return f.Data, ok, nil
+}
+
+// Merge merges every path of base, Head and target: the side that changed
+// it from base wins, both changing it the same way is one change, and
+// both changing it otherwise is a conflict.
+func (p *Project) Merge(base, target []port.File) (port.Merged, error) {
+	if p.Fail != nil {
+		return port.Merged{}, p.Fail
+	}
+	p.Merges++
+	b, t := byPath(base), byPath(target)
+	paths := map[string]struct{}{}
+	for _, m := range []map[string]port.File{b, p.Head, t} {
+		for path := range m {
+			paths[path] = struct{}{}
+		}
+	}
+	p.Tree, p.Stages = map[string]port.File{}, map[string][3]*port.File{}
+	var merged port.Merged
+	for _, path := range slices.Sorted(maps.Keys(paths)) {
+		sides := [3]*port.File{side(b, path), side(p.Head, path), side(t, path)}
+		result := sides[1]
+		switch {
+		case same(sides[0], sides[1]):
+			result = sides[2]
+		case !same(sides[1], sides[2]) && !same(sides[0], sides[2]):
+			p.Stages[path] = sides
+			merged.Conflicts = append(merged.Conflicts, port.Unmerged{Path: path})
+			if result == nil {
+				result = sides[2]
+			}
+		}
+		if result != nil {
+			p.Tree[path] = *result
+		}
+		if change, ok := changeOf(path, sides[1], result); ok {
+			merged.Changes = append(merged.Changes, change)
+		}
+	}
+	return merged, nil
+}
+
+func byPath(files []port.File) map[string]port.File {
+	m := map[string]port.File{}
+	for _, f := range files {
+		m[f.Path] = f
+	}
+	return m
+}
+
+func side(m map[string]port.File, path string) *port.File {
+	f, ok := m[path]
+	if !ok {
+		return nil
+	}
+	return &f
+}
+
+func same(a, b *port.File) bool {
+	if a == nil || b == nil {
+		return a == b
+	}
+	return a.Mode == b.Mode && string(a.Data) == string(b.Data)
+}
+
+// changeOf is how path changes from HEAD's file to the merge's, false when
+// it does not.
+func changeOf(path string, head, result *port.File) (port.Change, bool) {
+	switch {
+	case same(head, result):
+		return port.Change{}, false
+	case head == nil:
+		return port.Change{Path: path, Kind: port.Added}, true
+	case result == nil:
+		return port.Change{Path: path, Kind: port.Removed}, true
+	}
+	return port.Change{Path: path, Kind: port.Modified}, true
+}
+
 // Differ is a diff as a fake writes it: each side's path and contents,
 // "a/<path>: <contents>" then "b/<path>: <contents>", a side with no file
 // "a: none"; or Fail, why it cannot, when it cannot.

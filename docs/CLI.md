@@ -37,14 +37,14 @@ breaking change makes a major release.
 
 ### Exit codes
 
-| Code | Meaning                                                                                                                                                                                  |
-| ---- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0    | Success.                                                                                                                                                                                 |
-| 1    | A check said no: a render's check failed, a merge left conflicts, a template refused a combination, adopt refused a project that differs from its baseline or is not ready for a record. |
-| 2    | A usage error or a manifest or config error.                                                                                                                                             |
-| 3    | The environment is missing something: a tool, a template that cannot be reached, a git repository.                                                                                       |
-| 70   | An internal error that no code classified. Report it.                                                                                                                                    |
-| 75   | A temporary failure. The same command can pass when you run it again with no change, for example after a network failure.                                                                |
+| Code | Meaning                                                                                                                                                                                                                                                                     |
+| ---- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0    | Success.                                                                                                                                                                                                                                                                    |
+| 1    | A check said no: a render's check failed, a merge left conflicts, a template refused a combination, adopt refused a project that differs from its baseline or is not ready for a record, update refused a project that is not ready for it or a release older than its own. |
+| 2    | A usage error or a manifest, config or record error.                                                                                                                                                                                                                        |
+| 3    | The environment is missing something: a tool, or one too old (update merges with git 2.45 or newer), a template that cannot be reached, a git repository.                                                                                                                   |
+| 70   | An internal error that no code classified. Report it.                                                                                                                                                                                                                       |
+| 75   | A temporary failure. The same command can pass when you run it again with no change, for example after a network failure.                                                                                                                                                   |
 
 These codes follow grep and diff (0 yes, 1 no, 2 trouble) and the BSD `sysexits.h` values
 `EX_SOFTWARE` for 70 and `EX_TEMPFAIL` for 75 (CLIG `#the-basics`: map the non-zero codes to the

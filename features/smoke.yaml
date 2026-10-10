@@ -40,3 +40,7 @@
   scenarios:
     - id: "@ID-ADOPT-01"
       why: adopt's whole path in one run, the release rendered as new renders it, compared with a matching project and its record written, nothing else of the project changed
+- file: update.feature
+  scenarios:
+    - id: "@ID-UPDATE-01"
+      why: update's whole path in one run, both renders made as new makes them, merged into a project with changes of its own by git's merge, left staged with the new record and HEAD unmoved

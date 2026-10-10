@@ -15,6 +15,7 @@ import (
 	"github.com/donvargax/itos-template/internal/render"
 	"github.com/donvargax/itos-template/internal/tempdir"
 	"github.com/donvargax/itos-template/internal/template"
+	"github.com/donvargax/itos-template/internal/updating"
 )
 
 // Decision 19 leaves the UI to the scenarios, and slice-3's read every
@@ -75,6 +76,15 @@ func TestEachKindNoScenarioReadsHasItsCodeRuleAndSentence(t *testing.T) {
 		// refuses, as the disk does.
 		{&git.Unreadable{Path: "README.md", Err: cause}, 3, "file-unreadable", "cannot read the project's README.md: cause"},
 		{&git.Unwritable{Path: ".itos-template.yaml", Err: cause}, 3, "file-unwritable", "cannot write the project's .itos-template.yaml: cause"},
+		// update's refusals no scenario makes: a project with no commit holds
+		// no record, a template's fixture always has a release, a record
+		// naming no commit of a branch or one that cannot be read is no
+		// fixture's, and the harness has the machine's git alone.
+		{&updating.NoCommit{Top: "/made"}, 1, "git-commit-missing", "the repository at /made has no commit, so no record of a render to update from; make the project with itos-template new, or commit it and adopt it"},
+		{&updating.NoRelease{}, 1, "release-missing", "the template has no complete stable release to update to: a release is one version tagged <branch>/<version> on every branch its manifest lists; release the template (itos-template release), or name a pre-release with --to"},
+		{&template.Unrecorded{Branch: "go/cli"}, 2, "record-invalid", "the project's record names no commit of the template's branch go/cli, which its render needs; adopt the project again, or name the commit in the record"},
+		{&project.BadRecord{File: ".itos-template.yaml", Problems: []string{"it names no stack"}}, 2, "record-invalid", "the project's record, .itos-template.yaml, cannot be read: it names no stack"},
+		{&git.TooOld{Version: "git version 2.44.0", Need: "2.45"}, 3, "git-too-old", "update merges with git merge-tree, which takes the two renders as trees from git 2.45 on, and this git is older (git version 2.44.0); install git 2.45 or a newer one"},
 		// An error no switch classifies: a defect.
 		{fmt.Errorf("cannot write the report: %w", cause), 70, "internal", "cannot write the report: cause"},
 	}

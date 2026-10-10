@@ -29,6 +29,7 @@ import (
 	"github.com/donvargax/itos-template/internal/tempdir"
 	"github.com/donvargax/itos-template/internal/template"
 	"github.com/donvargax/itos-template/internal/template/port"
+	"github.com/donvargax/itos-template/internal/updating"
 )
 
 // The exit codes (docs/CLI.md, "Exit codes").
@@ -207,9 +208,12 @@ func classify(err error) (int, []Problem) {
 	var de disk.Error
 	var tu *tempdir.Unmakeable
 	var ad adoption.Error
+	var up updating.Error
 	switch {
 	case errors.As(err, &ad):
 		return adoptionProblem(ad)
+	case errors.As(err, &up):
+		return updatingProblem(up)
 	case errors.As(err, &te):
 		return templateProblem(te)
 	case errors.As(err, &re):

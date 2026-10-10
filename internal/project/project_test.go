@@ -228,3 +228,44 @@ func TestWriteRemovesWhatItWroteWhenGitRefusesTheCommit(t *testing.T) {
 		t.Error("the folder is left")
 	}
 }
+
+// ReadRecord reads the record new writes, and refuses one it cannot read,
+// every problem named, sorted.
+func TestReadRecordReadsWhatNewWritesAndRefusesTheRest(t *testing.T) {
+	r := Record{
+		Template: "/home/you/acme",
+		Release:  "v1.0.0",
+		Stack:    "go",
+		Features: []string{"cli"},
+		Answers:  answer.Set{"name": "blue-fox"},
+		Commits:  map[string]string{"main": "9a2e"},
+	}
+	f, err := r.File()
+	if err != nil {
+		t.Fatal(err)
+	}
+	read, err := ReadRecord(f.Data)
+	r.Version = RecordVersion
+	if err != nil || !reflect.DeepEqual(read, r) {
+		t.Errorf("ReadRecord = %+v, %v, not %+v", read, err, r)
+	}
+	for text, want := range map[string][]string{
+		"version: 2\ntemplate: a\nstack: go\ncommits: {main: x}\n": {"version is 2: this itos-template reads version 1"},
+		"version: 1\n": {"it names no commits", "it names no stack", "it names no template"},
+		"version: 1\ntemplate: a\nstack: go\ncommits: {main: x}\nextra: 1\n": nil,
+		"": {"it is empty"},
+	} {
+		_, err := ReadRecord([]byte(text))
+		var bad *BadRecord
+		if !errors.As(err, &bad) || bad.File != RecordFile {
+			t.Errorf("ReadRecord(%q) = %v", text, err)
+			continue
+		}
+		if want != nil && !reflect.DeepEqual(bad.Problems, want) {
+			t.Errorf("ReadRecord(%q) names %q, not %q", text, bad.Problems, want)
+		}
+		if !strings.HasPrefix(bad.Error(), RecordFile+": "+bad.Problems[0]) {
+			t.Errorf("BadRecord says %q", bad.Error())
+		}
+	}
+}

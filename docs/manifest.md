@@ -463,6 +463,13 @@ stack, features and answers given (decision 24, `features/adopt.feature`): it re
 as `new` does, writes nothing else, and leaves the record unstaged and uncommitted, for the person
 to commit through the project's own gates before `update`.
 
+`update` reads the record at the project's HEAD (`features/update.feature`): it renders again the
+render the record names, from its branch commits, never from a tag, and the target release with the
+record's stack, features and answers, merges the difference into the project with git's own merge
+(decision 38), and leaves the new record staged with the merge, uncommitted (decision 37). It reads
+the record as strictly as the manifest (decision 22): an unknown key, or a version other than 1, is
+refused.
+
 `release` names the version of the release rendered (decision 36), beside the branch commits, which
 stay what reproduces the render; a render of the branch heads has no `release` key. The key joined
 the record's version 1, unbumped: no itos-template before it reads a record at all (update and

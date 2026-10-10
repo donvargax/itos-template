@@ -23,6 +23,7 @@ package template
 
 import (
 	"errors"
+	"maps"
 	"slices"
 
 	"github.com/donvargax/itos-template/internal/answer"
@@ -99,16 +100,57 @@ func (t *Template) Baseline(c manifest.Combination, answers answer.Set) ([]port.
 	return files, record, err
 }
 
+// Rendered is the render the record r names, as new rendered it and with
+// nothing written: from r's branch commits, never a tag's, which may have
+// moved since (decision 10), the manifest the root's commit holds, with
+// r's stack, features and answers, each judged as new judges them. A
+// branch the render needs that r names no commit of is an *Unrecorded. t
+// itself is left rendering what it rendered before.
+func (t *Template) Rendered(r project.Record) ([]port.File, error) {
+	root, ok := r.Commits[t.root]
+	if !ok {
+		return nil, &Unrecorded{Branch: t.root}
+	}
+	m, err := t.manifestAt(root, t.root+" at "+root)
+	if err != nil {
+		return nil, err
+	}
+	var given answer.Given
+	for _, name := range slices.Sorted(maps.Keys(r.Answers)) {
+		given = append(given, name+"="+r.Answers[name])
+	}
+	c, answers, err := Choose(m, manifest.Choice{Stack: r.Stack, Features: r.Features}, given, false, nil)
+	if err != nil {
+		return nil, err
+	}
+	for _, b := range append([]string{c.Stack.Branch()}, featureBranches(c)...) {
+		if _, ok := r.Commits[b]; !ok {
+			return nil, &Unrecorded{Branch: b}
+		}
+	}
+	old := *t
+	old.Manifest, old.rootCommit = m, root
+	old.release = &Release{Version: r.Release, Commits: r.Commits, manifest: m}
+	files, _, _, err := old.plan(c, answers)
+	return files, err
+}
+
+// featureBranches are the branches of c's features, in its order.
+func featureBranches(c manifest.Combination) []string {
+	var list []string
+	for _, f := range c.Features {
+		list = append(list, f.Branch())
+	}
+	return list
+}
+
 // plan is what a render of c with answers writes: its files, its record
 // and its first commit's message, the manifest's first_commit rendered, ""
 // when it gives none.
 func (t *Template) plan(c manifest.Combination, answers answer.Set) ([]port.File, project.Record, string, error) {
 	m := t.Manifest
 	commits := map[string]string{t.root: t.rootCommit}
-	branches := []string{c.Stack.Branch()}
-	for _, f := range c.Features {
-		branches = append(branches, f.Branch())
-	}
+	branches := append([]string{c.Stack.Branch()}, featureBranches(c)...)
 	merged := make([]string, len(branches))
 	for i, b := range branches {
 		sha, ok, err := t.commitOf(b)

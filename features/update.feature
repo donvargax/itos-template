@@ -53,7 +53,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     Given the template "acme" released as "v1.0.0", "v1.1.0" and "v1.2.0-rc.1"
     And a project in "made" made by new from the release "v1.0.0" with stack "go", features "cli" and name "blue-fox"
 
-  @ID-UPDATE-01 @slice-13 @wip
+  @ID-UPDATE-01 @slice-13
   Scenario: update merges the newest release in, keeping the project's changes, and commits nothing
     Given a committed project change to "made/README.md" containing "private-project-content"
     And a committed file "made/own.txt" containing "project-only"
@@ -69,7 +69,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     And its standard output says "v1.0.0"
     And its standard output says "v1.1.0"
 
-  @ID-UPDATE-02 @slice-13 @wip
+  @ID-UPDATE-02 @slice-13
   Scenario Outline: --to names the release update brings the project to, a pre-release too
     When itos-template runs in "made" with "update --to <ref>"
     Then it exits with code 0
@@ -81,7 +81,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
       | v1.1.0      |
       | v1.2.0-rc.1 |
 
-  @ID-UPDATE-03 @slice-13 @wip
+  @ID-UPDATE-03 @slice-13
   Scenario: update keeps the record's template, stack, features and answers
     When itos-template runs in "made" with "update"
     Then it exits with code 0
@@ -89,7 +89,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     And the record in "made" names the stack "go" and the features "cli"
     And the record in "made" has the answer "name" as "blue-fox" and "module" as "example.com/you/project"
 
-  @ID-UPDATE-04 @slice-13 @wip
+  @ID-UPDATE-04 @slice-13
   Scenario: a project already at the target release is told so and nothing is written
     Given a saved snapshot of "made"
     When itos-template runs in "made" with "update --to v1.0.0"
@@ -97,7 +97,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     And its standard output says "v1.0.0"
     And the snapshot of "made" is unchanged
 
-  @ID-UPDATE-05 @slice-13 @wip
+  @ID-UPDATE-05 @slice-13
   Scenario: an older target is refused, since update only goes forward
     Given a project in "later" made by new from the release "v1.1.0" with stack "go", features "cli" and name "blue-fox"
     And a saved snapshot of "later"
@@ -106,7 +106,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     And its error output says "v1.1.0"
     And the snapshot of "later" is unchanged
 
-  @ID-UPDATE-06 @slice-13 @wip
+  @ID-UPDATE-06 @slice-13
   Scenario: a --to no release has is refused as a usage error, naming it
     Given a saved snapshot of "made"
     When itos-template runs in "made" with "update --to v9.9.9"
@@ -117,14 +117,14 @@ Feature: update brings a made project to a newer template release by a 3-way mer
   # If update took the old render from the tag rather than the record's
   # commits, release.txt would read "moved" in the base and the project's
   # "v1.0.0" would conflict with the release's "v1.1.0".
-  @ID-UPDATE-07 @slice-13 @wip
+  @ID-UPDATE-07 @slice-13
   Scenario: the old render comes from the record's commits, not from a tag moved since
     Given the template's tags of "v1.0.0" moved to commits whose release.txt holds "moved"
     When itos-template runs in "made" with "update"
     Then it exits with code 0
     And the file "made/release.txt" contains "v1.1.0"
 
-  @ID-UPDATE-08 @slice-13 @wip
+  @ID-UPDATE-08 @slice-13
   Scenario: a project change to lines the release changes is left conflicted as git merge leaves it
     Given a committed project change to "made/release.txt" containing "project-release"
     And a saved snapshot of the HEAD of "made"
@@ -138,7 +138,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     And "made" has the record staged
     And the HEAD of "made" is unchanged
 
-  @ID-UPDATE-09 @slice-13 @wip
+  @ID-UPDATE-09 @slice-13
   Scenario: a conflicted update with --json is one object naming the conflict
     Given a committed project change to "made/release.txt" containing "project-release"
     When itos-template runs in "made" with "update --json"
@@ -146,7 +146,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     And its JSON output names the problem "merge-conflict"
     And its update JSON conflicts are "release.txt"
 
-  @ID-UPDATE-10 @slice-13 @wip
+  @ID-UPDATE-10 @slice-13
   Scenario: a file the release changes and the project deleted is left as a modify/delete conflict
     Given a committed project deletion of "made/release.txt"
     When itos-template runs in "made" with "update"
@@ -154,7 +154,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     And its error output says "release.txt"
     And the index of "made" holds "release.txt" unmerged, its base "v1.0.0", no project side and the release's "v1.1.0"
 
-  @ID-UPDATE-11 @slice-13 @wip
+  @ID-UPDATE-11 @slice-13
   Scenario: a file the release adds is rendered with the project's answers, its name too
     Given the template "acme" released as "v1.0.0", "v1.1.0" and "v1.2.0-rc.1", whose v1.1.0 adds "docs/acme-widget.md" containing "acme-widget AcmeWidget"
     And a project in "fresh" made by new from the release "v1.0.0" with stack "go", features "cli" and name "blue-fox"
@@ -164,7 +164,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     And the path "fresh/docs/acme-widget.md" does not exist
     And "fresh" has "docs/blue-fox.md" staged as added
 
-  @ID-UPDATE-12 @slice-13 @wip
+  @ID-UPDATE-12 @slice-13
   Scenario: a file the release removes is removed when the project left it unchanged
     Given the template "acme" released as "v1.0.0", "v1.1.0" and "v1.2.0-rc.1", whose v1.1.0 removes "logo.bin"
     And a project in "fresh" made by new from the release "v1.0.0" with stack "go", features "cli" and name "blue-fox"
@@ -173,7 +173,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     And the path "fresh/logo.bin" does not exist
     And "fresh" has "logo.bin" staged as removed
 
-  @ID-UPDATE-13 @slice-13 @wip
+  @ID-UPDATE-13 @slice-13
   Scenario: a file the release renames keeps the project's change under its new name
     Given the template "acme" released as "v1.0.0", "v1.1.0" and "v1.2.0-rc.1", whose v1.1.0 renames "README.md" to "README.txt"
     And a project in "fresh" made by new from the release "v1.0.0" with stack "go", features "cli" and name "blue-fox"
@@ -183,7 +183,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     And the file "fresh/README.txt" contains "private-project-content"
     And the path "fresh/README.md" does not exist
 
-  @ID-UPDATE-14 @slice-13 @wip
+  @ID-UPDATE-14 @slice-13
   Scenario: a template-only path the release changes never reaches the project
     Given the template "acme" released as "v1.0.0", "v1.1.0" and "v1.2.0-rc.1", whose v1.1.0 changes ".github/workflows/template.yml"
     And a project in "fresh" made by new from the release "v1.0.0" with stack "go", features "cli" and name "blue-fox"
@@ -191,7 +191,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     Then it exits with code 0
     And the path "fresh/.github/workflows/template.yml" does not exist
 
-  @ID-UPDATE-15 @slice-13 @wip
+  @ID-UPDATE-15 @slice-13
   Scenario Outline: a question the release adds is answered as new answers one
     Given the template "acme" released as "v1.0.0", "v1.1.0" and "v1.2.0-rc.1", whose v1.1.0 adds the question "owner" for the literal "acme-owner" in "OWNERS", its default "nobody"
     And a project in "fresh" made by new from the release "v1.0.0" with stack "go", features "cli" and name "blue-fox"
@@ -205,7 +205,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
       | --answer owner=ops | ops       |
       | --defaults         | nobody    |
 
-  @ID-UPDATE-16 @slice-13 @wip
+  @ID-UPDATE-16 @slice-13
   Scenario: a question the release adds is refused unanswered without a terminal, nothing written
     Given the template "acme" released as "v1.0.0", "v1.1.0" and "v1.2.0-rc.1", whose v1.1.0 adds the question "owner" for the literal "acme-owner" in "OWNERS", its default "nobody"
     And a project in "fresh" made by new from the release "v1.0.0" with stack "go", features "cli" and name "blue-fox"
@@ -215,7 +215,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     And its error output says "owner"
     And the snapshot of "fresh" is unchanged
 
-  @ID-UPDATE-17 @slice-13 @wip
+  @ID-UPDATE-17 @slice-13
   Scenario: an answer to a question the record already answers is refused, nothing written
     Given a saved snapshot of "made"
     When itos-template runs in "made" with "update --answer name=red-cat"
@@ -223,7 +223,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     And its error output says "name"
     And the snapshot of "made" is unchanged
 
-  @ID-UPDATE-18 @slice-13 @wip
+  @ID-UPDATE-18 @slice-13
   Scenario Outline: update refuses a dirty project, nothing written
     Given "made" has <state>
     And a saved snapshot of "made"
@@ -238,7 +238,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
       | a staged tracked change      |
       | a non-ignored untracked file |
 
-  @ID-UPDATE-19 @slice-13 @wip
+  @ID-UPDATE-19 @slice-13
   Scenario: a project with no record is refused, pointed at adopt
     Given a committed project deletion of "made/.itos-template.yaml"
     When itos-template runs in "made" with "update"
@@ -246,7 +246,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     And its error output says ".itos-template.yaml"
     And its error output says "adopt"
 
-  @ID-UPDATE-20 @slice-13 @wip
+  @ID-UPDATE-20 @slice-13
   Scenario Outline: update refuses a folder that is not a project's git repository
     Given "<dir>" is <state>
     When itos-template runs in "<dir>" with "update"

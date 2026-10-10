@@ -15,11 +15,13 @@ package project
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 
 	"go.yaml.in/yaml/v3"
 
 	"github.com/donvargax/itos-template/internal/answer"
+	"github.com/donvargax/itos-template/internal/manifest"
 	"github.com/donvargax/itos-template/internal/render"
 	"github.com/donvargax/itos-template/internal/template/port"
 )
@@ -81,6 +83,31 @@ func (r Record) File() (port.File, error) {
 		return port.File{}, err
 	}
 	return port.File{Path: RecordFile, Mode: 0o644, Data: data}, nil
+}
+
+// ReadRecord is the record data holds, the file .itos-template.yaml as new
+// and adopt write it, read strictly, as the manifest is (manifest.Decode,
+// decision 22): a *BadRecord, naming every problem, when it is not one
+// this itos-template reads, of the format RecordVersion names, naming a
+// template, a stack and the commit of each branch rendered.
+func ReadRecord(data []byte) (Record, error) {
+	var r Record
+	problems := manifest.Decode(data, &r)
+	if len(problems) == 0 {
+		if r.Version != RecordVersion {
+			problems = append(problems, fmt.Sprintf("version is %d: this itos-template reads version %d", r.Version, RecordVersion))
+		}
+		for key, empty := range map[string]bool{"template": r.Template == "", "stack": r.Stack == "", "commits": len(r.Commits) == 0} {
+			if empty {
+				problems = append(problems, "it names no "+key)
+			}
+		}
+	}
+	if len(problems) > 0 {
+		slices.Sort(problems)
+		return Record{}, &BadRecord{File: RecordFile, Problems: problems}
+	}
+	return r, nil
 }
 
 // Project is a made project: its folder, its record, and its first commit.
@@ -204,11 +231,22 @@ type NotFolder struct{ Folder string }
 // why.
 type CommitRefused struct{ Err error }
 
+// BadRecord is a project's record, File, that cannot be read: every problem
+// found in it.
+type BadRecord struct {
+	File     string
+	Problems []string
+}
+
 func (*NotEmpty) projectError()      {}
 func (*NotFolder) projectError()     {}
 func (*CommitRefused) projectError() {}
+func (*BadRecord) projectError()     {}
 
 func (e *NotEmpty) Error() string      { return e.Folder + " has files in it" }
 func (e *NotFolder) Error() string     { return e.Folder + " is a file" }
 func (e *CommitRefused) Error() string { return fmt.Sprintf("the first commit refused: %v", e.Err) }
 func (e *CommitRefused) Unwrap() error { return e.Err }
+func (e *BadRecord) Error() string {
+	return e.File + ": " + strings.Join(e.Problems, "; ")
+}

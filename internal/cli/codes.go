@@ -12,6 +12,7 @@ import (
 	"github.com/donvargax/itos-template/internal/project"
 	"github.com/donvargax/itos-template/internal/render"
 	"github.com/donvargax/itos-template/internal/template"
+	"github.com/donvargax/itos-template/internal/updating"
 )
 
 // Each switch below gives every kind of its sealed set a code, a rule ID
@@ -71,6 +72,9 @@ func templateProblem(err template.Error) (code int, problems []Problem) {
 			e.Version, strings.Join(lacking, ", "))
 	case *template.HoldsRecord:
 		code, problems = CodeRefused, one("template-defect", "the template holds %s, the file a made project records its render in: leave it out of the template", e.File)
+	case *template.Unrecorded:
+		code, problems = CodeUsage, fixed("record-invalid", "adopt the project again, or name the commit in the record",
+			"the project's record names no commit of the template's branch %s, which its render needs", e.Branch)
 	}
 	return code, problems
 }
@@ -123,6 +127,11 @@ func projectProblem(err project.Error) (code int, problems []Problem) {
 		code, problems = CodeRefused, one("folder-not-empty", "%s is a file: new writes a project into a missing or empty folder", e.Folder)
 	case *project.CommitRefused:
 		code, problems = CodeRefused, one("commit-refused", "git refused the project's first commit: %v", e.Err)
+	case *project.BadRecord:
+		code, problems = CodeUsage, nil
+		for _, p := range e.Problems {
+			problems = append(problems, one("record-invalid", "the project's record, %s, cannot be read: %s", e.File, p)...)
+		}
 	}
 	return code, problems
 }
@@ -143,6 +152,9 @@ func gitProblem(err git.Error) (code int, problems []Problem) {
 		code, problems = CodeEnvironment, one("file-unreadable", "cannot read the project's %s: %v", e.Path, e.Err)
 	case *git.Unwritable:
 		code, problems = CodeEnvironment, one("file-unwritable", "cannot write the project's %s: %v", e.Path, e.Err)
+	case *git.TooOld:
+		code, problems = CodeEnvironment, fixed("git-too-old", "install git "+e.Need+" or a newer one",
+			"update merges with git merge-tree, which takes the two renders as trees from git %s on, and this git is older (%s)", e.Need, e.Version)
 	}
 	return code, problems
 }
@@ -201,4 +213,39 @@ func paths(count int) string {
 // what to do, fix, which it gives apart too.
 func fixed(rule, fix, format string, args ...any) []Problem {
 	return []Problem{{Rule: rule, Message: fmt.Sprintf(format, args...) + "; " + fix, Fix: fix}}
+}
+
+func updatingProblem(err updating.Error) (code int, problems []Problem) {
+	code, problems = CodeInternal, internal(err)
+	switch e := err.(type) {
+	case *updating.NotRepository:
+		code, problems = CodeEnvironment, fixed("git-repository-missing", "run update in a made or adopted project's folder",
+			"update merges into a project's git repository, and git finds none here (%s)", e.Why)
+	case *updating.NoWorkTree:
+		code, problems = CodeEnvironment, fixed("git-work-tree-missing", "run update in the project's checkout, a clone of the repository",
+			"this is a bare git repository, or a .git folder, with no working tree to merge into")
+	case *updating.NoCommit:
+		code, problems = CodeRefused, fixed("git-commit-missing", "make the project with itos-template new, or commit it and adopt it",
+			"the repository at %s has no commit, so no record of a render to update from", e.Top)
+	case *updating.Dirty:
+		code, problems = CodeRefused, fixed("working-tree-dirty", "commit or stash the changes, or remove the untracked files, then update again",
+			"the project's index and working tree are not clean (%s): update merges only into a clean project, so git reset --hard undoes it", strings.Join(e.Paths, ", "))
+	case *updating.NoRecord:
+		code, problems = CodeRefused, fixed("record-missing", "a project made before the template takes its updates once itos-template adopt links it and its record is committed",
+			"the project's HEAD holds no %s, the record of the template render update starts from", e.File)
+	case *updating.Answered:
+		code, problems = CodeUsage, fixed("answer-recorded", "leave --answer "+e.Name+" out: update answers only the questions a newer release adds",
+			"the record answers %s already, as %+q, and update keeps the record's answers", e.Name, e.Answer)
+	case *updating.NoRelease:
+		code, problems = CodeRefused, fixed("release-missing", "release the template (itos-template release), or name a pre-release with --to",
+			"the template has no complete stable release to update to: a release is one version tagged <branch>/<version> on every branch its manifest lists")
+	case *updating.Older:
+		code, problems = CodeRefused, fixed("release-older", "name a release newer than "+e.Recorded+" with --to, or leave --to out for the newest",
+			"the project is at the template's release %s, and %s is older: update only goes forward", e.Recorded, e.Target)
+	case *updating.Conflicted:
+		code, problems = CodeRefused, fixed("merge-conflict", "resolve each, stage it with git add and commit; or undo the whole update with git reset --hard",
+			"merging the template's release %s into the project left conflicts in %s, each marked in its file and unmerged in the index as git merge leaves one, the rest of the update and the new record staged",
+			e.Release, strings.Join(e.Paths, ", "))
+	}
+	return code, problems
 }

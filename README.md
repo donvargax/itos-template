@@ -27,9 +27,18 @@ project differs from that release's render, and `--force` accepts the difference
 itos-template adopt ../acme --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --defaults --dry-run
 ```
 
-A template says what it offers in its manifest, `itos-template.yaml` (`docs/manifest.md`). Updating
-a made project, checking a template and syncing its branches come next: `PLAN.md` says what is
-planned and in what order.
+`itos-template update`, in a made or adopted project, merges the template's newest release, or the
+one `--to` names, into it with git's own merge, the render its record names the base, and leaves
+the merge and the new record staged for you to commit; a conflict is left as `git merge` leaves one,
+and `git reset --hard` undoes the update. It needs git 2.45 or later:
+
+```sh
+itos-template update
+itos-template update --to v1.2.0
+```
+
+A template says what it offers in its manifest, `itos-template.yaml` (`docs/manifest.md`). Syncing a
+template's branches comes next: `PLAN.md` says what is planned and in what order.
 
 ## Working on it
 

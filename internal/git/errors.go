@@ -51,12 +51,17 @@ type Unwritable struct {
 	Err  error
 }
 
+// TooOld is a git older than a command needs, Need, its version line
+// Version.
+type TooOld struct{ Version, Need string }
+
 func (*Missing) gitError()     {}
 func (*Unreachable) gitError() {}
 func (*Failed) gitError()      {}
 func (*NoIdentity) gitError()  {}
 func (*Unreadable) gitError()  {}
 func (*Unwritable) gitError()  {}
+func (*TooOld) gitError()      {}
 
 func (e *Unreadable) Error() string { return fmt.Sprintf("cannot read %s: %v", e.Path, e.Err) }
 
@@ -65,6 +70,8 @@ func (e *Unreadable) Unwrap() error { return e.Err }
 func (e *Unwritable) Error() string { return fmt.Sprintf("cannot write %s: %v", e.Path, e.Err) }
 
 func (e *Unwritable) Unwrap() error { return e.Err }
+
+func (e *TooOld) Error() string { return e.Version + ", older than " + e.Need }
 
 func (e *Missing) Error() string { return fmt.Sprintf("cannot run git: %v", e.Err) }
 

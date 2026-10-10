@@ -61,12 +61,15 @@ linters:
             - "**/internal/adopt/**"
             - "**/internal/check/**"
             - "**/internal/newproject/**"
+            - "**/internal/update/**"
           deny:
             - pkg: github.com/donvargax/itos-template/internal/adopt$
               desc: "a slice imports no other slice (decision 17): move what they share into the domain"
             - pkg: github.com/donvargax/itos-template/internal/check$
               desc: "a slice imports no other slice (decision 17): move what they share into the domain"
             - pkg: github.com/donvargax/itos-template/internal/newproject$
+              desc: "a slice imports no other slice (decision 17): move what they share into the domain"
+            - pkg: github.com/donvargax/itos-template/internal/update$
               desc: "a slice imports no other slice (decision 17): move what they share into the domain"
         # The domain and its ports, their tests too: no infra, slice, UI or
         # kong. Its tests run it against porttest's fakes (decision 19).
@@ -79,6 +82,7 @@ linters:
             - "**/internal/project/**"
             - "**/internal/render/**"
             - "**/internal/template/**"
+            - "**/internal/updating/**"
           deny:
             - pkg: github.com/donvargax/itos-template/internal/git$
               desc: "the domain reaches git through a port (decision 17): use internal/template/port"
@@ -96,6 +100,8 @@ linters:
               desc: "the domain imports no slice (decision 17)"
             - pkg: github.com/donvargax/itos-template/internal/newproject$
               desc: "the domain imports no slice (decision 17)"
+            - pkg: github.com/donvargax/itos-template/internal/update$
+              desc: "the domain imports no slice (decision 17)"
             - pkg: github.com/donvargax/itos-template/internal/cli$
               desc: "the domain imports no UI (decision 17): internal/cli turns its errors into exit codes and lines"
             - pkg: github.com/alecthomas/kong
@@ -111,6 +117,7 @@ linters:
             - "**/internal/project/**"
             - "**/internal/render/**"
             - "**/internal/template/**"
+            - "**/internal/updating/**"
             - "!$test"
           deny:
             - pkg: os
@@ -164,6 +171,7 @@ linters:
             - "!**/internal/project/*_test.go"
             - "!**/internal/render/*_test.go"
             - "!**/internal/template/*_test.go"
+            - "!**/internal/updating/*_test.go"
           deny:
             - pkg: pgregory.net/rapid
               desc: "properties are unit tests of the domain (decision 20): rapid only in the domain packages' _test.go files"
@@ -176,6 +184,7 @@ linters:
             - "!**/internal/adopt/**"
             - "!**/internal/check/**"
             - "!**/internal/newproject/**"
+            - "!**/internal/update/**"
           deny:
             - pkg: github.com/alecthomas/kong
               desc: "kong stays in the UI (decision 17): cmd, internal/cli and the slices"
