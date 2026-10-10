@@ -29,8 +29,8 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0026: Code that differs by OS takes the OS as a value; build-tagged files only for a call one OS lacks](0026-code-that-differs-by-os-takes-the-os-as-a-value-build-tagged-files-only-for-a-call-one-os-lacks.md)
 - [ADR-0027: The code proof is a gate from the start: itos-cc's mutation check over the functions an item changes](0027-the-code-proof-is-a-gate-from-the-start-itos-cc-s-mutation-check-over-the-functions-an-item-changes.md)
 - [ADR-0028: The owner's own tools, itos and itos-cc, are pinned when out; every other tool waits 7 days](0028-the-owner-s-own-tools-itos-and-itos-cc-are-pinned-when-out-every-other-tool-waits-7-days.md)
-- [ADR-0031: A template using itos lists itos init among its root setup steps, and the generator still names no itos](0031-a-template-using-itos-lists-itos-init-among-its-root-setup-steps-and-the-generator-still-names-no-itos.md)
 - [ADR-0032: A template's branches keep their own itos data, and template_only keeps it out of every render](0032-a-template-s-branches-keep-their-own-itos-data-and-template-only-keeps-it-out-of-every-render.md)
 - [ADR-0033: A made project's first commit carries no footer, so a template stays usable without itos](0033-a-made-project-s-first-commit-carries-no-footer-so-a-template-stays-usable-without-itos.md)
+- [ADR-0034: A template using itos lists itos init among its root setup steps, which new prints and the person runs](0034-a-template-using-itos-lists-itos-init-among-its-root-setup-steps-which-new-prints-and-the-person-runs.md)
 
 <!-- itos:decisions:end -->

@@ -190,3 +190,4 @@ questions:
     item: "new-itos-setup"
     question: "new-itos-setup's ID-NEW-42 and 43 run new with --trust and expect the itos setup step to have run, or to have failed and been named, but new-steps only prints steps and nothing queued runs them. Recommended: the scenarios run the steps new printed themselves, as the person would, and judge the project with itos config check; ID-NEW-43 goes, since new runs nothing, and running under --trust becomes the idea new-trust, waiting until someone needs it. Or: a slice that runs the chosen branches' steps under --trust comes before new-itos-setup, which then keeps both scenarios. Which?"
     answer: "The scenarios run the steps new printed themselves, as the person would, and judge the project with itos config check; ID-NEW-43 goes, and running under --trust becomes the idea new-trust."
+    decision: 34
