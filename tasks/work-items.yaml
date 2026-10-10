@@ -1125,3 +1125,18 @@ items:
       <branch>/v1.2.0 on the others), refusing a version already used, one lower than the newest, or
       a tree with a failing combination. Settle when promoted: whether it pushes the tags or leaves
       that to the person, annotated or lightweight tags, and how a template's CI runs it.
+  - id: invisible-chars-test
+    title: A test holds tools/bin/invisible-chars to its exit rule
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      T-37 proved tools/bin/invisible-chars by hand in a throwaway repository: clean passes, a
+      staged or committed U+3164 or U+202E refuses, a bad argument exits 2, and a copy with a broken
+      pattern refuses on git grep's own error. tools/bin's shell scripts have no tests, so nothing
+      keeps that exit rule (T-33's) once the script is edited: a test, run by CI, that builds a
+      repository in a temporary folder, writes each character with byte escapes, and asserts each
+      exit and message, the git-grep-error path through a git without the property or a pattern it
+      cannot compile.
