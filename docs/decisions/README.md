@@ -32,6 +32,6 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0032: A template's branches keep their own itos data, and template_only keeps it out of every render](0032-a-template-s-branches-keep-their-own-itos-data-and-template-only-keeps-it-out-of-every-render.md)
 - [ADR-0033: A made project's first commit carries no footer, so a template stays usable without itos](0033-a-made-project-s-first-commit-carries-no-footer-so-a-template-stays-usable-without-itos.md)
 - [ADR-0034: A template using itos lists itos init among its root setup steps, which new prints and the person runs](0034-a-template-using-itos-lists-itos-init-among-its-root-setup-steps-which-new-prints-and-the-person-runs.md)
-- [ADR-0035: A template release is one version tagged on every branch, the newest the highest stable complete one, cut by itos-template release](0035-a-template-release-is-one-version-tagged-on-every-branch-the-newest-the-highest-stable-complete-one-cut-by-itos-template-release.md)
+- [ADR-0036: A template release is one version tagged <branch>/<version> on every branch, the newest the highest stable complete one, cut by itos-template release](0036-a-template-release-is-one-version-tagged-branch-version-on-every-branch-the-newest-the-highest-stable-complete-one-cut-by-itos-template-release.md)
 
 <!-- itos:decisions:end -->
