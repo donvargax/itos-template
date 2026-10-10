@@ -211,31 +211,9 @@ items:
     title: itos-template adopt writes the record for an existing project, so it can take template updates
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: [slice-1, releases]
     kind: slice
-    why: >
-      Was adopt.
-      A project made before the template, itos or itos-cc say, has files and history, so new refuses
-      its folder (decision 12) and nothing records which template release it matches. update
-      re-renders the old release from the record (decisions 3 and 10), not from the project's first
-      commit, so adopting is writing that record from the answers that match the project, as cruft
-      link does. Settle in its scenarios: how the release and answers are chosen, and how a project
-      that differs from the render is shown the difference before its first update.
-
-      The person accepted 2026-10-08: adopt --dry-run previews added, changed and missing paths
-      without writing; adopt refuses to link a differing baseline unless --force explicitly accepts
-      it. Force never overwrites project files: adoption creates only .itos-template.yaml,
-      preserving existing files and history. Missing baseline files represent project deletions for
-      later update, not files adopt installs. Initial migration is adopt an older matching baseline
-      then update to a newer version; adopting latest alone imports no changes. Baseline selection
-      and the remaining safety/preview details still need specification.
-
-      The person accepted 2026-10-08: adopt requires an explicit --ref baseline; it never guesses a
-      version from project files or silently defaults to latest. Stack, features and answers follow
-      new's conventions. The preview names the exact resolved branch commits. The baseline is a
-      reproducible rendered template version; adopting latest treats current differences as project
-      customizations rather than importing those changes.
     tags: [update]
   - id: releases
     title: new renders a template's newest release or the one --ref names, and check proves its heads or --ref's
