@@ -250,6 +250,29 @@ Feature: new makes a project from a template
   #
   # Steps are printed where the person will see them: on stdout beside what was made, and on
   # stderr under --json, where rule 29 keeps the object alone.
+  #
+  # The manifest holds them from version 5, as setup on the top (the root), on each stack and on
+  # each feature, a list of steps each a list of words; version 4 refuses the key, so a template
+  # written for 5 is refused by an earlier itos-template rather than misread. They print in the
+  # order checks run: the root's, then the stack's, then the features'. A step given here as one
+  # string is its words split at the spaces; ID-NEW-48 gives a word that holds one.
+  #
+  # A step prints one to a line, its words joined by a space and each quoted for a POSIX shell: a
+  # word of only letters, digits and @%+=:,./_- prints as it is, an empty one as '', any other in
+  # single quotes, a quote inside it written '"'"'. What is pasted into sh, bash or zsh is then
+  # the step's own words, not a shell's reading of them. The person's call, 2026-10-09: our own
+  # quoting over al.essio.dev/pkg/shellescape, whose Quote is these same ten lines, and a rapid
+  # property that any word, quoted and run through the real sh, comes back byte for byte, which
+  # proves ours as hard as the library is proved. cmd.exe and PowerShell quote otherwise; a
+  # template meaning to set up on Windows writes a step whose words need no quoting.
+  #
+  # Quoting cannot make a control character safe to print: a step is the template's code, the
+  # template not yet trusted, and an escape sequence in a word can make the terminal show a step
+  # other than the one pasted. So the manifest refuses a step word holding any control character,
+  # tab and line endings included, as it refuses any other manifest it cannot read, before
+  # anything is written (ID-NEW-49). Its error says control character, since a manifest of
+  # version 4 is already refused for holding setup at all, and naming the key would hold either
+  # way.
   @ID-NEW-44 @new-steps @wip
   Scenario: new prints the setup steps the chosen branches declare, the root's first
     Given the template "acme" whose root lists the setup step "git config core.hooksPath tools/hooks/pre-commit" and whose stack go lists the setup step "go mod download"
@@ -286,6 +309,23 @@ Feature: new makes a project from a template
     Then it exits with code 0
     And its standard output does not say "setup"
     And its error output does not say "setup"
+
+  @ID-NEW-48 @new-steps @wip
+  Scenario: a setup step's word holding a space prints quoted, so the step pastes as one word
+    Given the template "acme" whose root lists the setup step with the words "sh", "-c" and "go mod download && go vet ./..."
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And its standard output says "sh -c 'go mod download && go vet ./...'"
+
+  @ID-NEW-49 @new-steps @wip
+  Scenario: new refuses a manifest whose setup step holds a control character with exit 2, and writes nothing
+    Given the template "acme" whose root lists a setup step whose word holds an escape character
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 2
+    And its error output says "itos-template.yaml"
+    And its error output says "setup"
+    And its error output says "control character"
+    And the path "made" does not exist
 
   @ID-NEW-43 @new-itos-setup @wip
   Scenario: a setup step that cannot run leaves the render and says which step failed
