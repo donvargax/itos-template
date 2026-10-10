@@ -1040,14 +1040,15 @@ items:
       and combining marks such as U+034F are marks (Mn), so a word holding one still reads otherwise
       than it runs, the invisible-identifier trick beside Trojan Source. Decide whether to refuse a
       listed set of them, or every character a terminal draws as nothing.
-  - id: source-invisible-gate
+  - id: T-32
     title: CI refuses a tracked file holding a format character or a Unicode line separator
     phase: 1
     owner: null
     status: todo
     depends_on: []
-    kind: idea
+    kind: task
     why: >
+      Was source-invisible-gate.
       setup-invisible's agent found the editing tool had turned \uXXXX escapes in a Go raw string
       into the literal characters; only the compiler's illegal byte order mark error caught it, and
       a U+202E or U+200B would have compiled, putting Trojan Source (CVE-2021-42574) in our own code
