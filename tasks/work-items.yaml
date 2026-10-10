@@ -835,14 +835,15 @@ items:
       require-specific refuses a //nolint without a reason or naming no linter, and allow-unused
       false one that excepts nothing. Found by T-22's agent.
     tags: [ci]
-  - id: proof-in-ci
-    title: CI judges the code proof on every push, through itos ci run
+  - id: T-34
+    title: Pin itos 7.0.0-rc.3, with the code proof judged as a step of every CI run
     phase: 1
     owner: donvargax
     status: todo
     depends_on: []
-    kind: idea
+    kind: task
     why: >
+      Was proof-in-ci.
       The proof runs only at itos work done, after the code has landed and a feat has cut a release
       (T-22, slice-8). The person's call, 2026-10-08: no step of our own; itos runs it, on the
       runner, as asked in donvargax/itos#28. When a release carries it, pin it and check CI shows
