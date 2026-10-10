@@ -1071,18 +1071,9 @@ items:
     title: check renders a template named by a credential URL without the credential, so a scanning check passes
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: slice
-    why: >
-      Was check-record-name.
-      record-name found, 2026-10-09, that check still renders each combination with the template
-      recorded as it was named: a URL holding a token puts it in each temporary render's
-      .itos-template.yaml and in its first commit's message. The render is removed after its checks,
-      but the checks run in it, so a template's own credential scan (decision 21, scans:
-      [credentials]) would find the token there and fail every combination, and every check can read
-      it on disk. Render with the name template.Recorded gives, as new does; check prints no name on
-      success, and bug-4 covers its errors.
   - id: check-here-record
     title: check records the template it runs in by a name update can reach, not .
     phase: 1
