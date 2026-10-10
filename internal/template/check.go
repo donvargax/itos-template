@@ -128,10 +128,7 @@ func (t *Template) checkCombination(c manifest.Combination, answers answer.Set, 
 	result.Leftovers = scan.Leftovers(files)
 	failed := false
 	for _, check := range t.Manifest.ChecksOf(c) {
-		words := make(manifest.Words, len(check.Run))
-		for i, word := range check.Run {
-			words[i] = r.Text(word)
-		}
+		words := replaced(r, check.Run)
 		if failed {
 			result.Checks = append(result.Checks, Ran{Check: words, Status: Skipped})
 			continue
@@ -144,4 +141,27 @@ func (t *Template) checkCombination(c manifest.Combination, answers answer.Set, 
 		result.Checks = append(result.Checks, ran)
 	}
 	return result
+}
+
+// Setup are the setup steps of the combination c, in the order its checks
+// run (manifest.SetupOf), each word with the literals replaced by answers
+// as a check's words are, so a step names the project's own paths. new
+// prints them for the person to run; nothing here runs one.
+func (t *Template) Setup(c manifest.Combination, answers answer.Set) []manifest.Words {
+	r := render.NewReplacer(t.Manifest.Replacements(answers))
+	var steps []manifest.Words
+	for _, step := range t.Manifest.SetupOf(c) {
+		steps = append(steps, replaced(r, step.Words))
+	}
+	return steps
+}
+
+// replaced are words with the literals replaced by r as a text file's
+// contents are: a check's, as it runs, and a setup step's, as it prints.
+func replaced(r *render.Replacer, words manifest.Words) manifest.Words {
+	out := make(manifest.Words, len(words))
+	for i, word := range words {
+		out[i] = r.Text(word)
+	}
+	return out
 }

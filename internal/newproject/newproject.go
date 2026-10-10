@@ -16,10 +16,16 @@
 // folder made and the render written, recorded (.itos-template.yaml,
 // decision 10) and committed as the project's first commit; a failure
 // while writing removes what was written.
+//
+// The setup steps the template lists for the combination are printed after,
+// for the person to run, and never run here (decision 7, the running left
+// to the idea new-trust): a step is the template's code, and new does not
+// decide for the person to run it.
 package newproject
 
 import (
 	"fmt"
+	"io"
 	"path/filepath"
 	"strings"
 
@@ -52,7 +58,9 @@ type CLI struct {
 func (c *CLI) Help() string {
 	return `Renders the template's stack branch merged with the chosen features' branches, replaces each literal its manifest (itos-template.yaml) lists by its answer, in file contents and names and in every case form, and commits the render, with its record (.itos-template.yaml), as the new git repository's first commit. Nothing is written to the folder until every check has passed.
 
---json prints {"schema":1,"ok":true,"folder","template","stack","features":[…],"answers":{…},"commits":{"<branch>":"<sha>"},"commit":"<sha>"}, or {"schema":1,"ok":false,"problems":[{"rule","message"}]}.
+The setup steps the manifest lists for the chosen branches, the root's, then the stack's, then the features', are printed after, one to a line and quoted for a POSIX shell, for you to run in the folder: new runs none of them. A template with no step prints none.
+
+--json prints {"schema":1,"ok":true,"folder","template","stack","features":[…],"answers":{…},"commits":{"<branch>":"<sha>"},"commit":"<sha>"}, or {"schema":1,"ok":false,"problems":[{"rule","message"}]}; the setup steps then go to the error output, so the object stays alone.
 
 Exit codes: 0 made; 1 refused: the folder has files in it, a feature of another stack, a feature whose needed feature is not chosen, a combination the manifest lists as unsupported, branches that do not merge cleanly; 2 a usage or manifest error: an unknown stack or feature, an answer missing (without a terminal) or not one its question takes; 3 git cannot reach the template, or cannot run; 70 an internal error.
 
@@ -67,7 +75,7 @@ Report issues at https://github.com/donvargax/itos-template/issues.`
 // stdout, a line or with --json its object, or each problem on stderr. It
 // asks on a terminal for what is missing, and only there.
 func (c *CLI) Run(ui *cli.UI) int {
-	p, err := Handle(Command{
+	p, steps, err := Handle(Command{
 		Template: c.Template,
 		Folder:   c.Folder,
 		Choice:   manifest.Choice{Stack: c.Stack, Features: c.Feature},
@@ -83,6 +91,7 @@ func (c *CLI) Run(ui *cli.UI) int {
 			OK     bool `json:"ok"`
 			*project.Project
 		}{1, true, p})
+		printSetup(ui.Stderr, p.Folder, steps)
 		return 0
 	}
 	features := "no features"
@@ -90,7 +99,24 @@ func (c *CLI) Run(ui *cli.UI) int {
 		features = "the features " + strings.Join(p.Features, ", ")
 	}
 	_, _ = fmt.Fprintf(ui.Stdout, "Made %s from %s: the stack %s, %s.\n", p.Folder, p.Template, p.Stack, features)
+	printSetup(ui.Stdout, p.Folder, steps)
 	return 0
+}
+
+// printSetup prints the template's setup steps to out, for the person to
+// run in folder: a line heading them, then each step on a line of its own,
+// its words quoted for a POSIX shell (manifest.Words.Shell) and nothing
+// before them, so each line is what a shell should run. A template with no
+// step prints nothing. On stdout beside what new made, or on stderr under
+// --json, which keeps the object alone on stdout (docs/CLI.md, rule 29).
+func printSetup(out io.Writer, folder string, steps []manifest.Words) {
+	if len(steps) == 0 {
+		return
+	}
+	_, _ = fmt.Fprintf(out, "itos-template ran none of the template's setup steps; run them in %s:\n", folder)
+	for _, step := range steps {
+		_, _ = fmt.Fprintf(out, "%s\n", step.Shell())
+	}
 }
 
 // ── Application ──
@@ -107,29 +133,34 @@ type Command struct {
 }
 
 // Handle makes the project c asks for, asking ask, when there is one, for
-// what c leaves out.
-func Handle(c Command, ask port.Asker) (*project.Project, error) {
+// what c leaves out, and gives the setup steps its template lists for it,
+// the answers in place, which it does not run.
+func Handle(c Command, ask port.Asker) (*project.Project, []manifest.Words, error) {
 	w := project.Writer{Disk: disk.Disk{}, Git: git.Committer{}}
 	folder, err := w.Look(c.Folder)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	tmp, err := tempdir.Make("itos-template-template-")
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	defer tempdir.Discard(tmp)
 	repo, err := git.Clone(c.Template, filepath.Join(tmp, "template.git"))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	t, err := template.Open(c.Template, repo)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	combination, answers, err := template.Choose(t.Manifest, c.Choice, c.Answers, c.Defaults, ask)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return t.Render(combination, answers, folder, nil, w)
+	p, err := t.Render(combination, answers, folder, nil, w)
+	if err != nil {
+		return nil, nil, err
+	}
+	return p, t.Setup(combination, answers), nil
 }

@@ -142,7 +142,7 @@ func TestOpenRefusesATemplateWithNoManifestToRead(t *testing.T) {
 }
 
 func TestOpenRefusesAManifestNamingEveryProblemAndTheRootBranch(t *testing.T) {
-	_, err := Open("../acme", withManifest(acme(), "version: 5\nstacks: []\n"))
+	_, err := Open("../acme", withManifest(acme(), "version: 6\nstacks: []\n"))
 	var invalid *ManifestInvalid
 	if !errors.As(err, &invalid) || invalid.Root != "main" || len(invalid.Problems) != 2 {
 		t.Fatalf("Open = %v", err)

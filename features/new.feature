@@ -275,7 +275,7 @@ Feature: new makes a project from a template
   # anything is written (ID-NEW-49). Its error says control character, since a manifest of
   # version 4 is already refused for holding setup at all, and naming the key would hold either
   # way.
-  @ID-NEW-44 @new-steps @wip
+  @ID-NEW-44 @new-steps
   Scenario: new prints the setup steps the chosen branches declare, the root's first
     Given the template "acme" whose root lists the setup step "git config core.hooksPath tools/hooks/pre-commit" and whose stack go lists the setup step "go mod download"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
@@ -286,7 +286,7 @@ Feature: new makes a project from a template
 
   # The step printed is the step this project would run, not one naming the template's literal.
   # Nothing is asked: the words are rewritten, and the person reads them.
-  @ID-NEW-45 @new-steps @wip
+  @ID-NEW-45 @new-steps
   Scenario: a setup step printed for a project names that project's own paths
     Given the template "acme" whose root lists the setup step "go build ./cmd/acme-widget"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
@@ -294,7 +294,7 @@ Feature: new makes a project from a template
     And its standard output says "go build ./cmd/blue-fox"
     And its standard output does not say "acme-widget"
 
-  @ID-NEW-46 @new-steps @wip
+  @ID-NEW-46 @new-steps
   Scenario: with --json the object is alone on stdout and the steps go to the error output
     Given the template "acme" whose root lists the setup step "git config core.hooksPath tools/hooks/pre-commit"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults --json"
@@ -304,7 +304,7 @@ Feature: new makes a project from a template
 
   # A template that needs nothing set up says nothing about it, so the output stays the
   # output it was before this existed.
-  @ID-NEW-47 @new-steps @wip
+  @ID-NEW-47 @new-steps
   Scenario: a template declaring no setup step prints nothing about setup
     Given the template "acme"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
@@ -312,14 +312,14 @@ Feature: new makes a project from a template
     And its standard output does not say "setup"
     And its error output does not say "setup"
 
-  @ID-NEW-48 @new-steps @wip
+  @ID-NEW-48 @new-steps
   Scenario: a setup step's word holding a space prints quoted, so the step pastes as one word
     Given the template "acme" whose root lists the setup step with the words "sh", "-c" and "go mod download && go vet ./..."
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
     Then it exits with code 0
     And its standard output says "sh -c 'go mod download && go vet ./...'"
 
-  @ID-NEW-49 @new-steps @wip
+  @ID-NEW-49 @new-steps
   Scenario: new refuses a manifest whose setup step holds a control character with exit 2, and writes nothing
     Given the template "acme" whose root lists a setup step whose word holds an escape character
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"

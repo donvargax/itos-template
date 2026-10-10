@@ -50,16 +50,17 @@ template_only:
 
 ## The keys
 
-| Key             | What it holds                                                                               |
-| --------------- | ------------------------------------------------------------------------------------------- |
-| `version`       | `4`, this page's format; each earlier version lacks the keys a later one adds. Required.    |
-| `stacks`        | The stacks, at least one, each a `name` and its `checks`, if any.                           |
-| `features`      | The features: each a `name`, its `stack`, the features it `needs` and its `checks`, if any. |
-| `questions`     | The literals the answers replace, and the questions asked for them.                         |
-| `template_only` | Paths only the template keeps, left out of every render.                                    |
-| `checks`        | The root's checks, run in every render first. Version 2.                                    |
-| `unsupported`   | The combinations the template cannot support, each its `stack` and `features`. Version 2.   |
-| `first_commit`  | The made project's first commit message, a string. Version 4. Optional.                     |
+| Key             | What it holds                                                                                           |
+| --------------- | ------------------------------------------------------------------------------------------------------- |
+| `version`       | `5`, this page's format; each earlier version lacks the keys a later one adds. Required.                |
+| `stacks`        | The stacks, at least one, each a `name` and its `checks` and `setup`, if any.                           |
+| `features`      | The features: each a `name`, its `stack`, the features it `needs` and its `checks` and `setup`, if any. |
+| `questions`     | The literals the answers replace, and the questions asked for them.                                     |
+| `template_only` | Paths only the template keeps, left out of every render.                                                |
+| `checks`        | The root's checks, run in every render first. Version 2.                                                |
+| `unsupported`   | The combinations the template cannot support, each its `stack` and `features`. Version 2.               |
+| `first_commit`  | The made project's first commit message, a string. Version 4. Optional.                                 |
+| `setup`         | The root's setup steps, printed first for the person to run once a project is made. Version 5.          |
 
 The manifest is JSON data written as YAML, and read strictly (`docs/CONFIG.md`, rule 1): a tool
 may write JSON into `itos-template.yaml` and it reads the same, while what JSON cannot say is
@@ -75,7 +76,9 @@ is read as it always was, a template with no checks, and refuses those keys, so 
 for version 2 is never misread as one without them. Version 3 adds a check's long form, which says
 what the check scans a render for ([Checks](#checks)); version 2 refuses it. Version 4 adds
 `first_commit`, the message of a made project's first commit ([The first
-commit](#the-first-commit)); version 3 refuses it.
+commit](#the-first-commit)); version 3 refuses it. Version 5 adds `setup` (on the top, on a stack and
+on a feature), the steps `new` prints for the person to run ([Setup steps](#setup-steps)); version
+4 refuses it, an empty list too.
 
 ### Branches
 
@@ -249,6 +252,51 @@ line kept, one starting with `#` too, whatever the person's `commit.cleanup` say
 `check` renders each combination through the same code, so each render's first commit carries the
 message too.
 
+### Setup steps
+
+What a made project needs set up before it is worked in (its hooks, its tools) is the template's to
+say, never the generator's (decision 7): from version 5, `setup` lists steps on the top for the
+root, on each stack and on each feature, each step a list of words, the program first, as a check
+is, and never one string:
+
+```yaml
+version: 5
+setup:
+  - [itos, init, --agent-rules]
+stacks:
+  - name: go
+    setup:
+      - [git, config, core.hooksPath, tools/hooks]
+      - [sh, -c, "go mod download && go build ./cmd/acme-widget"]
+```
+
+`new` runs none of them. It prints the steps of the combination it made, after what it made, for
+the person to read and run in the made project's folder: a line heading them, then one step to a
+line, in the order checks run (the root's, then the stack's, then the features' in the manifest's
+order). Each word has the literals replaced by the answers as a check's words have, so the step
+above prints `./cmd/blue-fox` in a project named `blue-fox`.
+
+```text
+Made made from ../acme: the stack go, no features.
+itos-template ran none of the template's setup steps; run them in made:
+itos init --agent-rules
+git config core.hooksPath tools/hooks
+sh -c 'go mod download && go build ./cmd/blue-fox'
+```
+
+A step line is only the words a shell should run, each quoted for a POSIX shell (sh, bash, zsh)
+and joined by one space: a word of only ASCII letters, digits and `@%+=:,./_-` as it is, an empty
+one as `''`, and any other in single quotes, each `'` in it written `'"'"'`. Pasted into a shell,
+the step runs its own words, not the shell's reading of them. cmd.exe and PowerShell quote
+otherwise: a template meaning to set up on Windows writes words that need no quoting. With `--json`
+the heading and the steps go to the error output, so the object stays alone on standard output. A
+template that lists no step prints nothing about setup.
+
+A step is the template's code, shown to a person who has not yet chosen to trust it, and quoting
+cannot make a control character safe to print: an escape sequence in a word can make a terminal
+show another step than the one pasted. So a word holding a control character (tab, CR and LF
+included) is a manifest refused, exit 2, each named with its line, before anything is written.
+
 ### Paths only the template keeps
 
 Each `template_only` entry is a path relative to the template's top, written with `/`: a file, or
@@ -351,8 +399,8 @@ every branch's remote-tracking branch needs. With GitHub Actions:
 The format grows with the items that need it, each with the version that names its keys, so a
 template written for a later itos-template is refused by an earlier one rather than misread:
 
-- setup steps per branch, run once a project is made (decision 7; the idea new-setup), likely
-  `setup` on the top (the root), on a stack and on a feature.
+- nothing yet: running the setup steps for the person, under a flag naming what it risks (the idea
+  new-trust), needs no key of its own.
 
 ## The record a made project keeps
 

@@ -235,3 +235,32 @@ func TestCheckFailsACombinationWhoseRenderKeepsALiteral(t *testing.T) {
 		}
 	}
 }
+
+// A combination's setup steps are the root's, then its stack's, then its
+// features', each word with the literals replaced by the answers as a
+// check's are, so a step names the project's own paths.
+func TestSetupIsTheCombinationsStepsTheAnswersInPlace(t *testing.T) {
+	text := strings.Replace(manifestText, "version: 2\n", "version: 5\nsetup: [[git, config, core.hooksPath, tools/hooks]]\n", 1)
+	text = strings.Replace(text, "    checks: [[has, bin/acme-widget]]\n", "    checks: [[has, bin/acme-widget]]\n    setup: [[sh, -c, 'go build ./cmd/acme-widget && echo Acme Corp']]\n", 1)
+	text = strings.Replace(text, "    checks: [[has, extra.txt]]\n", "    checks: [[has, extra.txt]]\n    setup: [[echo, acmeWidget, ACME_WIDGET]]\n", 1)
+	tpl := open(t, withManifest(acme(), text))
+	var got []string
+	for _, step := range tpl.Setup(combination(t, tpl, "sh", "extra"), answers) {
+		got = append(got, step.Shell())
+	}
+	want := []string{
+		"git config core.hooksPath tools/hooks",
+		"sh -c 'go build ./cmd/blue-fox && echo Blue Corp'",
+		"echo blueFox BLUE_FOX",
+	}
+	if !slices.Equal(got, want) {
+		t.Errorf("the setup steps are\n%s", strings.Join(got, "\n"))
+	}
+	if steps := tpl.Setup(combination(t, tpl, "py"), answers); len(steps) != 1 {
+		t.Errorf("py's setup steps are %q, the root's alone", steps)
+	}
+	plain := open(t, acme())
+	if steps := plain.Setup(combination(t, plain, "sh", "extra"), answers); steps != nil {
+		t.Errorf("a template with no setup lists %q", steps)
+	}
+}

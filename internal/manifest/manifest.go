@@ -4,15 +4,17 @@
 // literals, the paths only the template keeps, from version 2 the checks
 // check runs in each render and the combinations the template cannot
 // support, from version 3 a check's long form, saying what it scans the
-// render for, and from version 4 the message of a made project's first
-// commit. docs/manifest.md is its format, for template authors.
+// render for, from version 4 the message of a made project's first commit,
+// and from version 5 the setup steps new prints for the person to run.
+// docs/manifest.md is its format, for template authors.
 //
 // A stack's branch is stack/<stack> and a feature's <stack>/<feature>, so the
 // manifest names branches by convention alone. Unknown keys are refused, so
 // a typo never passes for an option, and the keys later items add come with
 // a version that names them: version 1 refuses checks and unsupported, so a
 // manifest written for version 2 is never misread as one with no checks,
-// version 2 refuses a check's long form, and version 3 first_commit.
+// version 2 refuses a check's long form, version 3 first_commit, and
+// version 4 setup.
 package manifest
 
 import (
@@ -35,7 +37,7 @@ const File = "itos-template.yaml"
 
 // Version is the newest manifest version this itos-template reads; it
 // reads every one from 1.
-const Version = 4
+const Version = 5
 
 // Manifest is a template's itos-template.yaml.
 type Manifest struct {
@@ -50,6 +52,7 @@ type Manifest struct {
 	// its header, then a body and footers, the literals in it replaced by
 	// the answers; nil leaves the message new gives. Version 4.
 	FirstCommit *string `yaml:"first_commit"`
+	Setup       []Step  `yaml:"setup,omitempty"` // the root's, version 5
 }
 
 // Check is a command check runs in a render: its words, the program first,
@@ -150,7 +153,8 @@ type Unsupported struct {
 // framework, on the branch stack/<name>.
 type Stack struct {
 	Name   string  `yaml:"name"`
-	Checks []Check `yaml:"checks"` // version 2
+	Checks []Check `yaml:"checks"`          // version 2
+	Setup  []Step  `yaml:"setup,omitempty"` // version 5
 }
 
 // Branch is the stack's branch, stack/<name>.
@@ -162,7 +166,8 @@ type Feature struct {
 	Name   string   `yaml:"name"`
 	Stack  string   `yaml:"stack"`
 	Needs  []string `yaml:"needs"`
-	Checks []Check  `yaml:"checks"` // version 2
+	Checks []Check  `yaml:"checks"`          // version 2
+	Setup  []Step   `yaml:"setup,omitempty"` // version 5
 }
 
 // Branch is the feature's branch, <stack>/<name>.
@@ -218,6 +223,7 @@ func (m *Manifest) check() []string {
 	}
 	m.checkChecks(add)
 	m.checkFirstCommit(add)
+	m.checkSetup(add)
 	if len(m.Stacks) == 0 {
 		add("it lists no stack")
 	}
@@ -712,10 +718,17 @@ func (c Combination) needsChosen() bool {
 // them: the root's, then its stack's, then each of its features' in the
 // manifest's order.
 func (m *Manifest) ChecksOf(c Combination) []Check {
-	checks := slices.Clone(m.Checks)
-	checks = append(checks, c.Stack.Checks...)
+	return inCheckOrder(m, c, m.Checks, func(s Stack) []Check { return s.Checks }, func(f Feature) []Check { return f.Checks })
+}
+
+// inCheckOrder is what the root, c's stack and c's features each hold, in
+// the order check runs checks: root, the root's, then stack's of c's
+// stack, then feature's of each of c's features in the manifest's order.
+func inCheckOrder[T any](m *Manifest, c Combination, root []T, stack func(Stack) []T, feature func(Feature) []T) []T {
+	all := slices.Clone(root)
+	all = append(all, stack(c.Stack)...)
 	for _, f := range m.Ordered(c.Features) {
-		checks = append(checks, f.Checks...)
+		all = append(all, feature(f)...)
 	}
-	return checks
+	return all
 }

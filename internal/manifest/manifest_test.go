@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"go.yaml.in/yaml/v3"
 )
 
 // The acme fixture's manifest, the one the scenarios render.
@@ -112,8 +114,15 @@ func TestReplacementsPutTheLongestLiteralFirst(t *testing.T) {
 
 func TestParseRefuses(t *testing.T) {
 	cases := map[string]string{
-		"an unknown key":                "version: 1\nstacks: [{name: go}]\nsetup: []\n",
-		"a later version":               "version: 5\nstacks: [{name: go}]\n",
+		"an unknown key":                "version: 5\nstacks: [{name: go}]\nhooks: []\n",
+		"a later version":               "version: 6\nstacks: [{name: go}]\n",
+		"setup in version 4":            "version: 4\nstacks: [{name: go}]\nsetup: [[go, mod, download]]\n",
+		"empty setup in version 1":      "version: 1\nstacks: [{name: go, setup: []}]\n",
+		"a setup step as one string":    "version: 5\nstacks: [{name: go}]\nsetup: [go mod download]\n",
+		"a setup step with no program":  "version: 5\nstacks: [{name: go, setup: [[]]}]\n",
+		"a setup step's empty program":  "version: 5\nstacks: [{name: go}]\nfeatures: [{name: cli, stack: go, setup: [['', x]]}]\n",
+		"a setup word, a list":          "version: 5\nstacks: [{name: go}]\nsetup: [[go, [mod]]]\n",
+		"a setup word, an escape":       "version: 5\nstacks: [{name: go}]\nsetup: [[echo, \"\\e[2J\"]]\n",
 		"first_commit in version 3":     "version: 3\nstacks: [{name: go}]\nfirst_commit: 'chore: start'\n",
 		"first_commit empty":            "version: 4\nstacks: [{name: go}]\nfirst_commit: ''\n",
 		"first_commit with no header":   "version: 4\nstacks: [{name: go}]\nfirst_commit: \"\\n\\nTask: T-1\\n\"\n",
@@ -440,5 +449,149 @@ func TestParseSaysAFirstCommitWithNoHeaderHasNone(t *testing.T) {
 		if !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, want) {
 			t.Errorf("%q: Parse = %v", message, err)
 		}
+	}
+}
+
+// Version 5 adds setup, on the top for the root, on each stack and on each
+// feature: steps, each a list of words as a check is, read as written.
+func TestParseReadsSetupFromVersion5(t *testing.T) {
+	m, err := Parse([]byte(`version: 5
+setup: [[itos, init, --agent-rules], [echo, "", 'it''s']]
+stacks: [{name: go, setup: [[go, mod, download]]}]
+features: [{name: cli, stack: go, setup: [[go, build, ./cmd/acme-widget]]}]
+`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	words := func(steps []Step) [][]string {
+		var all [][]string
+		for _, s := range steps {
+			all = append(all, s.Words)
+		}
+		return all
+	}
+	for _, c := range []struct {
+		where string
+		got   [][]string
+		want  [][]string
+	}{
+		{"the root's", words(m.Setup), [][]string{{"itos", "init", "--agent-rules"}, {"echo", "", "it's"}}},
+		{"the stack's", words(m.Stacks[0].Setup), [][]string{{"go", "mod", "download"}}},
+		{"the feature's", words(m.Features[0].Setup), [][]string{{"go", "build", "./cmd/acme-widget"}}},
+	} {
+		if !slices.EqualFunc(c.got, c.want, slices.Equal) {
+			t.Errorf("%s setup is %q, not %q", c.where, c.got, c.want)
+		}
+	}
+	if acme(t).Setup != nil {
+		t.Error("acme, which lists no setup step, lists one")
+	}
+}
+
+func TestParseSaysSetupIsOfVersion5(t *testing.T) {
+	_, err := Parse([]byte("version: 4\nsetup: [[a]]\nstacks: [{name: go, setup: []}]\nfeatures: [{name: cli, stack: go, setup: [[b]]}]\n"))
+	var invalid *Invalid
+	want := []string{
+		"the root's setup is a key of version 5: write version: 5",
+		"the stack go's setup is a key of version 5: write version: 5",
+		"the feature go/cli's setup is a key of version 5: write version: 5",
+	}
+	if !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, want) {
+		t.Errorf("Parse = %v", err)
+	}
+}
+
+func TestParseSaysASetupStepNamesAProgram(t *testing.T) {
+	_, err := Parse([]byte("version: 5\nsetup: [[go], []]\nstacks: [{name: go, setup: [['', x]]}]\n"))
+	var invalid *Invalid
+	want := []string{
+		"the root's setup step 2 names no program: a step is a list of words, the program first",
+		"the stack go's setup step 1 names no program: a step is a list of words, the program first",
+	}
+	if !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, want) {
+		t.Errorf("Parse = %v", err)
+	}
+}
+
+func TestParseSaysASetupStepIsAListOfWords(t *testing.T) {
+	_, err := Parse([]byte("version: 5\nstacks: [{name: go}]\nsetup:\n  - go mod download\n"))
+	if err == nil || !strings.Contains(err.Error(), "line 4: a setup step is a list of words") {
+		t.Errorf("Parse = %v", err)
+	}
+}
+
+// A step is printed for the person to paste, so a word holding a control
+// character, which can make a terminal show another step, is refused, each
+// named with its line and the character, whoever's step it is; a word that
+// only needs quoting is taken.
+func TestParseRefusesAControlCharacterInASetupWordNamingItsLine(t *testing.T) {
+	_, err := Parse([]byte(`version: 5
+setup:
+  - [echo, "a\eb", ok]
+  - [echo, "\t", "\r\n"]
+stacks:
+  - name: go
+    setup: [[sh, -c, "\x7f"]]
+features:
+  - {name: cli, stack: go, setup: [[echo, "\u0085", "\x00"]]}
+  - {name: web, stack: go, setup: [[echo, "é ünïcode $HOME 'quoted'"]]}
+`))
+	var invalid *Invalid
+	why := ": a terminal shown it can show another step than the one run, so write the word without it"
+	want := []string{
+		`line 3: the root's setup step 1 holds a control character, U+001B, in the word "a\x1bb"` + why,
+		`line 4: the root's setup step 2 holds a control character, U+0009, in the word "\t"` + why,
+		`line 4: the root's setup step 2 holds a control character, U+000D, in the word "\r\n"` + why,
+		`line 7: the stack go's setup step 1 holds a control character, U+007F, in the word "\x7f"` + why,
+		`line 9: the feature go/cli's setup step 1 holds a control character, U+0085, in the word "\u0085"` + why,
+		`line 9: the feature go/cli's setup step 1 holds a control character, U+0000, in the word "\x00"` + why,
+	}
+	if !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, want) {
+		t.Errorf("Parse = %v", err)
+	}
+}
+
+func TestSetupOfIsTheRootsThenTheStacksThenTheFeaturesInTheManifestsOrder(t *testing.T) {
+	m, err := Parse([]byte(`version: 5
+setup: [[root]]
+stacks: [{name: go, setup: [[stack, one], [stack, two]]}, {name: py, setup: [[py]]}]
+features:
+  - {name: a, stack: go, setup: [[a]]}
+  - {name: b, stack: go, setup: [[b]]}
+  - {name: c, stack: go, setup: [[c]]}
+`))
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, _ := m.combination("go", []string{"b", "a"})
+	var got []string
+	for _, s := range m.SetupOf(b) {
+		got = append(got, strings.Join(s.Words, " "))
+	}
+	want := []string{"root", "stack one", "stack two", "a", "b"}
+	if !slices.Equal(got, want) {
+		t.Errorf("SetupOf = %q, want %q", got, want)
+	}
+}
+
+// A manifest with setup steps written back out (as a tool writing the
+// format does) reads as the same manifest, each step its words.
+func TestASetupStepIsWrittenAsItsWords(t *testing.T) {
+	text := "version: 5\nsetup: [[go, mod, download]]\nstacks: [{name: go, setup: [[sh, -c, 'a b']]}]\n"
+	m, err := Parse([]byte(text))
+	if err != nil {
+		t.Fatal(err)
+	}
+	data, err := yaml.Marshal(m)
+	if err != nil {
+		t.Fatal(err)
+	}
+	again, err := Parse(data)
+	if err != nil {
+		t.Fatalf("written out, the manifest is refused: %v\n%s", err, data)
+	}
+	if len(again.Setup) != 1 || !slices.Equal(again.Setup[0].Words, Words{"go", "mod", "download"}) ||
+		len(again.Stacks[0].Setup) != 1 || !slices.Equal(again.Stacks[0].Setup[0].Words, Words{"sh", "-c", "a b"}) {
+		t.Errorf("written out, the manifest reads\n%s", data)
 	}
 }
