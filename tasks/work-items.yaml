@@ -872,6 +872,11 @@ items:
       holds no site (decision 27's main gap: run()'s untested error paths then need tests); #24
       return-value and call mutators. Check them with gh issue list -R donvargax/itos --author @me
       and the same for itos-cc.
+
+      itos#34 (2026-10-09): the Claude Code guard judges git commit by the session's folder, not one
+      a cd in the same command moved to, so a test building a fixture repository with cd and git
+      commit is denied and falls back to git commit-tree. When fixed and pinned, a brief no longer
+      needs to warn about it.
     tags: [ci]
   - id: T-24
     title: Upgrade the Go toolchain to clear the standard-library security failures
