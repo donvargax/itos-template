@@ -1040,3 +1040,18 @@ items:
       and combining marks such as U+034F are marks (Mn), so a word holding one still reads otherwise
       than it runs, the invisible-identifier trick beside Trojan Source. Decide whether to refuse a
       listed set of them, or every character a terminal draws as nothing.
+  - id: source-invisible-gate
+    title: CI refuses a tracked file holding a format character or a Unicode line separator
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      setup-invisible's agent found the editing tool had turned \uXXXX escapes in a Go raw string
+      into the literal characters; only the compiler's illegal byte order mark error caught it, and
+      a U+202E or U+200B would have compiled, putting Trojan Source (CVE-2021-42574) in our own code
+      where review cannot see it. A check in itos ci run over every tracked text file, refusing Cf,
+      Zl and Zp (a BOM at the very start excepted, or not), names the file, line and code point.
+      Weigh a tool that exists (a gitleaks or golangci-lint rule, bidichk in golangci-lint covers
+      only the bidi controls in Go) against a few lines of ours, with the person, per decision 13.
