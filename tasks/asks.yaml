@@ -208,3 +208,4 @@ questions:
   - id: q-47
     item: "update-merges"
     question: "How does a conflicted update leave the project? Recommended: as git merge does, conflict markers in the files and unmerged index entries (the old render, the project, the new render), so git status, mergetool and checkout --theirs work; the record already names the new release; exit 1 naming the conflicted paths. update refuses a dirty tree, so git reset --hard undoes it, which the message names; update keeps no state of its own and has no --abort or --continue. Or: its own --abort and --continue, state under .git; or what merges applied and each failed hunk in a .rej file beside its file."
+    answer: "As git merge does: markers in the files and unmerged index entries, the record naming the new release, exit 1 naming the conflicted paths; update refuses a dirty tree, so git reset --hard undoes it, and it keeps no state of its own, no --abort or --continue. The person's call, 2026-10-10."
