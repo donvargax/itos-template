@@ -1150,7 +1150,7 @@ items:
     phase: 1
     owner: null
     status: todo
-    depends_on: [slice-12, slice-13]
+    depends_on: [slice-12, slice-13, slice-14]
     kind: idea
     why: >
       Decision 24: this repository adopts the template it came from and keeps current by update,
@@ -1160,6 +1160,9 @@ items:
       Once slice-12 lands, a dry-run adopt of this repository against go-template-itos is the cheap
       first look, nothing written, at whether the preview reads well on a project this size. Becomes
       a task, naming the release it adopts, once slice-13 lands. The person agreed 2026-10-10.
+
+      It waits on slice-14 too: go-template-itos is released with itos-template release, which
+      slice-14 builds (2026-10-10).
   - id: update-preview
     title: itos-template update --dry-run previews what an update would change and where it would conflict, writing nothing
     phase: 1
