@@ -236,3 +236,4 @@ questions:
   - id: q-53
     item: "template-release-command"
     question: "Which commits does itos-template release tag, and what must hold first? Recommended: it runs check over the heads check reads (each listed branch's local head, else origin's) and tags exactly those commits once every combination passes, refusing, naming it, a branch whose local head differs from origin's, so a release never tags a commit others cannot fetch on its branch. Or: tag whatever check proved, local commits included."
+    answer: "The heads check proves, tagged only once every combination passes, and refused while any listed branch's local head differs from origin's. The person's call, 2026-10-10."
