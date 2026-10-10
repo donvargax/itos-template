@@ -1170,3 +1170,16 @@ items:
       time. Until the cause is known (our tests sharing something across itos-cc's workers, or
       itos-cc itself), a survivor or a kill only the whole suite decides is not a fact, and mutation
       sample can fail a push on a record that was honest.
+  - id: pin-itos-7
+    title: Pin itos 7.0.0, the release after the 7.0.0-rc.3 this repository runs
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      itos 7.0.0 is out (github.com/donvargax/itos/releases/tag/v7.0.0) and this repository still
+      pins 7.0.0-rc.3. The person agreed on 2026-10-10 to move the pin as its own item after T-39,
+      so the baseline mutation run is measured with unchanged tools. Read the release notes between
+      rc.3 and 7.0.0 first: a fix there may retire a lesson in docs/ORCHESTRATING.md (itos#21,
+      itos#34) or an entry in upstream-fixes.
