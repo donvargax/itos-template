@@ -233,3 +233,6 @@ questions:
     item: "template-release-command"
     question: "Which versions can itos-template release cut? Recommended: any semver vX.Y.Z, a pre-release suffix allowed, that no listed branch already carries as <branch>/<version>, a partial release included; a version lower than the newest is a backport, allowed, and never becomes the default since the newest is the highest stable complete one (decision 36). Or: only a version higher than the newest, as the idea first said."
     answer: "Any unused semver version, pre-releases and backports allowed; refused, one any listed branch already carries, and one that is not vX.Y.Z with an optional pre-release. The person's call, 2026-10-10."
+  - id: q-53
+    item: "template-release-command"
+    question: "Which commits does itos-template release tag, and what must hold first? Recommended: it runs check over the heads check reads (each listed branch's local head, else origin's) and tags exactly those commits once every combination passes, refusing, naming it, a branch whose local head differs from origin's, so a release never tags a commit others cannot fetch on its branch. Or: tag whatever check proved, local commits included."
