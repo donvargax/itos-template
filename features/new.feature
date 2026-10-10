@@ -98,6 +98,55 @@ Feature: new makes a project from a template
     And the record in "made" has the answer "name" as "blue-fox" and "module" as "example.com/blue/fox"
     And the record in "made" names the commit of the template's branches "main", "stack/go" and "go/cli"
 
+  # record-name: the record keeps the template as it was named (decision 10), so update can reach
+  # it again, and a name can hold what a made project must never keep. A URL with userinfo
+  # (https://user:token@host/…) put the credential in the record, in the first commit's message,
+  # in the line new prints and in --json's template field, all four in the made project's history
+  # or its output; and a relative path (../acme) reached the template only from the folder new ran
+  # in. bug-4 took the credential out of every error; this is the success side.
+  #
+  # The person's calls, 2026-10-09. A URL with userinfo is cloned as given, so a token in a URL
+  # still works where a person or a CI job has nothing else, and is then kept out of all four: each
+  # holds the URL with its userinfo cut by template.Redact, bug-4's rule. new says so once on its
+  # error output, naming git's credential helper as how update will reach it (decision 9), over
+  # refusing such a URL, which breaks a token-in-URL run, and over keeping it with a warning. A
+  # relative path is recorded as the absolute path it named from the folder new ran in, so update
+  # reaches it from anywhere on that machine, over recording it relative to the made project and
+  # over keeping it as given; a made project published elsewhere then carries that machine's path,
+  # which names a folder, never a secret. A URL or an scp-like name is recorded as given.
+  #
+  # The scenarios reach a URL with no network: git's url.<base>.insteadOf, set for the run only,
+  # has git clone the fixture for a URL on example.invalid, which never resolves, while new sees and
+  # records the URL as the person gave it. The credential is a fake one.
+  @ID-NEW-55 @record-name @wip
+  Scenario: a template URL's credential reaches neither the made project nor what new prints
+    Given the template "acme"
+    When itos-template runs with git cloning the template for "https://x-access-token:ghp_EXAMPLETOKENNOTREAL@example.invalid/acme.git", with "new https://x-access-token:ghp_EXAMPLETOKENNOTREAL@example.invalid/acme.git made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And the record in "made" names the template as "https://example.invalid/acme.git"
+    And no file or commit of "made" holds "ghp_EXAMPLETOKENNOTREAL"
+    And its standard output does not say "ghp_EXAMPLETOKENNOTREAL"
+    And its error output does not say "ghp_EXAMPLETOKENNOTREAL"
+    And its error output says "credential helper"
+
+  @ID-NEW-56 @record-name @wip
+  Scenario: with --json the template new names holds no credential either
+    Given the template "acme"
+    When itos-template runs with git cloning the template for "https://x-access-token:ghp_EXAMPLETOKENNOTREAL@example.invalid/acme.git", with "new https://x-access-token:ghp_EXAMPLETOKENNOTREAL@example.invalid/acme.git made --stack go --answer name=blue-fox --defaults --json"
+    Then it exits with code 0
+    And its standard output does not say "ghp_EXAMPLETOKENNOTREAL"
+    And its standard output says "https://example.invalid/acme.git"
+
+  # {template-relative} is the fixture template's path relative to the folder itos-template runs
+  # in, as a person types ../acme; the record must name the template by {template}, its absolute
+  # path, whatever folder update later runs in.
+  @ID-NEW-57 @record-name @wip
+  Scenario: a template named by a relative path is recorded by its absolute path
+    Given the template "acme"
+    When itos-template runs with "new {template-relative} made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And the record in "made" names the template as "{template}"
+
   @ID-NEW-08 @slice-1
   Scenario: new takes a template by a git URL as by a path
     Given the template "acme"
