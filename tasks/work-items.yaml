@@ -1210,3 +1210,14 @@ items:
       Left out of slice-13 to keep it small: adopt has --dry-run (slice-12), update does not yet.
       git merge-tree --write-tree already computes the merge without touching the tree, so a preview
       is cheap once the merge exists.
+  - id: update-change-answers
+    title: itos-template update changes a recorded answer, the stack or the features, a rename or a new feature landing as a merge
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [slice-13]
+    kind: idea
+    why: >
+      q-48 kept update to answering the questions a new release adds; changing what the record holds
+      was left for later. A changed answer re-renders every file that holds its literal, so the
+      merge is noisy; a feature added is the branch merged into the new render.
