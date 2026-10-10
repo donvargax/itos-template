@@ -912,3 +912,22 @@
         grep -q 'tools/bin/invisible-chars --cached' tools/hooks/pre-commit &&
         test "$(git grep -l -F 'p{Default_Ignorable_Code_Point}' -- . ':!tasks' ':!docs' | wc -l)" -eq 1 &&
         tools/bin/invisible-chars
+- id: T-38
+  type: test
+  title: "The quoting property draws only words a setup step may hold, so it no longer flakes on Windows"
+  why: >
+    Was sh-cr-flake. check-here's push went red on the windows platform job alone (run 38029057617)
+    in TestShReadsQuotedWordsBackByteForByte: RAPID_CHECKS=1 drew the word "\r", which Git for
+    Windows' sh read back as nothing, so main could go red at random on Windows in code a push never
+    touched. The property's generator draws any string and adds a tab and a line ending on purpose,
+    but the manifest refuses a step word holding any control character (ID-NEW-49) or one drawn as
+    nothing (ID-NEW-50, ID-NEW-51), so Quote never meets one: the property tested words no step can
+    hold. The coordinator's call, routine: the generator keeps every word the manifest takes and
+    filters out the rest with the same predicates checkSetup refuses by, unicode.IsControl and
+    drawnAsNothing, so it can never drift from them; Quote is unchanged. Run the property with many
+    checks on Linux before pushing; the platform jobs judge Windows.
+  done_when:
+    - run: >-
+        sed -n '/^var shellWords/,/^$/p' internal/manifest/shell_test.go | grep -q 'drawnAsNothing' &&
+        sed -n '/^var shellWords/,/^$/p' internal/manifest/shell_test.go | grep -q 'IsControl' &&
+        go test ./internal/manifest -run TestShReadsQuotedWordsBackByteForByte -count=1 -rapid.checks=5000
