@@ -41,6 +41,9 @@ func TestEachKindNoScenarioReadsHasItsCodeRuleAndSentence(t *testing.T) {
 		// ID-NEW-10 reads this refusal's code, not its rule; ID-NEW-29 reads
 		// the rule of a file in the folder's place.
 		{&project.NotEmpty{Folder: "made"}, 1, "folder-not-empty", "the folder made has files in it: new writes a project into a missing or empty folder"},
+		// ID-NEW-64, ID-CHECK-28 and ID-ADOPT-21 read this refusal's code and
+		// the code point it names, not its rule nor the name, escaped.
+		{&template.BadName{Name: "acme\twid\u202eget", Char: '\t'}, 2, "template-name", `the template "acme\twid\u202eget" holds U+0009, a control character, or one that prints as nothing or moves the text around it where no script spells with it: name it by a path or a URL without it`},
 		// A template whose HEAD names no branch: no scenario's fixture has one.
 		{&template.NoRoot{Template: "t"}, 2, "manifest-missing", "the template t has no default branch to read its manifest, itos-template.yaml, from"},
 		// No fixture's literal is in a name an answer can make "..".

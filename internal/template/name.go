@@ -3,7 +3,25 @@ package template
 import (
 	"path"
 	"strings"
+
+	"github.com/donvargax/itos-template/internal/manifest"
 )
+
+// CheckName refuses the template named name, as the person gave it, when it
+// holds a character an answer may not hold (manifest.Refused): a control
+// character, or one that prints as nothing or moves the text around it
+// where no script spells with it (bug-6). The name is the one string a
+// record holds that nothing else vets, and new also prints it and writes it
+// into the first commit's message, so new, check and adopt judge it before
+// they clone it. A *BadName names the first such character; the name is
+// refused, never changed, and a path's spaces and letters outside ASCII are
+// taken.
+func CheckName(name string) error {
+	if r, refused := manifest.Refused(name); refused {
+		return &BadName{Name: name, Char: r}
+	}
+	return nil
+}
 
 // System is how the machine new runs on writes a path, which decides how a
 // template's name is told a path and how a relative one is made absolute:

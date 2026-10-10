@@ -21,12 +21,21 @@ import (
 // template's own manifest and branches give (a stack or feature found in
 // it, a branch, a root, a path) is the template's and kept as it is. The
 // template's name, the path or URL the person gave, is kept too: how a
-// refusal echoes a path is the person's call (echo-paths-escaped).
+// refusal echoes a path is the person's call (echo-paths-escaped). A
+// BadName is the one exception: the name it refuses holds a character that
+// must not reach the reader as itself, so it is quoted as an answer is.
 //
 //sumtype:decl
 type Error interface {
 	error
 	templateError()
+}
+
+// BadName is a template named with a character free text may not hold
+// (CheckName), Char the first.
+type BadName struct {
+	Name string
+	Char rune
 }
 
 // NoStack is a choice that names no stack, where none can be asked: the
@@ -108,6 +117,7 @@ type Incomplete struct {
 	Branches []string
 }
 
+func (*BadName) templateError()         {}
 func (*NoStack) templateError()         {}
 func (*UnknownStack) templateError()    {}
 func (*UnknownFeature) templateError()  {}
@@ -124,6 +134,9 @@ func (*HoldsRecord) templateError()     {}
 func (*NoRelease) templateError()       {}
 func (*Incomplete) templateError()      {}
 
+func (e *BadName) Error() string {
+	return fmt.Sprintf("the template %+q holds %U", e.Name, e.Char)
+}
 func (e *NoStack) Error() string        { return "no stack chosen" }
 func (e *UnknownStack) Error() string   { return fmt.Sprintf("no stack %+q", e.Name) }
 func (e *UnknownFeature) Error() string { return fmt.Sprintf("no feature %+q", e.Name) }

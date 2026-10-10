@@ -179,6 +179,7 @@ Feature: new makes a project from a template
     Then it exits with code 0
     And the file "made/release.txt" contains "<ref>"
     And the record in "made" names the release "<ref>"
+    And its error output does not say "no release"
 
     Examples:
       | ref         |
@@ -352,7 +353,7 @@ Feature: new makes a project from a template
   # clone: exit 2 naming the template and the character's code point, nothing written. The
   # person's call, 2026-10-10, over quoting around the library. The name is refused, never
   # normalized; a real path's spaces and letters outside ASCII stay taken (ID-NEW-65).
-  @ID-NEW-64 @bug-6 @wip
+  @ID-NEW-64 @bug-6
   Scenario Outline: new refuses a template named with <what> with exit 2, naming its code point, and writes nothing
     When itos-template runs with "new acme{<code>}widget made --stack go --answer name=blue-fox --defaults"
     Then it exits with code 2
@@ -366,7 +367,7 @@ Feature: new makes a project from a template
       | a line feed              | U+000A |
       | a right-to-left override | U+202E |
 
-  @ID-NEW-65 @bug-6 @wip
+  @ID-NEW-65 @bug-6
   Scenario: new takes a template whose path holds a space and a letter outside ASCII, and records it as named
     Given the template "acme" in a folder named "my templates/ácme"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"

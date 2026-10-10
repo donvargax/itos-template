@@ -166,6 +166,24 @@ func TestCheckTakesWhatPRECISTakes(t *testing.T) {
 	}
 }
 
+// Refused is the one rule an answer and a template's name are judged by
+// (bug-6): text free text may hold, an empty one too, holds no character to
+// blame; text it may not names the first.
+func TestRefusedNamesTheFirstCharacterFreeTextMayNotHold(t *testing.T) {
+	for text, want := range map[string]rune{
+		"":                                 0,
+		"/home/you/my templates/\u00e1cme": 0,
+		"\u0915\u094d\u200d\u0937":         0,
+		"acme\twidget\n":                   '\t',
+		"blue\u200cfox\x1b":                '\u200c',
+	} {
+		r, refused := Refused(text)
+		if r != want || refused != (want != 0) {
+			t.Errorf("Refused(%+q) = %U, %v, not %U, %v", text, r, refused, want, want != 0)
+		}
+	}
+}
+
 // A default goes through Check when the manifest is read, so one holding
 // an invisible character is refused there, naming the question and the
 // character's code point, the default quoted escaped.

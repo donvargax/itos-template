@@ -367,7 +367,7 @@ Feature: check renders every combination a template allows and runs its checks
 
   # bug-6: check names a template as new does, so it judges the name by the same rule before any
   # clone (new.feature's ID-NEW-64 says why).
-  @ID-CHECK-28 @bug-6 @wip
+  @ID-CHECK-28 @bug-6
   Scenario: check refuses a template named with a tab with exit 2, naming its code point
     When itos-template runs with "check acme{U+0009}widget --answer name=blue-fox --defaults"
     Then it exits with code 2

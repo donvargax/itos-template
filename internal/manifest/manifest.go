@@ -456,8 +456,8 @@ func (q *Question) Check(answer string) error {
 	if answer == "" {
 		return fmt.Errorf("it is empty")
 	}
-	if _, err := freeform.String(answer); err != nil {
-		return fmt.Errorf("it holds %U, a control character, or one that prints as nothing or moves the text around it where no script spells with it, so give it without", firstRefused(answer))
+	if r, refused := Refused(answer); refused {
+		return fmt.Errorf("it holds %U, a control character, or one that prints as nothing or moves the text around it where no script spells with it, so give it without", r)
 	}
 	if q.pattern != nil && !q.pattern.MatchString(answer) {
 		return fmt.Errorf("it does not match the pattern %s", q.Pattern)
@@ -468,6 +468,18 @@ func (q *Question) Check(answer string) error {
 		}
 	}
 	return nil
+}
+
+// Refused is the first character of text that free text may not hold, by
+// freeform's rule, and whether text holds one: an answer (Check), and the
+// template as the person named it, which new, check and adopt judge by the
+// same rule before cloning it (bug-6), as the record, the line new prints
+// and the first commit's message hold it. text is judged, never changed.
+func Refused(text string) (r rune, refused bool) {
+	if _, err := freeform.String(text); err == nil {
+		return 0, false
+	}
+	return firstRefused(text), true
 }
 
 // freeform judges an answer by PRECIS (RFC 8264), its FreeformClass: the

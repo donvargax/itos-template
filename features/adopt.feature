@@ -267,7 +267,7 @@ Feature: adopt links an existing project to a template baseline
 
   # bug-6: adopt names a template as new does and writes it into the record, so it judges the
   # name by the same rule before any clone (new.feature's ID-NEW-64 says why).
-  @ID-ADOPT-21 @bug-6 @wip
+  @ID-ADOPT-21 @bug-6
   Scenario: adopt refuses a template named with a tab with exit 2, naming its code point, and writes nothing
     Given a saved adoption snapshot of "made"
     When itos-template runs in "made" with "adopt acme{U+0009}widget --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --answer module=example.com/blue/fox"

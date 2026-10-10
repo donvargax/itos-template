@@ -69,7 +69,7 @@ The setup steps the manifest lists for the chosen branches, the root's, then the
 
 --json prints {"schema":1,"ok":true,"folder","template","release" (left out for the branch heads),"stack","features":[…],"answers":{…},"commits":{"<branch>":"<sha>"},"commit":"<sha>"}, or {"schema":1,"ok":false,"problems":[{"rule","message"}]}; the setup steps then go to the error output, so the object stays alone.
 
-Exit codes: 0 made; 1 refused: the folder has files in it, an incomplete release --ref names, a feature of another stack, a feature whose needed feature is not chosen, a combination the manifest lists as unsupported, branches that do not merge cleanly; 2 a usage or manifest error: a --ref no release has, an unknown stack or feature, an answer missing (without a terminal) or not one its question takes; 3 git cannot reach the template, or cannot run; 70 an internal error.
+Exit codes: 0 made; 1 refused: the folder has files in it, an incomplete release --ref names, a feature of another stack, a feature whose needed feature is not chosen, a combination the manifest lists as unsupported, branches that do not merge cleanly; 2 a usage or manifest error: a template named with a control character or one that prints as nothing, a --ref no release has, an unknown stack or feature, an answer missing (without a terminal) or not one its question takes; 3 git cannot reach the template, or cannot run; 70 an internal error.
 
 Examples:
   itos-template new ../acme made --stack go --feature cli --answer name=blue-fox
@@ -172,10 +172,11 @@ type Command struct {
 // what c leaves out, and gives the setup steps its template lists for it,
 // the answers in place, which it does not run.
 //
-// git clones the template by its name as given; the project records it by
-// the name template.Recorded gives, from the folder new runs in, on this
-// system, and when that left a credential out of its URL, leftOut is told
-// the name, once the project is made.
+// The template's name is judged first (template.CheckName), before
+// anything is cloned or written. git clones the template by its name as
+// given; the project records it by the name template.Recorded gives, from
+// the folder new runs in, on this system, and when that left a credential
+// out of its URL, leftOut is told the name, once the project is made.
 //
 // The project is the template's release c.Ref names, refused before
 // anything is chosen or written when the template has no such release or
@@ -186,6 +187,9 @@ type Command struct {
 // when new ends; the project is a repository of its own (git init), with no
 // remote and nothing of the clone's.
 func Handle(c Command, ask port.Asker, leftOut, heads func(recorded string)) (*project.Project, []manifest.Words, error) {
+	if err := template.CheckName(c.Template); err != nil {
+		return nil, nil, err
+	}
 	dir, err := os.Getwd()
 	if err != nil {
 		return nil, nil, err

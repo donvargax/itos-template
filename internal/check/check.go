@@ -50,7 +50,7 @@ func (c *CLI) Help() string {
 
 The report, on stdout, gives each combination a line, "go + cli: passed" or "go + cli: failed", then a line for each leftover, indented two spaces: "leftover: "<text>" at <path>:<line>" or "leftover: "<text>" in the path <path>"; then a line for each check as it ran, indented two spaces: "passed: <words>", "failed: <words>" followed by its output, each line of it indented four spaces after a "|", or "skipped: <words>" after a failure; a render that failed shows "not rendered" and why. An empty line and the count of the combinations that passed end it. docs/manifest.md describes it whole.
 
-Exit codes: 0 every combination rendered, kept no literal and passed every check; 1 a render, a scan or a check failed, or the release --ref names is incomplete; 2 a usage or manifest error: a --ref no release has, an answer missing or not one its question takes, a manifest refused; 3 git cannot reach the template, or cannot run, or a render could not be written; 70 an internal error.
+Exit codes: 0 every combination rendered, kept no literal and passed every check; 1 a render, a scan or a check failed, or the release --ref names is incomplete; 2 a usage or manifest error: a template named with a control character or one that prints as nothing, a --ref no release has, an answer missing or not one its question takes, a manifest refused; 3 git cannot reach the template, or cannot run, or a render could not be written; 70 an internal error.
 
 Examples:
   itos-template check --answer name=blue-fox --defaults
@@ -186,9 +186,10 @@ type Query struct {
 // its answers are resolved, then each combination's result to each as it
 // is found.
 //
-// git clones the template by its name as given; each render records it,
-// in its .itos-template.yaml and its first commit, by the name
-// template.Recorded gives, from the folder check runs in, on this system,
+// The template's name is judged first (template.CheckName), as new judges
+// it, before anything is cloned. git clones the template by its name as
+// given; each render records it, in its .itos-template.yaml and its first
+// commit, by the name template.Recorded gives, from the folder check runs in, on this system,
 // as new records it (check-record-name-slice): a URL's credential left out,
 // so a template's own credential scan finds none in its renders, and a
 // relative path made absolute. A render is thrown away, so nothing is said
@@ -203,6 +204,9 @@ type Query struct {
 // itos-template release will tag, and says nothing of releases (decision
 // 36).
 func Handle(q Query, opened func(*manifest.Manifest), each func(template.Result) error) error {
+	if err := template.CheckName(q.Template); err != nil {
+		return err
+	}
 	tmp, err := tempdir.Make("itos-template-template-")
 	if err != nil {
 		return err

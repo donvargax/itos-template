@@ -22,6 +22,8 @@ import (
 func templateProblem(err template.Error) (code int, problems []Problem) {
 	code, problems = CodeInternal, internal(err)
 	switch e := err.(type) {
+	case *template.BadName:
+		code, problems = CodeUsage, one("template-name", "the template %+q holds %U, a control character, or one that prints as nothing or moves the text around it where no script spells with it: name it by a path or a URL without it", e.Name, e.Char)
 	case *template.NoStack:
 		code, problems = CodeUsage, one("stack-missing", "no stack chosen: name one with --stack (%s)", strings.Join(e.Stacks, ", "))
 	case *template.UnknownStack:

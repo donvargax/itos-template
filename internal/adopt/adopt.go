@@ -70,7 +70,7 @@ A project that differs from the baseline is refused unless --force accepts the d
 
 --json prints {"schema":1,"ok","written","dirty","baseline":{"template","release","stack","features":[…],"answers":{…},"commits":{"<branch>":"<sha>"}},"differences":[{"path","kind":"project-only|modified|missing","binary","mode_changed","diff" (with --diff, for a text change)}],"problems":[{"rule","message","fix"}]}; baseline is null when adopt stopped before rendering it. A script reads it and the exit code, never the preview, nor a problem's message or fix.
 
-Exit codes: 0 the record written, or with --dry-run the preview shown; 1 refused: the project differs from the baseline without --force, its index or working tree is not clean, it has no commit, it holds a record already, the release --ref names is incomplete, a feature of another stack, a feature whose needed feature is not chosen, a combination the manifest lists as unsupported, branches that do not merge cleanly; 2 a usage or manifest error: no --ref, a --ref no release has, an unknown stack or feature, an answer missing (without a terminal) or not one its question takes; 3 the folder is in no git repository or has no working tree, git cannot reach the template, or cannot run; 70 an internal error.
+Exit codes: 0 the record written, or with --dry-run the preview shown; 1 refused: the project differs from the baseline without --force, its index or working tree is not clean, it has no commit, it holds a record already, the release --ref names is incomplete, a feature of another stack, a feature whose needed feature is not chosen, a combination the manifest lists as unsupported, branches that do not merge cleanly; 2 a usage or manifest error: a template named with a control character or one that prints as nothing, no --ref, a --ref no release has, an unknown stack or feature, an answer missing (without a terminal) or not one its question takes; 3 the folder is in no git repository or has no working tree, git cannot reach the template, or cannot run; 70 an internal error.
 
 Examples:
   itos-template adopt ../acme --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --defaults --dry-run
@@ -224,10 +224,14 @@ type Command struct {
 // the record gives the template when that left a credential out of its
 // URL, as new tells it.
 //
-// The template, cloned bare into a temporary folder removed when adopt
-// ends, is named in the record as new names it (template.Recorded), from
-// the working folder.
+// The template's name is judged first (template.CheckName), before the
+// project is looked at or anything cloned. The template, cloned bare into a
+// temporary folder removed when adopt ends, is named in the record as new
+// names it (template.Recorded), from the working folder.
 func Handle(c Command, ask port.Asker, leftOut func(recorded string)) (*adoption.Adoption, error) {
+	if err := template.CheckName(c.Template); err != nil {
+		return nil, err
+	}
 	dir, err := os.Getwd()
 	if err != nil {
 		return nil, err

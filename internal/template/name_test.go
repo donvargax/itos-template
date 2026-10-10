@@ -1,6 +1,64 @@
 package template
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
+
+// A template's name is judged as an answer is (bug-6): CheckName refuses
+// what PRECIS's FreeformClass refuses, a control character, or one that
+// prints as nothing or moves the text around it, naming the first to blame,
+// and its refusal shows the name escaped, never a character outside ASCII
+// as itself. A joiner is refused where no script spells with it.
+func TestCheckNameRefusesWhatAnAnswerMayNotHoldNamingTheFirstCharacterToBlame(t *testing.T) {
+	cases := map[string]rune{
+		"acme\twidget":                             '\t',
+		"acme\nwidget":                             '\n',
+		"\tacme\n":                                 '\t',
+		"acme\u202ewidget":                         '\u202e',
+		"../acme\x1b[2K":                           '\x1b',
+		"https://example.com/a\u200bcme.git":       '\u200b',
+		"/home/you/my templates/acme\u3164":        '\u3164',
+		"acme\u200cwidget":                         '\u200c',
+		"C:\\Users\\you\\acme\u2028":               '\u2028',
+		"\u0645\u06cc\u200c\u062e\u0648\u0627\x1b": '\x1b',
+	}
+	for name, char := range cases {
+		err := CheckName(name)
+		var bad *BadName
+		if !errors.As(err, &bad) {
+			t.Errorf("CheckName(%+q) = %v, not a *BadName", name, err)
+			continue
+		}
+		if bad.Name != name || bad.Char != char {
+			t.Errorf("CheckName(%+q) = %+v, not the name and %U", name, bad, char)
+		}
+		for _, r := range err.Error() {
+			if r < 0x20 || r > 0x7e {
+				t.Errorf("CheckName(%+q)'s refusal shows %U: %v", name, r, err)
+			}
+		}
+	}
+}
+
+// Whatever a real path or URL holds that an answer may hold, CheckName
+// takes: a space, a letter outside ASCII, a Windows path, an scp-like
+// name, and a joiner where a script spells with it.
+func TestCheckNameTakesARealPathOrURL(t *testing.T) {
+	for _, name := range []string{
+		"../acme",
+		"/home/you/my templates/\u00e1cme",
+		"C:\\Users\\you\\acme",
+		"https://github.com/you/template.git",
+		"git@host:you/acme",
+		"/home/you/\u0645\u06cc\u200c\u062e\u0648\u0627\u0647\u0645",
+		"",
+	} {
+		if err := CheckName(name); err != nil {
+			t.Errorf("CheckName(%+q) = %v", name, err)
+		}
+	}
+}
 
 func TestSystemOfTellsWindowsFromEveryOtherSystem(t *testing.T) {
 	for goos, want := range map[string]System{"windows": Windows, "linux": Unix, "darwin": Unix, "freebsd": Unix} {
