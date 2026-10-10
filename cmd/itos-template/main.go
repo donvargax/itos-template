@@ -8,7 +8,8 @@
 // structured, and errors go to stderr.
 //
 // main only assembles: each command is a slice (decisions 16 and 17), its
-// kong struct and its handler in a package of its own (newproject, check),
+// kong struct and its handler in a package of its own (newproject, adopt,
+// check),
 // and main parses the command line, runs the one it names through the UI
 // the slices share (internal/cli) and exits with the code the slice
 // returns. A usage error, which kong finds before any slice runs, is the
@@ -25,6 +26,7 @@ import (
 
 	"github.com/alecthomas/kong"
 
+	"github.com/donvargax/itos-template/internal/adopt"
 	"github.com/donvargax/itos-template/internal/check"
 	"github.com/donvargax/itos-template/internal/cli"
 	"github.com/donvargax/itos-template/internal/newproject"
@@ -39,6 +41,7 @@ type commandLine struct {
 	ShowVersion kong.VersionFlag `name:"version" help:"Print the version and the commit it was built from, and exit."`
 
 	New        newproject.CLI `cmd:"" help:"Make a project from a template."`
+	Adopt      adopt.CLI      `cmd:"" help:"Link an existing project to the template release it matches, so it can take its updates."`
 	Check      check.CLI      `cmd:"" help:"Render every combination a template allows and run its checks."`
 	Completion cli.Completion `cmd:"" help:"Print a shell completion script."`
 	Complete   struct{}       `cmd:"" name:"__complete" hidden:""`
@@ -83,6 +86,8 @@ func run(args []string, in io.Reader, stdout, stderr io.Writer, terminal bool) i
 	switch command, _, _ := strings.Cut(ctx.Command(), " "); command {
 	case "new":
 		return c.New.Run(ui)
+	case "adopt":
+		return c.Adopt.Run(ui)
 	case "check":
 		return c.Check.Run(ui)
 	case "completion":

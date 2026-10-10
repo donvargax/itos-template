@@ -81,6 +81,28 @@ func (t *Template) Render(c manifest.Combination, answers answer.Set, into proje
 
 // render is Render, giving the files it wrote as well.
 func (t *Template) render(c manifest.Combination, answers answer.Set, into project.Folder, by *port.Identity, w project.Writer) (*project.Project, []port.File, error) {
+	files, record, message, err := t.plan(c, answers)
+	if err != nil {
+		return nil, nil, err
+	}
+	p, err := w.Write(into, files, record, message, by)
+	return p, files, err
+}
+
+// Baseline is the render of the combination c with answers, each one its
+// question takes, as Render would write it, and the record Render would
+// write beside it, with nothing written: what adopt compares an existing
+// project to and records. Every check Render runs before it writes runs
+// here, and no check of the manifest's.
+func (t *Template) Baseline(c manifest.Combination, answers answer.Set) ([]port.File, project.Record, error) {
+	files, record, _, err := t.plan(c, answers)
+	return files, record, err
+}
+
+// plan is what a render of c with answers writes: its files, its record
+// and its first commit's message, the manifest's first_commit rendered, ""
+// when it gives none.
+func (t *Template) plan(c manifest.Combination, answers answer.Set) ([]port.File, project.Record, string, error) {
 	m := t.Manifest
 	commits := map[string]string{t.root: t.rootCommit}
 	branches := []string{c.Stack.Branch()}
@@ -91,10 +113,10 @@ func (t *Template) render(c manifest.Combination, answers answer.Set, into proje
 	for i, b := range branches {
 		sha, ok, err := t.commitOf(b)
 		if err != nil {
-			return nil, nil, err
+			return nil, project.Record{}, "", err
 		}
 		if !ok {
-			return nil, nil, &NoBranch{Branch: b}
+			return nil, project.Record{}, "", &NoBranch{Branch: b}
 		}
 		commits[b], merged[i] = sha, sha
 	}
@@ -102,17 +124,17 @@ func (t *Template) render(c manifest.Combination, answers answer.Set, into proje
 	if err != nil {
 		var conflict *port.Conflict
 		if errors.As(err, &conflict) {
-			return nil, nil, &MergeConflict{Into: branches[:conflict.At], Branch: branches[conflict.At], Paths: conflict.Paths}
+			return nil, project.Record{}, "", &MergeConflict{Into: branches[:conflict.At], Branch: branches[conflict.At], Paths: conflict.Paths}
 		}
-		return nil, nil, err
+		return nil, project.Record{}, "", err
 	}
 	replacer := render.NewReplacer(m.Replacements(answers))
 	files, err := render.Plan(tree, func(p string) bool { return !m.IsTemplateOnly(p) }, replacer)
 	if err != nil {
-		return nil, nil, err
+		return nil, project.Record{}, "", err
 	}
 	if slices.ContainsFunc(files, func(f port.File) bool { return f.Path == project.RecordFile }) {
-		return nil, nil, &HoldsRecord{File: project.RecordFile}
+		return nil, project.Record{}, "", &HoldsRecord{File: project.RecordFile}
 	}
 	var message string
 	if m.FirstCommit != nil {
@@ -122,15 +144,14 @@ func (t *Template) render(c manifest.Combination, answers answer.Set, into proje
 	for _, f := range c.Features {
 		features = append(features, f.Name)
 	}
-	p, err := w.Write(into, files, project.Record{
+	return files, project.Record{
 		Template: t.Name,
 		Release:  t.Release(),
 		Stack:    c.Stack.Name,
 		Features: features,
 		Answers:  answers,
 		Commits:  commits,
-	}, message, by)
-	return p, files, err
+	}, message, nil
 }
 
 // commitOf is the commit the branch b is rendered from: its release's tag's,

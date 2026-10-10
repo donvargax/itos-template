@@ -36,3 +36,7 @@
   scenarios:
     - id: "@ID-COMPL-01"
       why: the hidden completion command returns top-level candidates from kong's model and omits itself
+- file: adopt.feature
+  scenarios:
+    - id: "@ID-ADOPT-01"
+      why: adopt's whole path in one run, the release rendered as new renders it, compared with a matching project and its record written, nothing else of the project changed

@@ -53,7 +53,7 @@ Feature: adopt links an existing project to a template baseline
     Given the template "acme" with the release "v1.0.0"
     And an existing project in "made" matching that release with stack "go", features "cli", name "blue-fox" and module "example.com/blue/fox"
 
-  @ID-ADOPT-01 @slice-12 @wip
+  @ID-ADOPT-01 @slice-12
   Scenario: matching adoption records the selected baseline without changing existing files or committing
     Given a saved adoption snapshot of "made"
     When itos-template runs in "made" with "adopt {template} --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --answer module=example.com/blue/fox"
@@ -64,7 +64,7 @@ Feature: adopt links an existing project to a template baseline
     And the record in "made" names the release "v1.0.0" and its exact branch commits
     And the adoption snapshot of "made" is unchanged except for the new unstaged record
 
-  @ID-ADOPT-02 @slice-12 @wip
+  @ID-ADOPT-02 @slice-12
   Scenario: differences refuse adoption unless explicitly accepted and the default preview reveals no contents
     Given a committed project change to "made/README.md" containing "private-project-content"
     And a saved adoption snapshot of "made"
@@ -75,7 +75,7 @@ Feature: adopt links an existing project to a template baseline
     And its error output says "--force"
     And the adoption snapshot of "made" is unchanged
 
-  @ID-ADOPT-03 @slice-12 @wip
+  @ID-ADOPT-03 @slice-12
   Scenario: force accepts modified missing and project-only files without installing or removing anything
     Given a committed project change to "made/README.md" containing "private-project-content"
     And a committed deletion of "made/cli.txt"
@@ -89,7 +89,7 @@ Feature: adopt links an existing project to a template baseline
     And the adoption snapshot of "made" is unchanged except for the new unstaged record
     And the path "made/cli.txt" does not exist
 
-  @ID-ADOPT-04 @slice-12 @wip
+  @ID-ADOPT-04 @slice-12
   Scenario: dry-run shows differences successfully and writes nothing even with force
     Given a committed project change to "made/README.md" containing "private-project-content"
     And a saved adoption snapshot of "made"
@@ -100,7 +100,7 @@ Feature: adopt links an existing project to a template baseline
     And its standard output does not say "private-project-content"
     And the adoption snapshot of "made" is unchanged
 
-  @ID-ADOPT-05 @slice-12 @wip
+  @ID-ADOPT-05 @slice-12
   Scenario: diff explicitly shows text changes without applying them
     Given a committed project change to "made/README.md" containing "private-project-content"
     And a saved adoption snapshot of "made"
@@ -109,7 +109,7 @@ Feature: adopt links an existing project to a template baseline
     And its standard output shows a text diff from the baseline to "README.md" containing "private-project-content"
     And the adoption snapshot of "made" is unchanged
 
-  @ID-ADOPT-06 @slice-12 @wip
+  @ID-ADOPT-06 @slice-12
   Scenario: the preview identifies a binary difference without printing its payload
     Given a committed binary change to "made/logo.bin" containing "private-binary-content" after a NUL
     And a saved adoption snapshot of "made"
@@ -121,7 +121,7 @@ Feature: adopt links an existing project to a template baseline
 
   # Git records executable modes on every platform, even when the checkout's
   # filesystem does not enforce them. The fixture changes the committed mode.
-  @ID-ADOPT-07 @slice-12 @wip
+  @ID-ADOPT-07 @slice-12
   Scenario: the preview identifies a tracked git mode change with unchanged contents
     Given "made/cli.txt" has a committed executable mode unlike the baseline
     And a saved adoption snapshot of "made"
@@ -130,7 +130,7 @@ Feature: adopt links an existing project to a template baseline
     And its standard output identifies a mode change for "cli.txt"
     And the adoption snapshot of "made" is unchanged
 
-  @ID-ADOPT-08 @slice-12 @wip
+  @ID-ADOPT-08 @slice-12
   Scenario: adoption requires an explicit ref even when the project matches the latest release
     Given a saved adoption snapshot of "made"
     When itos-template runs in "made" with "adopt {template} --stack go --feature cli --answer name=blue-fox --answer module=example.com/blue/fox --force"
@@ -138,7 +138,7 @@ Feature: adopt links an existing project to a template baseline
     And its error output says "--ref"
     And the adoption snapshot of "made" is unchanged
 
-  @ID-ADOPT-09 @slice-12 @wip
+  @ID-ADOPT-09 @slice-12
   Scenario: a requested ref that does not exist is refused without writing a record
     Given a saved adoption snapshot of "made"
     When itos-template runs in "made" with "adopt {template} --ref v-missing --stack go --feature cli --answer name=blue-fox --answer module=example.com/blue/fox --force"
@@ -146,7 +146,7 @@ Feature: adopt links an existing project to a template baseline
     And its error output says "v-missing"
     And the adoption snapshot of "made" is unchanged
 
-  @ID-ADOPT-10 @slice-12 @wip
+  @ID-ADOPT-10 @slice-12
   Scenario Outline: force never bypasses a dirty repository
     Given "made" has <state>
     And a saved adoption snapshot of "made"
@@ -161,7 +161,7 @@ Feature: adopt links an existing project to a template baseline
       | a staged tracked change      |
       | a non-ignored untracked file |
 
-  @ID-ADOPT-11 @slice-12 @wip
+  @ID-ADOPT-11 @slice-12
   Scenario: dry-run may preview a dirty working tree and identifies that fact without changing it
     Given "made" has an unstaged tracked change
     And a non-ignored untracked file "made/own.txt" containing "private-project-content"
@@ -173,7 +173,7 @@ Feature: adopt links an existing project to a template baseline
     And its standard output does not say "private-project-content"
     And the adoption snapshot of "made" is unchanged
 
-  @ID-ADOPT-12 @slice-12 @wip
+  @ID-ADOPT-12 @slice-12
   Scenario: force never replaces an existing record
     Given a committed file "made/.itos-template.yaml" containing "keep-this-record"
     And a saved adoption snapshot of "made"
@@ -182,7 +182,7 @@ Feature: adopt links an existing project to a template baseline
     And its error output says ".itos-template.yaml"
     And the adoption snapshot of "made" is unchanged
 
-  @ID-ADOPT-13 @slice-12 @wip
+  @ID-ADOPT-13 @slice-12
   Scenario Outline: adoption refuses a project without the required git history or working tree
     Given "made" is <state>
     And a saved adoption snapshot of "made"
@@ -197,7 +197,7 @@ Feature: adopt links an existing project to a template baseline
       | a bare git repository               | 3    | bare    |
       | a git repository without a commit   | 1    | commit  |
 
-  @ID-ADOPT-14 @slice-12 @wip
+  @ID-ADOPT-14 @slice-12
   Scenario: missing answers are refused without a terminal rather than guessed from project files
     Given a saved adoption snapshot of "made"
     When itos-template runs in "made" with "adopt {template} --ref v1.0.0 --stack go --feature cli --force"
@@ -206,7 +206,7 @@ Feature: adopt links an existing project to a template baseline
     And its error output says "module"
     And the adoption snapshot of "made" is unchanged
 
-  @ID-ADOPT-15 @slice-12 @wip
+  @ID-ADOPT-15 @slice-12
   Scenario: defaults use the selected manifest's answer default exactly as new does
     Given a saved adoption snapshot of "made"
     When itos-template runs in "made" with "adopt {template} --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --defaults --force"
@@ -214,7 +214,7 @@ Feature: adopt links an existing project to a template baseline
     And the record in "made" has the answer "module" as "example.com/you/project"
     And the adoption snapshot of "made" is unchanged except for the new unstaged record
 
-  @ID-ADOPT-16 @slice-12 @wip
+  @ID-ADOPT-16 @slice-12
   Scenario: JSON preview is one machine-readable object and writes no record
     Given a committed project change to "made/README.md" containing "private-project-content"
     And a saved adoption snapshot of "made"
@@ -226,7 +226,7 @@ Feature: adopt links an existing project to a template baseline
     And its standard output does not say "private-project-content"
     And the adoption snapshot of "made" is unchanged
 
-  @ID-ADOPT-17 @slice-12 @wip
+  @ID-ADOPT-17 @slice-12
   Scenario: JSON refusal preserves the difference report and writes nothing
     Given a committed project change to "made/README.md" containing "private-project-content"
     And a saved adoption snapshot of "made"
@@ -237,7 +237,7 @@ Feature: adopt links an existing project to a template baseline
     And its adoption JSON problems include a rule ID and a fix
     And the adoption snapshot of "made" is unchanged
 
-  @ID-ADOPT-18 @slice-12 @wip
+  @ID-ADOPT-18 @slice-12
   Scenario: selecting an older release does not silently use the template's current branch heads
     Given the template's current branches differ from the release "v1.0.0"
     And a saved adoption snapshot of "made"
@@ -246,7 +246,7 @@ Feature: adopt links an existing project to a template baseline
     And the record in "made" names the release "v1.0.0" and its exact branch commits
     And the adoption snapshot of "made" is unchanged except for the new unstaged record
 
-  @ID-ADOPT-19 @slice-12 @wip
+  @ID-ADOPT-19 @slice-12
   Scenario: adoption renders a baseline without running its checks
     Given the template has a release "v1.1.0" with the same rendered files and checks that always fail if run
     And a saved adoption snapshot of "made"
@@ -254,7 +254,7 @@ Feature: adopt links an existing project to a template baseline
     Then it exits with code 0
     And the adoption snapshot of "made" is unchanged except for the new unstaged record
 
-  @ID-ADOPT-20 @slice-12 @wip
+  @ID-ADOPT-20 @slice-12
   Scenario: ignored project-only files neither dirty the project nor become adoption differences
     Given "made" has a committed ignore rule for "local-only.txt"
     And an ignored untracked file "made/local-only.txt" containing "private-project-content"

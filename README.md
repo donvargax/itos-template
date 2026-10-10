@@ -19,6 +19,14 @@ itos-template new ../acme made --stack go --answer name=blue-fox --defaults --re
 A release is one version tagged `<branch>/<version>` on every branch the template's manifest lists
 (decision 36).
 
+`itos-template adopt` links a project made before the template to the release it matches, writing
+only the record `new` writes, `.itos-template.yaml`, for you to commit; `--dry-run` previews how the
+project differs from that release's render, and `--force` accepts the differences:
+
+```sh
+itos-template adopt ../acme --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --defaults --dry-run
+```
+
 A template says what it offers in its manifest, `itos-template.yaml` (`docs/manifest.md`). Updating
 a made project, checking a template and syncing its branches come next: `PLAN.md` says what is
 planned and in what order.

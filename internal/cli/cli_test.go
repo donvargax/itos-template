@@ -6,6 +6,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/donvargax/itos-template/internal/adoption"
 	"github.com/donvargax/itos-template/internal/answer"
 	"github.com/donvargax/itos-template/internal/disk"
 	"github.com/donvargax/itos-template/internal/git"
@@ -67,6 +68,10 @@ func TestEachKindNoScenarioReadsHasItsCodeRuleAndSentence(t *testing.T) {
 		// windows refusing a symbolic link waits for template-special-files.
 		{&disk.Unwritable{Folder: "made", Link: "run", Err: cause}, 3, "folder-unwritable", "cannot write the project in made: cannot make the symbolic link run: cause"},
 		{&tempdir.Unmakeable{Err: cause}, 3, "temporary-folder", "cannot make a temporary folder: cause"},
+		// A project's working tree fails to read or write where the system
+		// refuses, as the disk does.
+		{&git.Unreadable{Path: "README.md", Err: cause}, 3, "file-unreadable", "cannot read the project's README.md: cause"},
+		{&git.Unwritable{Path: ".itos-template.yaml", Err: cause}, 3, "file-unwritable", "cannot write the project's .itos-template.yaml: cause"},
 		// An error no switch classifies: a defect.
 		{fmt.Errorf("cannot write the report: %w", cause), 70, "internal", "cannot write the report: cause"},
 	}
@@ -206,5 +211,20 @@ func TestNoMessageEchoesATemplateURLsCredential(t *testing.T) {
 	}
 	if strings.Contains(stdout.String(), token) {
 		t.Errorf("a usage error's --json prints the token: %s", stdout.String())
+	}
+}
+
+// adopt's refusal counts the differences, which no scenario reads: one
+// path, or more paths.
+func TestARefusedAdoptionCountsItsDifferences(t *testing.T) {
+	for count, want := range map[int]string{1: "in 1 path,", 2: "in 2 paths,"} {
+		if got := Message(&adoption.Differs{Count: count}); !strings.Contains(got, want) {
+			t.Errorf("a refusal of %d differences says %q", count, got)
+		}
+	}
+	problems, code := Report(&adoption.Differs{Count: 1})
+	if code != CodeRefused || len(problems) != 1 || problems[0].Rule != "baseline-differs" || problems[0].Fix == "" ||
+		!strings.HasSuffix(problems[0].Message, "; "+problems[0].Fix) {
+		t.Errorf("Report gave %+v, %d", problems, code)
 	}
 }

@@ -48,8 +48,9 @@ type Record struct {
 // project keeps"): nothing read a record before it.
 const RecordVersion = 1
 
-const recordHeader = `# What itos-template new rendered this project from: the template, by a
-# name update can reach (an absolute path, a URL with no credential), the
+const recordHeader = `# The template render this project is kept up to date with, as
+# itos-template new made it or adopt linked it: the template, by a name
+# update can reach (an absolute path, a URL with no credential), the
 # release, when it was one, the stack, the features, the answers, and the
 # commit each of the template's branches was at. itos-template update reads
 # it; edit it only to change what an update renders.
@@ -69,6 +70,17 @@ func (r *Record) Marshal() ([]byte, error) {
 		return nil, err
 	}
 	return []byte(b.String()), nil
+}
+
+// File is r as the file .itos-template.yaml, in the format RecordVersion
+// names, as new writes it into a project and adopt beside one.
+func (r Record) File() (port.File, error) {
+	r.Version = RecordVersion
+	data, err := r.Marshal()
+	if err != nil {
+		return port.File{}, err
+	}
+	return port.File{Path: RecordFile, Mode: 0o644, Data: data}, nil
 }
 
 // Project is a made project: its folder, its record, and its first commit.
@@ -125,7 +137,7 @@ func (w Writer) Write(into Folder, files []port.File, record Record, message str
 	}
 	p := &Project{Folder: into.Path, Record: record}
 	p.Version = RecordVersion
-	data, err := p.Marshal()
+	file, err := record.File()
 	if err != nil {
 		return nil, err
 	}
@@ -135,7 +147,7 @@ func (w Writer) Write(into Folder, files []port.File, record Record, message str
 			executables = append(executables, f.Path)
 		}
 	}
-	files = append(files[:len(files):len(files)], port.File{Path: RecordFile, Mode: 0o644, Data: data})
+	files = append(files[:len(files):len(files)], file)
 	if err := w.Disk.Write(into.Path, files); err != nil {
 		w.Disk.Clear(into.Path, into.New)
 		return nil, err

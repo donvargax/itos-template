@@ -58,6 +58,21 @@ func TestARecordReadsAsItIsWritten(t *testing.T) {
 	}
 }
 
+// The record's file is .itos-template.yaml, its format's version set
+// whatever the record says, as new writes it and adopt does.
+func TestARecordsFileIsItsMarshalledFormat(t *testing.T) {
+	r := Record{Template: "../acme", Stack: "go"}
+	f, err := r.File()
+	if err != nil {
+		t.Fatal(err)
+	}
+	r.Version = RecordVersion
+	want, _ := r.Marshal()
+	if f.Path != RecordFile || f.Mode != 0o644 || string(f.Data) != string(want) {
+		t.Errorf("the record's file is %s %v\n%s", f.Path, f.Mode, f.Data)
+	}
+}
+
 func fakes() (Writer, *porttest.Disk, *porttest.Git) {
 	d := porttest.NewDisk()
 	g := porttest.NewGit(d)

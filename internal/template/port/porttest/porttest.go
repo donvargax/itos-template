@@ -271,6 +271,80 @@ func (g *Git) Commit(folder, message string, executables []string, by *port.Iden
 	return "commit of " + folder, nil
 }
 
+// Checkout is an existing project's repository held in memory: what Look
+// says of it, every file of its working tree, the paths of them git
+// ignores, and Fail, why its files cannot be read, when they cannot. Create
+// writes into Tree, as the working tree gains a file.
+type Checkout struct {
+	State   port.CheckoutState
+	Tree    map[string]port.File
+	Ignored map[string]bool
+	Fail    error
+	// Unwritable is why Create cannot write, when it cannot.
+	Unwritable error
+}
+
+var _ port.Checkout = (*Checkout)(nil)
+
+// Look is State.
+func (c *Checkout) Look() (port.CheckoutState, error) { return c.State, nil }
+
+// Files are the files of Tree, in path order, but those git ignores that
+// also does not name.
+func (c *Checkout) Files(also []string) ([]port.File, error) {
+	if c.Fail != nil {
+		return nil, c.Fail
+	}
+	var files []port.File
+	for _, p := range slices.Sorted(maps.Keys(c.Tree)) {
+		if !c.Ignored[p] || slices.Contains(also, p) {
+			files = append(files, c.Tree[p])
+		}
+	}
+	return files, nil
+}
+
+// Holds is whether Tree holds p, ignored or not.
+func (c *Checkout) Holds(p string) (bool, error) {
+	_, ok := c.Tree[p]
+	return ok, c.Fail
+}
+
+// Create adds the file p to Tree, of mode 0o644, unless Unwritable says it
+// cannot, or Tree holds p already, an error wrapping fs.ErrExist.
+func (c *Checkout) Create(p string, data []byte) error {
+	if c.Unwritable != nil {
+		return c.Unwritable
+	}
+	if _, ok := c.Tree[p]; ok {
+		return fmt.Errorf("create %s: %w", p, fs.ErrExist)
+	}
+	c.Tree[p] = port.File{Path: p, Mode: 0o644, Data: data}
+	return nil
+}
+
+// Differ is a diff as a fake writes it: each side's path and contents,
+// "a/<path>: <contents>" then "b/<path>: <contents>", a side with no file
+// "a: none"; or Fail, why it cannot, when it cannot.
+type Differ struct{ Fail error }
+
+var _ port.Differ = Differ{}
+
+// Diff is from then to, as Differ writes them.
+func (d Differ) Diff(from, to *port.File) (string, error) {
+	if d.Fail != nil {
+		return "", d.Fail
+	}
+	return diffSide("a", from) + diffSide("b", to), nil
+}
+
+func diffSide(name string, f *port.File) string {
+	if f == nil {
+		return name + ": none\n"
+	}
+	return name + "/" + f.Path + ": " + string(f.Data)
+}
+
 // Programs are programs a check can run, by name, each a Go function of the
 // folder it runs in and its arguments, returning what it writes and whether
 // it exits 0.

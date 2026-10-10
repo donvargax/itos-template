@@ -120,6 +120,50 @@ func (r *Refused) Error() string { return "git refused the commit: " + r.Err.Err
 
 func (r *Refused) Unwrap() error { return r.Err }
 
+// Checkout is an existing project's git repository, as adopt reads it at
+// its top: what it is, and the files of its working tree as git sees them.
+// Nothing of it is changed but the one new file Create writes.
+type Checkout interface {
+	// Look says what the folder the checkout was opened in is.
+	Look() (CheckoutState, error)
+	// Files are the working tree's files: every file git tracks that the
+	// working tree holds, every file it holds that git neither tracks nor
+	// ignores, and of the paths also, each that it holds though git ignores
+	// it. Each has its path from the top, with /; its mode, git's index's for
+	// a tracked file; and its contents, the index's blob for a tracked file
+	// the working tree holds unchanged, else the working tree's. A submodule
+	// is fs.ModeIrregular, with no contents.
+	Files(also []string) ([]File, error)
+	// Holds is whether the top holds anything at path, with /, a file git
+	// ignores too.
+	Holds(path string) (bool, error)
+	// Create writes data as the new file path, with /, at the top, refusing
+	// when there is one already; a failure leaves no file there.
+	Create(path string, data []byte) error
+}
+
+// CheckoutState is what the folder a Checkout was opened in is: in a git
+// repository or not, and when not, why, as git says; when it is, whether
+// it has a working tree (a bare repository has none), its top, whether HEAD
+// names a commit, and the paths the index or the working tree change from
+// HEAD, untracked files git does not ignore included.
+type CheckoutState struct {
+	Repository bool
+	Why        string
+	WorkTree   bool
+	Top        string
+	Committed  bool
+	Changed    []string
+}
+
+// Differ shows how a file changes from one side to the other, as git's own
+// diff shows it, a/ the side it changes from and b/ the side it changes to.
+type Differ interface {
+	// Diff is the diff of from to to, either nil when that side has no such
+	// file, each a text file.
+	Diff(from, to *File) (string, error)
+}
+
 // Runner runs the programs a template's checks name.
 type Runner interface {
 	// Run runs words, the program first, in dir, with no shell, and returns

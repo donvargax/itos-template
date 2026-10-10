@@ -58,9 +58,12 @@ linters:
         # a new slice (update, sync) is added to both; cmd may import them all.
         slices:
           files:
+            - "**/internal/adopt/**"
             - "**/internal/check/**"
             - "**/internal/newproject/**"
           deny:
+            - pkg: github.com/donvargax/itos-template/internal/adopt$
+              desc: "a slice imports no other slice (decision 17): move what they share into the domain"
             - pkg: github.com/donvargax/itos-template/internal/check$
               desc: "a slice imports no other slice (decision 17): move what they share into the domain"
             - pkg: github.com/donvargax/itos-template/internal/newproject$
@@ -69,6 +72,7 @@ linters:
         # kong. Its tests run it against porttest's fakes (decision 19).
         domain:
           files:
+            - "**/internal/adoption/**"
             - "**/internal/answer/**"
             - "**/internal/caseform/**"
             - "**/internal/manifest/**"
@@ -86,6 +90,8 @@ linters:
               desc: "the domain reaches temporary folders through a port (decision 17): use internal/template/port"
             - pkg: github.com/donvargax/itos-template/internal/prompt$
               desc: "the domain asks through a port (decision 17): use internal/template/port"
+            - pkg: github.com/donvargax/itos-template/internal/adopt$
+              desc: "the domain imports no slice (decision 17)"
             - pkg: github.com/donvargax/itos-template/internal/check$
               desc: "the domain imports no slice (decision 17)"
             - pkg: github.com/donvargax/itos-template/internal/newproject$
@@ -98,6 +104,7 @@ linters:
         # net. Its tests may read a fixture.
         domain-io:
           files:
+            - "**/internal/adoption/**"
             - "**/internal/answer/**"
             - "**/internal/caseform/**"
             - "**/internal/manifest/**"
@@ -150,6 +157,7 @@ linters:
         rapid:
           files:
             - $all
+            - "!**/internal/adoption/*_test.go"
             - "!**/internal/answer/*_test.go"
             - "!**/internal/caseform/*_test.go"
             - "!**/internal/manifest/*_test.go"
@@ -165,6 +173,7 @@ linters:
             - $all
             - "!**/cmd/**"
             - "!**/internal/cli/**"
+            - "!**/internal/adopt/**"
             - "!**/internal/check/**"
             - "!**/internal/newproject/**"
           deny:

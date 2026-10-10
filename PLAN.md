@@ -61,6 +61,8 @@ languages. itos-template keeps the update story and drops the template language.
 
 - `itos-template new <template> <folder> [--stack s] [--feature f]… [--answer k=v]…`: renders a
   project, asking what the answers lack on a terminal, and records what it rendered.
+- `itos-template adopt <template> --ref <version> [--stack s] [--feature f]… [--answer k=v]…`:
+  links an existing project to the release it matches, writing only its record.
 - `itos-template update [--to <tag>]`: brings a project to a newer template release.
 - `itos-template check`: in a template repository, renders every allowed combination and runs
   its checks (the template's CI step).

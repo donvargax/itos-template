@@ -458,6 +458,11 @@ deleted since, is a tag the release lacks.
 commit each of the template's branches was at, the root included: a release's tagged commits, or
 the heads'. A template may not hold a file of that name.
 
+`adopt` writes the same record beside an existing project, for the release `--ref` names and the
+stack, features and answers given (decision 24, `features/adopt.feature`): it renders that release
+as `new` does, writes nothing else, and leaves the record unstaged and uncommitted, for the person
+to commit through the project's own gates before `update`.
+
 `release` names the version of the release rendered (decision 36), beside the branch commits, which
 stay what reproduces the render; a render of the branch heads has no `release` key. The key joined
 the record's version 1, unbumped: no itos-template before it reads a record at all (update and

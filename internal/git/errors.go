@@ -37,10 +37,34 @@ type Failed struct {
 // project's first commit.
 type NoIdentity struct{ Err *Failed }
 
+// Unreadable is a file of a project's working tree that cannot be read,
+// Path its path from the top, with /.
+type Unreadable struct {
+	Path string
+	Err  error
+}
+
+// Unwritable is a file at a project's top that cannot be written: one there
+// already wraps fs.ErrExist.
+type Unwritable struct {
+	Path string
+	Err  error
+}
+
 func (*Missing) gitError()     {}
 func (*Unreachable) gitError() {}
 func (*Failed) gitError()      {}
 func (*NoIdentity) gitError()  {}
+func (*Unreadable) gitError()  {}
+func (*Unwritable) gitError()  {}
+
+func (e *Unreadable) Error() string { return fmt.Sprintf("cannot read %s: %v", e.Path, e.Err) }
+
+func (e *Unreadable) Unwrap() error { return e.Err }
+
+func (e *Unwritable) Error() string { return fmt.Sprintf("cannot write %s: %v", e.Path, e.Err) }
+
+func (e *Unwritable) Unwrap() error { return e.Err }
 
 func (e *Missing) Error() string { return fmt.Sprintf("cannot run git: %v", e.Err) }
 

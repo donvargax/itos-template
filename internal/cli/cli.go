@@ -19,6 +19,7 @@ import (
 	"io"
 	"strings"
 
+	"github.com/donvargax/itos-template/internal/adoption"
 	"github.com/donvargax/itos-template/internal/answer"
 	"github.com/donvargax/itos-template/internal/disk"
 	"github.com/donvargax/itos-template/internal/git"
@@ -79,11 +80,13 @@ func (a asker) Ask(q port.Question) (string, error) {
 	return "", fmt.Errorf("nothing to ask: %v", q)
 }
 
-// Problem is one thing wrong, as --json gives it: its rule ID and its
-// sentence for people.
+// Problem is one thing wrong, as --json gives it: its rule ID, its
+// sentence for people, and, where one says it apart, what to do about it,
+// for people too (docs/CLI.md, "The contract with scripts").
 type Problem struct {
 	Rule    string `json:"rule"`
 	Message string `json:"message"`
+	Fix     string `json:"fix,omitempty"`
 }
 
 // Fail reports err, a command refusing or failing, and returns its exit
@@ -129,6 +132,10 @@ func (u *UI) JSON(v any) {
 func (u *UI) Line(message string) {
 	_, _ = fmt.Fprintf(u.Stderr, "itos-template: %s\n", message)
 }
+
+// Report is every problem of err and its exit code, as Fail reports them,
+// for a command whose --json object carries more than its problems.
+func Report(err error) ([]Problem, int) { return report(err) }
 
 // Code is err's exit code.
 func Code(err error) int {
@@ -199,7 +206,10 @@ func classify(err error) (int, []Problem) {
 	var ge git.Error
 	var de disk.Error
 	var tu *tempdir.Unmakeable
+	var ad adoption.Error
 	switch {
+	case errors.As(err, &ad):
+		return adoptionProblem(ad)
 	case errors.As(err, &te):
 		return templateProblem(te)
 	case errors.As(err, &re):

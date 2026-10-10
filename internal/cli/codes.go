@@ -1,8 +1,10 @@
 package cli
 
 import (
+	"fmt"
 	"strings"
 
+	"github.com/donvargax/itos-template/internal/adoption"
 	"github.com/donvargax/itos-template/internal/answer"
 	"github.com/donvargax/itos-template/internal/disk"
 	"github.com/donvargax/itos-template/internal/git"
@@ -135,6 +137,10 @@ func gitProblem(err git.Error) (code int, problems []Problem) {
 		code, problems = CodeInternal, internal(e)
 	case *git.NoIdentity:
 		code, problems = CodeEnvironment, one("git-identity", "git does not know who you are, so it cannot make the project's first commit: set user.name and user.email in git's config (%v)", e.Err)
+	case *git.Unreadable:
+		code, problems = CodeEnvironment, one("file-unreadable", "cannot read the project's %s: %v", e.Path, e.Err)
+	case *git.Unwritable:
+		code, problems = CodeEnvironment, one("file-unwritable", "cannot write the project's %s: %v", e.Path, e.Err)
 	}
 	return code, problems
 }
@@ -154,4 +160,43 @@ func diskProblem(err disk.Error) (code int, problems []Problem) {
 		}
 	}
 	return code, problems
+}
+
+func adoptionProblem(err adoption.Error) (code int, problems []Problem) {
+	code, problems = CodeInternal, internal(err)
+	switch e := err.(type) {
+	case *adoption.NotRepository:
+		code, problems = CodeEnvironment, fixed("git-repository-missing", "make the project a git repository and commit it, or run adopt in its folder",
+			"adopt links an existing project's git repository, and git finds none here (%s)", e.Why)
+	case *adoption.NoWorkTree:
+		code, problems = CodeEnvironment, fixed("git-work-tree-missing", "run adopt in the project's checkout, a clone of the repository",
+			"this is a bare git repository, or a .git folder, with no working tree to compare with the template's baseline")
+	case *adoption.NoCommit:
+		code, problems = CodeRefused, fixed("git-commit-missing", "commit the project first, then adopt it",
+			"the repository at %s has no commit: adopt writes a record only beside a committed HEAD", e.Top)
+	case *adoption.Dirty:
+		code, problems = CodeRefused, fixed("working-tree-dirty", "commit or stash the changes, or remove the untracked files, then adopt again; --dry-run previews a dirty project",
+			"the project's index and working tree are not clean (%s): adopt writes a record only in a clean project, --force or not", strings.Join(e.Paths, ", "))
+	case *adoption.HasRecord:
+		code, problems = CodeRefused, fixed("record-exists", "itos-template update takes the project from its record; to link it to another baseline, remove the record first",
+			"the project holds %s already: adopt never replaces a record, --force or not", e.File)
+	case *adoption.Differs:
+		code, problems = CodeRefused, fixed("baseline-differs", "rerun with --force to accept them and write the record alone, or with --dry-run --diff to see the text changes",
+			"the project differs from the baseline in %d %s, listed on the standard output: adopt writes the record only when --force accepts them, and never copies, deletes or merges a file", e.Count, paths(e.Count))
+	}
+	return code, problems
+}
+
+// paths is "path" or "paths", as count says.
+func paths(count int) string {
+	if count == 1 {
+		return "path"
+	}
+	return "paths"
+}
+
+// fixed is a problem of its rule, its sentence, format with args, then
+// what to do, fix, which it gives apart too.
+func fixed(rule, fix, format string, args ...any) []Problem {
+	return []Problem{{Rule: rule, Message: fmt.Sprintf(format, args...) + "; " + fix, Fix: fix}}
 }

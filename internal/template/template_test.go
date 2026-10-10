@@ -179,6 +179,37 @@ func TestRenderMergesTheBranchesReplacesTheLiteralsAndRecordsEveryCommit(t *test
 	}
 }
 
+// The baseline adopt compares a project with is the render Render would
+// write, the same files and record, with nothing written and no check run.
+func TestBaselineIsWhatRenderWouldWriteWithNothingWritten(t *testing.T) {
+	tpl := open(t, acme())
+	files, record, err := tpl.Baseline(combination(t, tpl, "sh", "extra"), answers)
+	if err != nil {
+		t.Fatal(err)
+	}
+	w, d, _ := writer()
+	p, err := tpl.Render(combination(t, tpl, "sh", "extra"), answers, project.Folder{Path: "made", New: true}, nil, w)
+	if err != nil {
+		t.Fatal(err)
+	}
+	rendered := d.Folders["made"]
+	if len(files) != len(rendered)-1 {
+		t.Errorf("the baseline holds %d files, the render %d and its record", len(files), len(rendered)-1)
+	}
+	for _, f := range files {
+		if r := rendered[f.Path]; r.Mode != f.Mode || string(r.Data) != string(f.Data) {
+			t.Errorf("the baseline's %s is %v %q, the render's %v %q", f.Path, f.Mode, f.Data, r.Mode, r.Data)
+		}
+	}
+	record.Version = project.RecordVersion
+	if !equalRecords(record, p.Record) {
+		t.Errorf("the baseline's record is %+v, the render's %+v", record, p.Record)
+	}
+	if _, _, err := open(t, acme()).Baseline(manifest.Combination{Stack: manifest.Stack{Name: "nosuch"}}, answers); !errors.As(err, new(*NoBranch)) {
+		t.Errorf("a baseline of a branch the template lacks gave %v", err)
+	}
+}
+
 func equalRecords(a, b project.Record) bool {
 	return a.Version == b.Version && a.Template == b.Template && a.Stack == b.Stack &&
 		slices.Equal(a.Features, b.Features) && maps.Equal(a.Answers, b.Answers) && maps.Equal(a.Commits, b.Commits)
