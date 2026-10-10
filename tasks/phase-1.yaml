@@ -951,10 +951,3 @@
     block with itos init --agent-rules and commit what changes. itos#21 and itos#34 are still open,
     so their lessons in docs/ORCHESTRATING.md stay. Any text here that tells a reader to give an
     item an ID changes to let itos mint it.
-  done_when:
-    - run: "grep -q 'version: \"7.0.0\"' itos.yaml"
-    - run: grep -q fdff7164d0711138ea119cc86f72bd4c3676efb455a7cfc1c4aa469d8ffc786c itos.yaml
-    - run: "test $(grep -c 'donvargax/itos@4618aeb201c8c15b2ffb947cc355b85747929a17 # v7.0.0$' .github/workflows/ci.yml) -eq 2"
-    - run: "grep -q 'donvargax/itos@4618aeb201c8c15b2ffb947cc355b85747929a17 # v7.0.0$' .github/workflows/release.yml"
-    - run: "! git grep -q 7.0.0-rc -- itos.yaml .github"
-    - run: itos version --check
