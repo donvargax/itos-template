@@ -52,6 +52,19 @@ func templateProblem(err template.Error) (code int, problems []Problem) {
 	case *template.MergeConflict:
 		code, problems = CodeRefused, one("merge-conflict", "merging the template's branch %s into %s leaves conflicts in %s: the template's branches must merge cleanly; merge them in the template and resolve them there",
 			e.Branch, strings.Join(e.Into, " + "), strings.Join(e.Paths, ", "))
+	case *template.NoRelease:
+		releases := "it has none"
+		if len(e.Releases) > 0 {
+			releases = "its releases are " + strings.Join(e.Releases, ", ")
+		}
+		code, problems = CodeUsage, one("release-unknown", "the template has no release %+q: %s; a release is one version tagged <branch>/<version> on every branch its manifest lists", e.Version, releases)
+	case *template.Incomplete:
+		lacking := make([]string, len(e.Branches))
+		for i, b := range e.Branches {
+			lacking[i] = "no tag " + b + "/" + e.Version + " on the branch " + b
+		}
+		code, problems = CodeRefused, one("release-incomplete", "the template's release %s is incomplete: %s; a release tags every branch its manifest lists <branch>/<version>: tag each in the template, or name another release with --ref",
+			e.Version, strings.Join(lacking, ", "))
 	case *template.HoldsRecord:
 		code, problems = CodeRefused, one("template-defect", "the template holds %s, the file a made project records its render in: leave it out of the template", e.File)
 	}

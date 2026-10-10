@@ -1,8 +1,9 @@
 // Package template is a template opened to render from (decision 9): its
 // git repository, cloned, and its manifest, read from its root branch
-// (decision 8). new chooses one combination of it (Choose) and renders it
-// into a project (Render); check renders every combination and runs their
-// checks (Check).
+// (decision 8), or from a release's root tag once one is used (UseRelease,
+// UseNewest, decision 36; release.go says what a release is). new chooses
+// one combination of it (Choose) and renders it into a project (Render);
+// check renders every combination and runs their checks (Check).
 //
 // It is domain (decision 17): it does the work and reaches git, the folders
 // and the programs only through the interfaces of package port, which infra
@@ -43,6 +44,7 @@ type Template struct {
 	repo       port.Repository
 	root       string // the root branch
 	rootCommit string
+	release    *Release // the release rendered; nil for the branch heads
 }
 
 // Open reads the manifest of the template name, whose repository is repo.
@@ -57,18 +59,7 @@ func Open(name string, repo port.Repository) (*Template, error) {
 		return nil, &EmptyRoot{Template: name, Root: t.root}
 	}
 	t.rootCommit = commit
-	data, ok, err := repo.File(commit, manifest.File)
-	if err != nil {
-		return nil, err
-	}
-	if !ok {
-		return nil, &NoManifest{Template: name, Root: t.root}
-	}
-	if t.Manifest, err = manifest.Parse(data); err != nil {
-		var invalid *manifest.Invalid
-		if errors.As(err, &invalid) {
-			return nil, &ManifestInvalid{Root: t.root, Problems: invalid.Problems}
-		}
+	if t.Manifest, err = t.manifestAt(commit, t.root); err != nil {
 		return nil, err
 	}
 	return t, nil
@@ -96,22 +87,22 @@ func (t *Template) render(c manifest.Combination, answers answer.Set, into proje
 	for _, f := range c.Features {
 		branches = append(branches, f.Branch())
 	}
-	for _, b := range branches {
-		sha, ok, err := t.repo.Commit(b)
+	merged := make([]string, len(branches))
+	for i, b := range branches {
+		sha, ok, err := t.commitOf(b)
 		if err != nil {
 			return nil, nil, err
 		}
 		if !ok {
 			return nil, nil, &NoBranch{Branch: b}
 		}
-		commits[b] = sha
+		commits[b], merged[i] = sha, sha
 	}
-	tree, err := t.repo.Merge(branches)
+	tree, err := t.repo.Merge(merged)
 	if err != nil {
 		var conflict *port.Conflict
 		if errors.As(err, &conflict) {
-			into := branches[:max(slices.Index(branches, conflict.Branch), 1)]
-			return nil, nil, &MergeConflict{Into: into, Branch: conflict.Branch, Paths: conflict.Paths}
+			return nil, nil, &MergeConflict{Into: branches[:conflict.At], Branch: branches[conflict.At], Paths: conflict.Paths}
 		}
 		return nil, nil, err
 	}
@@ -133,10 +124,21 @@ func (t *Template) render(c manifest.Combination, answers answer.Set, into proje
 	}
 	p, err := w.Write(into, files, project.Record{
 		Template: t.Name,
+		Release:  t.Release(),
 		Stack:    c.Stack.Name,
 		Features: features,
 		Answers:  answers,
 		Commits:  commits,
 	}, message, by)
 	return p, files, err
+}
+
+// commitOf is the commit the branch b is rendered from: its release's tag's,
+// or its head, and false when it has neither.
+func (t *Template) commitOf(b string) (string, bool, error) {
+	if t.release != nil {
+		sha, ok := t.release.Commits[b]
+		return sha, ok, nil
+	}
+	return t.repo.Commit(b)
 }

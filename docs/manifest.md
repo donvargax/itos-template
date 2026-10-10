@@ -389,7 +389,9 @@ itos-template: warning: no check of the template is marked as scanning its rende
 
 ### Checking a template in its CI
 
-`check` renders the template's branch heads, as `new` does: never its working tree. With no template
+`check` renders the template's branch heads, what `itos-template release` will tag, never its
+working tree; with `--ref` it renders that release instead, as `new` does (see "Releases" below),
+and the release is read from the tags the repository holds. With no template
 named, it reads the repository it runs in, from its top whatever folder of it it runs in, and takes
 each branch the manifest names from the local branch of that name, else from origin's
 remote-tracking branch of that name. A checkout as git clone or actions/checkout leaves one, its
@@ -401,7 +403,7 @@ names, as git clone records it, else as origin says it (`git ls-remote`). On a p
 so renders the branches as they are, not the change the pull request proposes.
 
 actions/checkout fetches only the commit it checks out unless told to fetch the whole history, which
-every branch's remote-tracking branch needs. With GitHub Actions:
+every branch's remote-tracking branch needs, and the tags `check --ref` reads. With GitHub Actions:
 
 ```yaml
 - uses: actions/checkout@v5
@@ -418,11 +420,49 @@ template written for a later itos-template is refused by an earlier one rather t
 - nothing yet: running the setup steps for the person, under a flag naming what it risks (the idea
   new-trust), needs no key of its own.
 
+## Releases
+
+A template release (decision 36) is one version tagged `<branch>/<version>` on every branch the
+manifest lists, the root included: `main/v1.2.0`, `stack/go/v1.2.0`, `go/cli/v1.2.0`. They are plain
+git tags, so any clone fetches them; a template's tag is never a bare `v1.2.0`, which is how a
+project tags its own releases. The version is the tag's last path segment, since a branch's name
+holds slashes, and a version semver refuses (golang.org/x/mod/semver: `latest`, `1.2.0`) is no
+release's. A release's manifest is the one its root's tag holds, and the branches it lists are the
+ones the release must tag.
+
+A release is complete when every branch its manifest lists carries its tag at a commit on that
+branch: the branch's head or one of its ancestors. A tag moved off its branch, or left on a branch
+deleted since, is a tag the release lacks.
+
+- `new` renders the newest release: the highest version by semver with no pre-release part
+  (`v1.2.0`, not `v1.3.0-rc.1`) whose release is complete, an incomplete one skipped. It is never
+  the one tagged last, so a backport cut after a newer release never wins.
+- `new --ref v1.3.0-rc.1` renders the release it names, a pre-release too. A version no branch
+  carries a tag of is a usage error, exit 2, naming it and the versions the root's tags name; a
+  release a branch lacks its tag of is refused with exit 1, naming each such branch. Both are
+  refused before anything is written.
+- A template with no complete release renders its branch heads, and `new` says so once on its error
+  output, with `--json` too, so the object stays alone on stdout:
+
+  ```text
+  itos-template: the template /home/you/acme has no release, one version tagged <branch>/<version> on every branch its manifest lists: new rendered its branch heads, and the record names no release
+  ```
+
+- `check` proves the branch heads by default, what `itos-template release` will tag, and says
+  nothing of releases; `check --ref` proves a release, refused as `new` refuses it.
+
 ## The record a made project keeps
 
 `new` writes `.itos-template.yaml` at the made project's top and commits it with the render
-(decision 10): the template, the stack, the features, the answers, and the commit each of the
-template's branches was at, the root included. A template may not hold a file of that name.
+(decision 10): the template, the release rendered, the stack, the features, the answers, and the
+commit each of the template's branches was at, the root included: a release's tagged commits, or
+the heads'. A template may not hold a file of that name.
+
+`release` names the version of the release rendered (decision 36), beside the branch commits, which
+stay what reproduces the render; a render of the branch heads has no `release` key. The key joined
+the record's version 1, unbumped: no itos-template before it reads a record at all (update and
+adopt come after it), so none can misread one, and an older itos-template's `new` writes a record
+without the key, as a render of its heads.
 
 The template is recorded by a name `update` can reach again from anywhere on the machine, holding
 no credential, though `new` clones it by the name as given (record-name):
@@ -457,6 +497,7 @@ given, removed when `new` ends; the made project is a repository of its own, wit
 ```yaml
 version: 1
 template: /home/you/acme
+release: v1.2.0
 stack: go
 features:
   - cli
@@ -469,5 +510,3 @@ commits:
   stack/go: 7b44…
 ```
 
-The release a project was made from joins it once a template release is settled (the idea
-template-releases).

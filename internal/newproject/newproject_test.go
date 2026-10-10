@@ -34,6 +34,14 @@ func TestShowSaysWhatWasMadeThenTheSetupStepsToRun(t *testing.T) {
 	}
 }
 
+func TestShowNamesTheReleaseMade(t *testing.T) {
+	p := made()
+	p.Release = "v1.2.0"
+	if _, stdout, _ := shown(p, nil, false); stdout != "Made made from ../acme at its release v1.2.0: the stack go, no features.\n" {
+		t.Errorf("show printed %q", stdout)
+	}
+}
+
 func TestShowNamesTheFeaturesMade(t *testing.T) {
 	for features, want := range map[string][]string{
 		"Made made from ../acme: the stack go, the features cli.\n":      {"cli"},
@@ -82,5 +90,16 @@ func TestCredentialLeftOutSaysSoOnTheErrorOutput(t *testing.T) {
 	want := "itos-template: the record names the template https://example.invalid/acme.git, the credential its URL held left out: itos-template update will reach the template through git's credential helper (git help credentials)\n"
 	if stdout.String() != "" || stderr.String() != want {
 		t.Errorf("credentialLeftOut printed\n%s---\n%s", stdout.String(), stderr.String())
+	}
+}
+
+// A template with no release is said on the error output alone, so --json
+// keeps its object alone on stdout.
+func TestNoReleaseSaysSoOnTheErrorOutput(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	noRelease(&cli.UI{Stdout: &stdout, Stderr: &stderr})("/home/you/acme")
+	want := "itos-template: the template /home/you/acme has no release, one version tagged <branch>/<version> on every branch its manifest lists: new rendered its branch heads, and the record names no release\n"
+	if stdout.String() != "" || stderr.String() != want {
+		t.Errorf("noRelease printed\n%s---\n%s", stdout.String(), stderr.String())
 	}
 }

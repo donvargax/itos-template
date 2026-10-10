@@ -51,6 +51,12 @@ func TestEachKindNoScenarioReadsHasItsCodeRuleAndSentence(t *testing.T) {
 		// git refuses a first commit only where a hook or a config of the
 		// person's says so, and the harness gives git none.
 		{&project.CommitRefused{Err: failed}, 1, "commit-refused", "git refused the project's first commit: fatal: no"},
+		// ID-NEW-60 and ID-NEW-62 read these refusals' codes and the version
+		// and branch they name, not their rules; no scenario's template has
+		// no release a --ref names, nor two branches without their tags.
+		{&template.NoRelease{Version: "v9.9.9"}, 2, "release-unknown", `the template has no release "v9.9.9": it has none; a release is one version tagged <branch>/<version> on every branch its manifest lists`},
+		{&template.NoRelease{Version: "v9.9.9", Releases: []string{"v1.0.0", "v1.1.0"}}, 2, "release-unknown", `the template has no release "v9.9.9": its releases are v1.0.0, v1.1.0; a release is one version tagged <branch>/<version> on every branch its manifest lists`},
+		{&template.Incomplete{Version: "v1.1.0", Branches: []string{"go/cli", "go/web"}}, 1, "release-incomplete", "the template's release v1.1.0 is incomplete: no tag go/cli/v1.1.0 on the branch go/cli, no tag go/web/v1.1.0 on the branch go/web; a release tags every branch its manifest lists <branch>/<version>: tag each in the template, or name another release with --ref"},
 		// A git command that should not fail, failing: a defect.
 		{failed, 70, "internal", "fatal: no"},
 		// The disk and the temporary folder fail where the system refuses,

@@ -12,6 +12,8 @@ const Here = "."
 // git clone or actions/checkout leaves one. Each branch is the local branch of its name,
 // else origin's remote-tracking branch of that name, so the branches a
 // checkout holds only as origin's are read with no fetch of them first.
+// Its tags are copied too, so a release (check --ref) is read from the tags
+// the checkout holds.
 //
 // The root branch, the copy's HEAD, is the branch the checkout's HEAD names;
 // a detached HEAD (actions/checkout on a pull request) names none, so it is
@@ -29,7 +31,7 @@ func CloneHere(top, dir string) (*Repo, error) {
 	// Origin's first, the local branches over them, so a local branch wins.
 	for _, refspecs := range [][]string{
 		{"+refs/remotes/origin/*:refs/heads/*", "^refs/remotes/origin/HEAD"},
-		{"+refs/heads/*:refs/heads/*"},
+		{"+refs/heads/*:refs/heads/*", "+refs/tags/*:refs/tags/*"},
 	} {
 		args := append([]string{"fetch", "--quiet", "--no-tags", top}, refspecs...)
 		if _, err := r.git(args...); err != nil {

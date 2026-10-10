@@ -39,21 +39,23 @@ import (
 type CLI struct {
 	Template string   `arg:"" optional:"" help:"The template: anything git clone takes, a path or a URL. When not given, the repository check runs in, from its top, each branch its local one or else origin's."`
 	Answer   []string `help:"An answer to one of the template's questions, as name=answer; once for each. check never asks: every answer is given, or taken with --defaults." placeholder:"NAME=ANSWER" sep:"none"`
+	Ref      string   `help:"The template's release to check, by its version (v1.2.0), a pre-release too. Without it, the branch heads, which itos-template release will tag." placeholder:"VERSION"`
 	Defaults bool     `help:"Take a missing answer's default." negatable:"" env:"ITOS_TEMPLATE_DEFAULTS"`
 }
 
 // Help is check's detail in its --help: its report and its exit codes
 // (docs/CLI.md, rules 10 and 14).
 func (c *CLI) Help() string {
-	return `Renders every combination the template's manifest (itos-template.yaml) allows, each stack alone and each stack with every set of its features whose needs are chosen too, less those it lists as unsupported; each as new renders it, from the template's branch heads, in a temporary folder removed after its checks. Each render is scanned for leftovers, a literal kept in a form no answer replaced ("Acme Widget" for acme-widget), each failing its combination. In each render it runs the checks the manifest names, the root's, then the stack's, then the features' in the manifest's order, with no shell, the answers in place of the literals in their words. A combination's checks stop at the first that fails; every combination is checked whatever failed before it. When no check is marked as scanning the renders for credentials (scans: [credentials]), check warns on stderr.
+	return `Renders every combination the template's manifest (itos-template.yaml) allows, each stack alone and each stack with every set of its features whose needs are chosen too, less those it lists as unsupported; each as new renders it, from the template's branch heads, what itos-template release will tag, or with --ref from that release (a version tagged <branch>/<version> on every branch the manifest lists), in a temporary folder removed after its checks. Each render is scanned for leftovers, a literal kept in a form no answer replaced ("Acme Widget" for acme-widget), each failing its combination. In each render it runs the checks the manifest names, the root's, then the stack's, then the features' in the manifest's order, with no shell, the answers in place of the literals in their words. A combination's checks stop at the first that fails; every combination is checked whatever failed before it. When no check is marked as scanning the renders for credentials (scans: [credentials]), check warns on stderr.
 
 The report, on stdout, gives each combination a line, "go + cli: passed" or "go + cli: failed", then a line for each leftover, indented two spaces: "leftover: "<text>" at <path>:<line>" or "leftover: "<text>" in the path <path>"; then a line for each check as it ran, indented two spaces: "passed: <words>", "failed: <words>" followed by its output, each line of it indented four spaces after a "|", or "skipped: <words>" after a failure; a render that failed shows "not rendered" and why. An empty line and the count of the combinations that passed end it. docs/manifest.md describes it whole.
 
-Exit codes: 0 every combination rendered, kept no literal and passed every check; 1 a render, a scan or a check failed; 2 a usage or manifest error: an answer missing or not one its question takes, a manifest refused; 3 git cannot reach the template, or cannot run, or a render could not be written; 70 an internal error.
+Exit codes: 0 every combination rendered, kept no literal and passed every check; 1 a render, a scan or a check failed, or the release --ref names is incomplete; 2 a usage or manifest error: a --ref no release has, an answer missing or not one its question takes, a manifest refused; 3 git cannot reach the template, or cannot run, or a render could not be written; 70 an internal error.
 
 Examples:
   itos-template check --answer name=blue-fox --defaults
   itos-template check https://github.com/you/template.git --answer name=blue-fox --answer module=example.com/blue/fox
+  itos-template check --answer name=blue-fox --defaults --ref v1.2.0
 
 Report issues at https://github.com/donvargax/itos-template/issues.`
 }
@@ -69,7 +71,7 @@ func (c *CLI) Run(ui *cli.UI) int {
 			ui.Line("warning: no check of the template is marked as scanning its renders for credentials: mark the one that does with scans: [" + manifest.Credentials + "], in a check's long form (docs/manifest.md)")
 		}
 	}
-	err := Handle(Query{Template: c.Template, Answers: answer.Given(c.Answer), Defaults: c.Defaults}, warn, func(r template.Result) error {
+	err := Handle(Query{Template: c.Template, Answers: answer.Given(c.Answer), Defaults: c.Defaults, Ref: c.Ref}, warn, func(r template.Result) error {
 		all++
 		if r.Passed() {
 			passed++
@@ -155,12 +157,14 @@ func writeLines(b *strings.Builder, lines []string) {
 // ── Application ──
 
 // Query is check's query: the results of checking the template Template,
-// the repository check runs in when it is empty (git.CloneHere), with
-// Answers, Defaults taking a missing answer's default.
+// the repository check runs in when it is empty (git.CloneHere), at its
+// release Ref or else its branch heads, with Answers, Defaults taking a
+// missing answer's default.
 type Query struct {
 	Template string
 	Answers  answer.Given
 	Defaults bool
+	Ref      string
 }
 
 // Handle checks the template q names, giving its manifest to opened once
@@ -178,8 +182,11 @@ type Query struct {
 // recorded as the top's absolute path whatever subfolder check runs in
 // (check-here): a dot would name the render itself. A failure before any
 // combination is checked (the template unreachable, its manifest refused,
-// an answer missing) is returned, nothing given to opened or each, and so
-// is an error each returns.
+// an answer missing, a release q.Ref names that the template lacks or that
+// is incomplete) is returned, nothing given to opened or each, and so is an
+// error each returns. Without q.Ref, check proves the branch heads, what
+// itos-template release will tag, and says nothing of releases (decision
+// 36).
 func Handle(q Query, opened func(*manifest.Manifest), each func(template.Result) error) error {
 	tmp, err := tempdir.Make("itos-template-template-")
 	if err != nil {
@@ -206,6 +213,11 @@ func Handle(q Query, opened func(*manifest.Manifest), each func(template.Result)
 		return err
 	}
 	t.Name, _ = template.Recorded(name, from, template.SystemOf(runtime.GOOS))
+	if q.Ref != "" {
+		if err := t.UseRelease(q.Ref); err != nil {
+			return err
+		}
+	}
 	answers, err := answer.Resolve(t.Manifest, q.Answers, q.Defaults)
 	if err != nil {
 		return err

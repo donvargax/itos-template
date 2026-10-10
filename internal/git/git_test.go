@@ -186,3 +186,55 @@ func TestCommitIsByTheIdentityGiven(t *testing.T) {
 		t.Errorf("the commit is by %s", who)
 	}
 }
+
+// The release fixture's tags are lightweight; a person's may be annotated,
+// or name a tree, which no release can be, and a tag may be off its branch:
+// none a scenario reaches.
+func TestTagsGiveTheCommitEachNamesAndIsAncestorReadsAHistory(t *testing.T) {
+	dir := template(t)
+	main := strings.TrimSpace(git(t, dir, "rev-parse", "main"))
+	stack := strings.TrimSpace(git(t, dir, "rev-parse", "stack/go"))
+	git(t, dir, "tag", "main/v1.0.0", "main")
+	git(t, dir, "tag", "-a", "-m", "v1.0.0", "stack/go/v1.0.0", "stack/go")
+	git(t, dir, "tag", "tree", "main^{tree}")
+	r, err := Clone(dir, filepath.Join(t.TempDir(), "clone"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	tags, err := r.Tags()
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := map[string]string{}
+	for _, tag := range tags {
+		got[tag.Name] = tag.Commit
+	}
+	if len(got) != 2 || got["main/v1.0.0"] != main || got["stack/go/v1.0.0"] != stack {
+		t.Errorf("Tags = %v, not main/v1.0.0 at %s and stack/go/v1.0.0 at %s", got, main, stack)
+	}
+	for _, c := range []struct {
+		commit, of string
+		want       bool
+	}{{main, stack, true}, {stack, stack, true}, {stack, main, false}} {
+		if is, err := r.IsAncestor(c.commit, c.of); err != nil || is != c.want {
+			t.Errorf("IsAncestor(%s, %s) = %v, %v", c.commit, c.of, is, err)
+		}
+	}
+	if _, err := r.IsAncestor("nosuch", stack); err == nil {
+		t.Error("IsAncestor of no commit gave no error")
+	}
+}
+
+// check --ref in a checkout reads the release from the tags it holds.
+func TestCloneHereCopiesTheTags(t *testing.T) {
+	dir := template(t)
+	git(t, dir, "tag", "main/v1.0.0", "main")
+	r, err := CloneHere(dir, filepath.Join(t.TempDir(), "copy"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	tags, err := r.Tags()
+	if err != nil || len(tags) != 1 || tags[0].Name != "main/v1.0.0" {
+		t.Errorf("Tags = %v, %v", tags, err)
+	}
+}

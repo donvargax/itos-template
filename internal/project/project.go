@@ -28,12 +28,15 @@ import (
 const RecordFile = ".itos-template.yaml"
 
 // Record is what a project was rendered from (decision 10): the template, by
-// the name template.Recorded gives new (record-name), the stack, the
-// features, the answers, and the commit each of the template's branches was
-// at. Its version is the file's format, which new's --json leaves out.
+// the name template.Recorded gives new (record-name), the release rendered,
+// when it was one (decision 36), the stack, the features, the answers, and
+// the commit each of the template's branches was at, which reproduces the
+// render, a release's or the heads'. Release is absent for the branch heads.
+// Its version is the file's format, which new's --json leaves out.
 type Record struct {
 	Version  int               `yaml:"version" json:"-"`
 	Template string            `yaml:"template" json:"template"`
+	Release  string            `yaml:"release,omitempty" json:"release,omitempty"`
 	Stack    string            `yaml:"stack" json:"stack"`
 	Features []string          `yaml:"features" json:"features"`
 	Answers  answer.Set        `yaml:"answers" json:"answers"`
@@ -41,13 +44,15 @@ type Record struct {
 }
 
 // RecordVersion is the record's format, the version a Record is written in.
+// The release key joined version 1 (docs/manifest.md, "The record a made
+// project keeps"): nothing read a record before it.
 const RecordVersion = 1
 
 const recordHeader = `# What itos-template new rendered this project from: the template, by a
 # name update can reach (an absolute path, a URL with no credential), the
-# stack, the features, the answers, and the commit each of the template's
-# branches was at. itos-template update reads it; edit it only to change
-# what an update renders.
+# release, when it was one, the stack, the features, the answers, and the
+# commit each of the template's branches was at. itos-template update reads
+# it; edit it only to change what an update renders.
 `
 
 // Marshal is r as .itos-template.yaml holds it, under a comment saying what
@@ -155,8 +160,17 @@ func (p *Project) commitMessage() string {
 	if len(p.Features) > 0 {
 		features = "the features " + strings.Join(p.Features, ", ")
 	}
-	return fmt.Sprintf("chore: make the project from its template\n\nMade by itos-template new from %s: the stack %s, %s. %s records the render.\n",
-		p.Template, p.Stack, features, RecordFile)
+	return fmt.Sprintf("chore: make the project from its template\n\nMade by itos-template new from %s%s: the stack %s, %s. %s records the render.\n",
+		p.Template, p.AtRelease(), p.Stack, features, RecordFile)
+}
+
+// AtRelease is " at its release <version>" for a record of a release, how
+// a sentence naming the template names it, and "" for one of the heads.
+func (r *Record) AtRelease() string {
+	if r.Release == "" {
+		return ""
+	}
+	return " at its release " + r.Release
 }
 
 // Error is a project that cannot be made, a sealed set (decision 17):

@@ -4,8 +4,9 @@ Feature: check renders every combination a template allows and runs its checks
   it renders every combination the manifest allows, each as new renders it
   (decisions 2, 8 and 12), and runs that render's checks in it. The template
   is anything git clone takes (decision 9), the repository check runs in
-  when none is named; check renders the template's branch heads, as new
-  does, never its working tree (slice-7, below, says how it reads a CI
+  when none is named; check renders the template's branch heads, what
+  itos-template release will tag, or with --ref a release (ID-CHECK-27),
+  never its working tree (slice-7, below, says how it reads a CI
   checkout's).
 
   The combinations are derived, never listed (the user's call, 2026-10-07):
@@ -167,7 +168,7 @@ Feature: check renders every combination a template allows and runs its checks
   # one (new.feature's ID-NEW-58 says what a release is). The person's call, 2026-10-09, over
   # check defaulting to the newest release as new does. The fixture's root check fails unless a
   # render's release.txt holds the text it names, heads at the branch heads.
-  @ID-CHECK-27 @releases @wip
+  @ID-CHECK-27 @releases
   Scenario Outline: check proves <what>
     Given the template "acme" released as "v1.0.0", "v1.1.0" and "v1.2.0-rc.1", whose root check fails unless release.txt holds "<text>"
     When itos-template runs with "check {template} --answer name=blue-fox --defaults <args>"

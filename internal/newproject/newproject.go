@@ -51,6 +51,7 @@ type CLI struct {
 	Stack    string   `help:"The stack to render, by the name the template's manifest gives it. Asked on a terminal when not given." placeholder:"STACK"`
 	Feature  []string `help:"A feature to merge onto the stack, by its name (cli) or its branch (go/cli); once for each. The features a feature needs are never added unasked." placeholder:"FEATURE" sep:"none"`
 	Answer   []string `help:"An answer to one of the template's questions, as name=answer; once for each. An answer not given is asked on a terminal." placeholder:"NAME=ANSWER" sep:"none"`
+	Ref      string   `help:"The template's release to render, by its version (v1.2.0), a pre-release too. Without it, the newest complete stable release, else the branch heads." placeholder:"VERSION"`
 	Defaults bool     `help:"Take a missing answer's default instead of asking or refusing." negatable:"" env:"ITOS_TEMPLATE_DEFAULTS"`
 	JSON     bool     `name:"json" help:"Print the result as one JSON object on stdout." negatable:"" env:"ITOS_TEMPLATE_JSON"`
 }
@@ -60,17 +61,20 @@ type CLI struct {
 func (c *CLI) Help() string {
 	return `Renders the template's stack branch merged with the chosen features' branches, replaces each literal its manifest (itos-template.yaml) lists by its answer, in file contents and names and in every case form, and commits the render, with its record (.itos-template.yaml), as the new git repository's first commit. Nothing is written to the folder until every check has passed.
 
+A template release is one version tagged <branch>/<version> on every branch the manifest lists, the root included (main/v1.2.0, stack/go/v1.2.0, go/cli/v1.2.0). new renders the newest complete one, the highest stable version by semver whose every branch carries its tag on that branch, skipping an incomplete one; --ref names one to render instead, a pre-release too. A template with no release renders its branch heads, which the error output says. The record names the release rendered beside each branch's commit, and no release for the heads.
+
 git clones the template by the name given; the record, the line new prints, --json and the first commit name it by one update can reach: a relative path as the absolute path it names from the current folder, a URL with the credential it holds left out, which the error output then says, update reaching the template through git's credential helper (git help credentials).
 
 The setup steps the manifest lists for the chosen branches, the root's, then the stack's, then the features', are printed after, one to a line and quoted for a POSIX shell, for you to run in the folder: new runs none of them. A template with no step prints none.
 
---json prints {"schema":1,"ok":true,"folder","template","stack","features":[…],"answers":{…},"commits":{"<branch>":"<sha>"},"commit":"<sha>"}, or {"schema":1,"ok":false,"problems":[{"rule","message"}]}; the setup steps then go to the error output, so the object stays alone.
+--json prints {"schema":1,"ok":true,"folder","template","release" (left out for the branch heads),"stack","features":[…],"answers":{…},"commits":{"<branch>":"<sha>"},"commit":"<sha>"}, or {"schema":1,"ok":false,"problems":[{"rule","message"}]}; the setup steps then go to the error output, so the object stays alone.
 
-Exit codes: 0 made; 1 refused: the folder has files in it, a feature of another stack, a feature whose needed feature is not chosen, a combination the manifest lists as unsupported, branches that do not merge cleanly; 2 a usage or manifest error: an unknown stack or feature, an answer missing (without a terminal) or not one its question takes; 3 git cannot reach the template, or cannot run; 70 an internal error.
+Exit codes: 0 made; 1 refused: the folder has files in it, an incomplete release --ref names, a feature of another stack, a feature whose needed feature is not chosen, a combination the manifest lists as unsupported, branches that do not merge cleanly; 2 a usage or manifest error: a --ref no release has, an unknown stack or feature, an answer missing (without a terminal) or not one its question takes; 3 git cannot reach the template, or cannot run; 70 an internal error.
 
 Examples:
   itos-template new ../acme made --stack go --feature cli --answer name=blue-fox
   itos-template new https://github.com/you/template.git made --stack go --defaults
+  itos-template new ../acme made --stack go --defaults --ref v1.2.0
 
 Report issues at https://github.com/donvargax/itos-template/issues.`
 }
@@ -85,7 +89,8 @@ func (c *CLI) Run(ui *cli.UI) int {
 		Choice:   manifest.Choice{Stack: c.Stack, Features: c.Feature},
 		Answers:  answer.Given(c.Answer),
 		Defaults: c.Defaults,
-	}, ui.Asker(), credentialLeftOut(ui))
+		Ref:      c.Ref,
+	}, ui.Asker(), credentialLeftOut(ui), noRelease(ui))
 	if err != nil {
 		return ui.Fail(err, c.JSON)
 	}
@@ -99,6 +104,16 @@ func (c *CLI) Run(ui *cli.UI) int {
 func credentialLeftOut(ui *cli.UI) func(recorded string) {
 	return func(recorded string) {
 		ui.Line("the record names the template " + recorded + ", the credential its URL held left out: itos-template update will reach the template through git's credential helper (git help credentials)")
+	}
+}
+
+// noRelease says, for a template with no complete release, naming it as
+// recorded, that new rendered its branch heads and the record names no
+// release: once, on the error output, with --json too, so stdout keeps the
+// object alone (docs/CLI.md, rule 29).
+func noRelease(ui *cli.UI) func(recorded string) {
+	return func(recorded string) {
+		ui.Line("the template " + recorded + " has no release, one version tagged <branch>/<version> on every branch its manifest lists: new rendered its branch heads, and the record names no release")
 	}
 }
 
@@ -118,7 +133,7 @@ func show(ui *cli.UI, p *project.Project, steps []manifest.Words, withJSON bool)
 	if len(p.Features) > 0 {
 		features = "the features " + strings.Join(p.Features, ", ")
 	}
-	_, _ = fmt.Fprintf(ui.Stdout, "Made %s from %s: the stack %s, %s.\n", p.Folder, p.Template, p.Stack, features)
+	_, _ = fmt.Fprintf(ui.Stdout, "Made %s from %s%s: the stack %s, %s.\n", p.Folder, p.Template, p.AtRelease(), p.Stack, features)
 	printSetup(ui.Stdout, p.Folder, steps)
 	return 0
 }
@@ -142,14 +157,15 @@ func printSetup(out io.Writer, folder string, steps []manifest.Words) {
 // ── Application ──
 
 // Command is new's command: make a project in Folder from the template
-// Template, the combination Choice names, with Answers, Defaults taking a
-// missing answer's default.
+// Template, at its release Ref or else its newest, the combination Choice
+// names, with Answers, Defaults taking a missing answer's default.
 type Command struct {
 	Template string
 	Folder   string
 	Choice   manifest.Choice
 	Answers  answer.Given
 	Defaults bool
+	Ref      string
 }
 
 // Handle makes the project c asks for, asking ask, when there is one, for
@@ -159,11 +175,17 @@ type Command struct {
 // git clones the template by its name as given; the project records it by
 // the name template.Recorded gives, from the folder new runs in, on this
 // system, and when that left a credential out of its URL, leftOut is told
-// the name, once the project is made. The clone, its origin naming the
+// the name, once the project is made.
+//
+// The project is the template's release c.Ref names, refused before
+// anything is chosen or written when the template has no such release or
+// it is incomplete; without c.Ref, its newest complete stable release, and
+// when it has none, its branch heads, heads told the recorded name once the
+// project is made. The clone, its origin naming the
 // template as given, is a bare repository in a temporary folder, removed
 // when new ends; the project is a repository of its own (git init), with no
 // remote and nothing of the clone's.
-func Handle(c Command, ask port.Asker, leftOut func(recorded string)) (*project.Project, []manifest.Words, error) {
+func Handle(c Command, ask port.Asker, leftOut, heads func(recorded string)) (*project.Project, []manifest.Words, error) {
 	dir, err := os.Getwd()
 	if err != nil {
 		return nil, nil, err
@@ -188,6 +210,15 @@ func Handle(c Command, ask port.Asker, leftOut func(recorded string)) (*project.
 	}
 	name, cut := template.Recorded(c.Template, dir, template.SystemOf(runtime.GOOS))
 	t.Name = name
+	released := true
+	if c.Ref != "" {
+		err = t.UseRelease(c.Ref)
+	} else {
+		released, err = t.UseNewest()
+	}
+	if err != nil {
+		return nil, nil, err
+	}
 	combination, answers, err := template.Choose(t.Manifest, c.Choice, c.Answers, c.Defaults, ask)
 	if err != nil {
 		return nil, nil, err
@@ -198,6 +229,9 @@ func Handle(c Command, ask port.Asker, leftOut func(recorded string)) (*project.
 	}
 	if cut {
 		leftOut(name)
+	}
+	if !released {
+		heads(name)
 	}
 	return p, t.Setup(combination, answers), nil
 }

@@ -8,11 +8,16 @@ are git branches merged in, not conditionals in the files; updates are 3-way mer
 new renders, as copier does them. It is an [itos](https://github.com/donvargax/itos) extension,
 `itos template`, and runs on its own as `itos-template`.
 
-`itos-template new` makes a project from a template's branch heads:
+`itos-template new` makes a project from a template's newest release, the one `--ref` names, or
+its branch heads while it has none:
 
 ```sh
 itos-template new ../acme made --stack go --feature cli --answer name=blue-fox --defaults
+itos-template new ../acme made --stack go --answer name=blue-fox --defaults --ref v1.2.0
 ```
+
+A release is one version tagged `<branch>/<version>` on every branch the template's manifest lists
+(decision 36).
 
 A template says what it offers in its manifest, `itos-template.yaml` (`docs/manifest.md`). Updating
 a made project, checking a template and syncing its branches come next: `PLAN.md` says what is

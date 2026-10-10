@@ -96,34 +96,67 @@ var identity = []string{
 	"GIT_COMMITTER_NAME=itos-template", "GIT_COMMITTER_EMAIL=itos-template@localhost",
 }
 
-// Merge merges each of branches after the first, in order, into the first,
+// Merge merges each of commits after the first, in order, into the first,
 // as git merge does, and returns the merged tree's files, every file's
 // contents read by one git cat-file. Each merge after the first is made
 // from a commit of the one before, so git finds each merge's base as it
 // would in a working tree. A merge with conflicts is a *port.Conflict.
-func (r *Repo) Merge(branches []string) ([]port.File, error) {
-	commit := "refs/heads/" + branches[0]
+func (r *Repo) Merge(commits []string) ([]port.File, error) {
+	commit := commits[0]
 	tree, err := r.git("rev-parse", commit+"^{tree}")
 	if err != nil {
 		return nil, err
 	}
-	for _, branch := range branches[1:] {
-		out, err := run(r.dir, "merge-tree", "--write-tree", "--name-only", "--no-messages", commit, "refs/heads/"+branch)
+	for i, next := range commits[1:] {
+		out, err := run(r.dir, "merge-tree", "--write-tree", "--name-only", "--no-messages", commit, next)
 		if exitCode(err) == 1 {
 			lines := strings.Split(strings.TrimSpace(string(out)), "\n")
-			return nil, &port.Conflict{Branch: branch, Paths: lines[1:]}
+			return nil, &port.Conflict{At: i + 1, Paths: lines[1:]}
 		}
 		if err != nil {
 			return nil, err
 		}
 		tree, _, _ = strings.Cut(strings.TrimSpace(string(out)), "\n")
-		next, err := command{dir: r.dir, env: identity}.output("commit-tree", tree, "-p", commit, "-p", "refs/heads/"+branch, "-m", "Merge "+branch)
+		merged, err := command{dir: r.dir, env: identity}.output("commit-tree", tree, "-p", commit, "-p", next, "-m", "Merge "+next)
 		if err != nil {
 			return nil, err
 		}
-		commit = strings.TrimSpace(string(next))
+		commit = strings.TrimSpace(string(merged))
 	}
 	return r.files(tree)
+}
+
+// Tags are the clone's tags that name a commit, read by one git
+// for-each-ref: a lightweight tag's commit, or the commit an annotated tag
+// names. A tag naming a tree, a blob or another tag names no commit here.
+func (r *Repo) Tags() ([]port.Tag, error) {
+	out, err := r.git("for-each-ref", "--format=%(refname:strip=2)%00%(objecttype)%00%(objectname)%00%(*objecttype)%00%(*objectname)", "refs/tags/")
+	if err != nil {
+		return nil, err
+	}
+	var tags []port.Tag
+	for _, line := range strings.Split(out, "\n") {
+		f := strings.Split(line, "\x00")
+		switch {
+		case len(f) != 5:
+			continue
+		case f[1] == "commit":
+			tags = append(tags, port.Tag{Name: f[0], Commit: f[2]})
+		case f[3] == "commit":
+			tags = append(tags, port.Tag{Name: f[0], Commit: f[4]})
+		}
+	}
+	return tags, nil
+}
+
+// IsAncestor is whether commit is of or one of its ancestors, as git
+// merge-base --is-ancestor says: exit 0 it is, 1 it is not.
+func (r *Repo) IsAncestor(commit, of string) (bool, error) {
+	_, err := r.git("merge-base", "--is-ancestor", commit, of)
+	if exitCode(err) == 1 {
+		return false, nil
+	}
+	return err == nil, err
 }
 
 // files are every file of tree, in git's order, each with its contents but

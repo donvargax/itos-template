@@ -19,11 +19,12 @@ package port
 
 import (
 	"io/fs"
+	"strconv"
 	"strings"
 )
 
-// Repository is a template's git repository, cloned: its branches read and
-// merged, never checked out.
+// Repository is a template's git repository, cloned: its branches and tags
+// read and its commits merged, never checked out.
 type Repository interface {
 	// DefaultBranch is the branch the repository's HEAD names: its root.
 	DefaultBranch() (string, error)
@@ -33,10 +34,22 @@ type Repository interface {
 	// File is a file's contents at a commit, and false when the commit
 	// holds no such file.
 	File(commit, path string) ([]byte, bool, error)
-	// Merge merges each of branches after the first, in order, into the
+	// Merge merges each of commits after the first, in order, into the
 	// first, as git merge does, and returns the merged tree's files in git's
 	// order. A merge that leaves conflicts is a *Conflict.
-	Merge(branches []string) ([]File, error)
+	Merge(commits []string) ([]File, error)
+	// Tags are the repository's tags that name a commit, in no order.
+	Tags() ([]Tag, error)
+	// IsAncestor is whether commit is of or one of of's ancestors: on the
+	// history of the commit of, a branch's head.
+	IsAncestor(commit, of string) (bool, error)
+}
+
+// Tag is a tag of a repository: its name, without refs/tags/, so with the
+// slashes it holds (stack/go/v1.2.0), and the commit it names, an
+// annotated tag's own commit.
+type Tag struct {
+	Name, Commit string
 }
 
 // File is a file of a tree: its path, with / on every system; its mode; and
@@ -49,15 +62,15 @@ type File struct {
 	Data []byte
 }
 
-// Conflict is merging Branch into the branches merged before it leaving
-// conflicts in Paths.
+// Conflict is merging the commit at At, an index of the commits Merge was
+// given, into the commits merged before it leaving conflicts in Paths.
 type Conflict struct {
-	Branch string
-	Paths  []string
+	At    int
+	Paths []string
 }
 
 func (c *Conflict) Error() string {
-	return "merging " + c.Branch + " leaves conflicts in " + strings.Join(c.Paths, ", ")
+	return "merging commit " + strconv.Itoa(c.At) + " leaves conflicts in " + strings.Join(c.Paths, ", ")
 }
 
 // Disk is the file system a project's folder is on.

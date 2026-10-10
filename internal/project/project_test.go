@@ -13,6 +13,23 @@ import (
 	"github.com/donvargax/itos-template/internal/template/port/porttest"
 )
 
+// A record of a release names it after the template; one of the branch
+// heads has no release key at all.
+func TestARecordNamesItsReleaseAfterTheTemplateOrNone(t *testing.T) {
+	r := Record{Version: RecordVersion, Template: "../acme", Release: "v1.2.0", Stack: "go"}
+	data, err := r.Marshal()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasPrefix(string(data), recordHeader+"version: 1\ntemplate: ../acme\nrelease: v1.2.0\nstack: go\n") {
+		t.Errorf("the record is\n%s", data)
+	}
+	r.Release = ""
+	if data, err = r.Marshal(); err != nil || strings.Contains(string(data), "release:") {
+		t.Errorf("a record of the heads is\n%s", data)
+	}
+}
+
 // The record is read as it is written: update and adopt read the type new
 // writes.
 func TestARecordReadsAsItIsWritten(t *testing.T) {
@@ -102,6 +119,18 @@ func TestWriteCommitsTheFilesAndTheRecordAsTheFirstCommit(t *testing.T) {
 	want := "chore: make the project from its template\n\nMade by itos-template new from ../acme: the stack go, the features cli. .itos-template.yaml records the render.\n"
 	if commit.Message != want {
 		t.Errorf("the commit message is %q", commit.Message)
+	}
+}
+
+func TestWriteNamesTheReleaseInTheFirstCommit(t *testing.T) {
+	w, _, g := fakes()
+	r := record
+	r.Release = "v1.2.0"
+	if _, err := w.Write(Folder{Path: "made", New: true}, files, r, "", nil); err != nil {
+		t.Fatal(err)
+	}
+	if !strings.Contains(g.Commits["made"].Message, "new from ../acme at its release v1.2.0: the stack go") {
+		t.Errorf("the commit message is %q", g.Commits["made"].Message)
 	}
 }
 

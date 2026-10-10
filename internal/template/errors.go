@@ -93,6 +93,21 @@ type MergeConflict struct {
 // its render in.
 type HoldsRecord struct{ File string }
 
+// NoRelease is a release the template does not have, named by --ref
+// (Version, the person's), and the versions its root branch's tags name,
+// oldest first.
+type NoRelease struct {
+	Version  string
+	Releases []string
+}
+
+// Incomplete is the release Version, named by --ref, whose Branches, each a
+// branch its manifest lists, carry no tag of it on that branch.
+type Incomplete struct {
+	Version  string
+	Branches []string
+}
+
 func (*NoStack) templateError()         {}
 func (*UnknownStack) templateError()    {}
 func (*UnknownFeature) templateError()  {}
@@ -106,6 +121,8 @@ func (*ManifestInvalid) templateError() {}
 func (*NoBranch) templateError()        {}
 func (*MergeConflict) templateError()   {}
 func (*HoldsRecord) templateError()     {}
+func (*NoRelease) templateError()       {}
+func (*Incomplete) templateError()      {}
 
 func (e *NoStack) Error() string        { return "no stack chosen" }
 func (e *UnknownStack) Error() string   { return fmt.Sprintf("no stack %+q", e.Name) }
@@ -130,3 +147,7 @@ func (e *MergeConflict) Error() string {
 	return fmt.Sprintf("conflicts merging %s into %s in %s", e.Branch, strings.Join(e.Into, " + "), strings.Join(e.Paths, ", "))
 }
 func (e *HoldsRecord) Error() string { return "the template holds " + e.File }
+func (e *NoRelease) Error() string   { return fmt.Sprintf("no release %+q", e.Version) }
+func (e *Incomplete) Error() string {
+	return "the release " + e.Version + " without a tag on " + strings.Join(e.Branches, ", ")
+}

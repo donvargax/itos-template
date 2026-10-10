@@ -10,6 +10,7 @@ import (
 	"testing/fstest"
 
 	"go.yaml.in/yaml/v3"
+	"golang.org/x/mod/semver"
 	"pgregory.net/rapid"
 
 	"github.com/donvargax/itos-template/internal/answer"
@@ -143,6 +144,58 @@ func TestRenderIsDeterministic(t *testing.T) {
 			t.Fatalf("one render commits %v, the same again %v", first.commit.Files, again.commit.Files)
 		case first.commit.Message != again.commit.Message || !reflect.DeepEqual(first.project, again.project):
 			t.Fatalf("one render makes %+v, the same again %+v", first.project, again.project)
+		}
+	})
+}
+
+// versionText draws what a tag's last segment can hold: versions semver
+// takes, stable or pre-releases, whole or short (v1, v1.2), with a build
+// or not, and texts it refuses.
+var versionText = rapid.OneOf(
+	rapid.StringMatching(`v[0-2](\.[0-2](\.[0-2])?)?`),
+	rapid.StringMatching(`v[0-2]\.[0-2]\.[0-2]-(rc|beta)\.[0-2]`),
+	rapid.StringMatching(`v[0-2]\.[0-2]\.[0-2]\+b[0-2]`),
+	rapid.SampledFrom([]string{"1.0.0", "v01.0.0", "latest", "v1.0.0.0"}),
+)
+
+// The newest release is the semver maximum of the complete versions with
+// no pre-release part, whatever the order they were tagged in and however
+// the others are incomplete; with none of them the heads are rendered.
+func TestTheNewestReleaseIsTheSemverMaximumOfTheCompleteStableOnes(t *testing.T) {
+	rapid.Check(t, func(t *rapid.T) {
+		repo := acme()
+		var stable []string // the complete versions with no pre-release part
+		for _, v := range rapid.SliceOfNDistinct(versionText, 0, 6, rapid.ID[string]).Draw(t, "versions") {
+			release(repo, v)
+			switch rapid.SampledFrom([]string{"complete", "a tag missing", "a tag off its branch"}).Draw(t, "how "+v) {
+			case "a tag missing":
+				delete(repo.Tagged, rapid.SampledFrom(acmeBranches).Draw(t, "branch")+"/"+v)
+			case "a tag off its branch":
+				name := rapid.SampledFrom(acmeBranches).Draw(t, "branch") + "/" + v
+				repo.Tagged[name] = porttest.Tag{Tree: repo.Tagged[name].Tree}
+			default:
+				if semver.IsValid(v) && semver.Prerelease(v) == "" {
+					stable = append(stable, v)
+				}
+			}
+		}
+		tpl, err := Open("../acme", repo)
+		if err != nil {
+			t.Fatalf("Open = %v", err)
+		}
+		ok, err := tpl.UseNewest()
+		switch {
+		case err != nil:
+			t.Fatalf("UseNewest = %v", err)
+		case ok != (len(stable) > 0):
+			t.Fatalf("UseNewest = %v, the release %q, of the complete stable versions %q", ok, tpl.Release(), stable)
+		case ok && !slices.Contains(stable, tpl.Release()):
+			t.Fatalf("the newest release %q is none of the complete stable versions %q", tpl.Release(), stable)
+		}
+		for _, v := range stable {
+			if semver.Compare(tpl.Release(), v) < 0 {
+				t.Fatalf("the newest release %q is older than %q", tpl.Release(), v)
+			}
 		}
 	})
 }

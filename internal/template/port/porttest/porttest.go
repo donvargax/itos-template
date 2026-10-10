@@ -24,10 +24,19 @@ import (
 )
 
 // Repository is a template's repository held in memory: each branch a tree
-// of files, its commit named after it.
+// of files, its commit named after it, and each tag a tree of its own, its
+// commit named after the tag, on the history of the branch it says.
 type Repository struct {
 	Root     string // the branch HEAD names; "" when it names none
 	Branches map[string]fstest.MapFS
+	Tagged   map[string]Tag // each tag by its name
+}
+
+// Tag is a tag of a Repository: the tree of the commit it names, and the
+// branch whose history holds that commit, "" for none.
+type Tag struct {
+	Tree fstest.MapFS
+	On   string
 }
 
 var _ port.Repository = (*Repository)(nil)
@@ -48,11 +57,27 @@ func (r *Repository) Commit(branch string) (string, bool, error) {
 	return "commit of " + branch, true, nil
 }
 
-// File is a file of the branch whose commit is commit.
+// tagCommit is the commit of the tag name: "tag <name>".
+func tagCommit(name string) string { return "tag " + name }
+
+// tree is the tree of commit, a branch's or a tag's.
+func (r *Repository) tree(commit string) (fstest.MapFS, error) {
+	if name, ok := strings.CutPrefix(commit, "tag "); ok {
+		if tag, ok := r.Tagged[name]; ok {
+			return tag.Tree, nil
+		}
+	}
+	if tree, ok := r.Branches[strings.TrimPrefix(commit, "commit of ")]; ok {
+		return tree, nil
+	}
+	return nil, fmt.Errorf("no commit %s", commit)
+}
+
+// File is a file of the tree of commit, a branch's or a tag's.
 func (r *Repository) File(commit, name string) ([]byte, bool, error) {
-	tree, ok := r.Branches[strings.TrimPrefix(commit, "commit of ")]
-	if !ok {
-		return nil, false, fmt.Errorf("no commit %s", commit)
+	tree, err := r.tree(commit)
+	if err != nil {
+		return nil, false, err
 	}
 	f, ok := tree[name]
 	if !ok {
@@ -61,16 +86,21 @@ func (r *Repository) File(commit, name string) ([]byte, bool, error) {
 	return f.Data, true, nil
 }
 
-// Merge lays each branch after the first over the files of those before
-// it, a file both hold the same being one file; a file the branch holds
-// otherwise than the branches before it is a conflict, a *port.Conflict
-// naming every such file. The files come in path order, as git's are.
-func (r *Repository) Merge(branches []string) ([]port.File, error) {
+// Merge lays the tree of each commit after the first over the files of
+// those before it, a file both hold the same being one file; a file the
+// commit holds otherwise than the commits before it is a conflict, a
+// *port.Conflict naming every such file. The files come in path order, as
+// git's are.
+func (r *Repository) Merge(commits []string) ([]port.File, error) {
 	merged := map[string]port.File{}
-	for _, b := range branches {
+	for i, c := range commits {
+		tree, err := r.tree(c)
+		if err != nil {
+			return nil, err
+		}
 		var conflicts []string
-		for _, p := range slices.Sorted(maps.Keys(r.Branches[b])) {
-			f := file(p, r.Branches[b][p])
+		for _, p := range slices.Sorted(maps.Keys(tree)) {
+			f := file(p, tree[p])
 			if before, ok := merged[p]; ok && (before.Mode != f.Mode || string(before.Data) != string(f.Data)) {
 				conflicts = append(conflicts, p)
 				continue
@@ -78,7 +108,7 @@ func (r *Repository) Merge(branches []string) ([]port.File, error) {
 			merged[p] = f
 		}
 		if len(conflicts) > 0 {
-			return nil, &port.Conflict{Branch: b, Paths: conflicts}
+			return nil, &port.Conflict{At: i, Paths: conflicts}
 		}
 	}
 	var files []port.File
@@ -86,6 +116,26 @@ func (r *Repository) Merge(branches []string) ([]port.File, error) {
 		files = append(files, merged[p])
 	}
 	return files, nil
+}
+
+// Tags are each of Tagged, its commit "tag <name>", in name order.
+func (r *Repository) Tags() ([]port.Tag, error) {
+	var tags []port.Tag
+	for _, name := range slices.Sorted(maps.Keys(r.Tagged)) {
+		tags = append(tags, port.Tag{Name: name, Commit: tagCommit(name)})
+	}
+	return tags, nil
+}
+
+// IsAncestor is whether commit is of, or a tag's on the branch whose head
+// of is.
+func (r *Repository) IsAncestor(commit, of string) (bool, error) {
+	if commit == of {
+		return true, nil
+	}
+	name, ok := strings.CutPrefix(commit, "tag ")
+	tag, tagged := r.Tagged[name]
+	return ok && tagged && tag.On != "" && "commit of "+tag.On == of, nil
 }
 
 // file is the port's file of a tree's: a mode of 0 is a plain file's.
