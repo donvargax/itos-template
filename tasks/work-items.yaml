@@ -1045,18 +1045,9 @@ items:
     title: CI refuses a tracked file holding a format character or a Unicode line separator
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      Was source-invisible-gate.
-      setup-invisible's agent found the editing tool had turned \uXXXX escapes in a Go raw string
-      into the literal characters; only the compiler's illegal byte order mark error caught it, and
-      a U+202E or U+200B would have compiled, putting Trojan Source (CVE-2021-42574) in our own code
-      where review cannot see it. A check in itos ci run over every tracked text file, refusing Cf,
-      Zl and Zp (a BOM at the very start excepted, or not), names the file, line and code point.
-      Weigh a tool that exists (a gitleaks or golangci-lint rule, bidichk in golangci-lint covers
-      only the bidi controls in Go) against a few lines of ours, with the person, per decision 13.
   - id: invisible-gate-error-passes
     title: The invisible-character step passes when git grep itself fails
     phase: 1
