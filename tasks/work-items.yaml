@@ -1049,3 +1049,16 @@ items:
     status: done
     depends_on: []
     kind: task
+  - id: answer-malformed-quoted
+    title: A malformed --answer is quoted with every character outside ASCII escaped
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      answer-invisible quotes an answer not taken with %+q, as setup-blank did for steps, since Go
+      counts a Hangul filler and the variation selectors as printable and %q would print the very
+      character refused. An --answer with no = is still quoted with %q (answer.Malformed, in
+      internal/answer and internal/cli/codes.go), so a malformed one holding such a character prints
+      it raw. Quote it as NotTaken is.
