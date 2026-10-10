@@ -1119,3 +1119,18 @@ items:
     status: done
     depends_on: []
     kind: task
+  - id: template-release-command
+    title: itos-template release v1.2.0 tags every branch of a template once check passes over them
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [template-releases]
+    kind: idea
+    why: >
+      The person's call, 2026-10-09: a command cuts a template release, rather than each template's
+      CI writing the tagging itself or people tagging by hand, so a release is always a proved one.
+      It runs check over the branch heads and, only if every combination passes, tags each branch
+      the manifest lists with the scheme template-releases reads (v1.2.0 on the root,
+      <branch>/v1.2.0 on the others), refusing a version already used, one lower than the newest, or
+      a tree with a failing combination. Settle when promoted: whether it pushes the tags or leaves
+      that to the person, annotated or lightweight tags, and how a template's CI runs it.
