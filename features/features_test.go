@@ -83,6 +83,9 @@ func TestFeatures(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	if err := writeGlobalConfig(t.TempDir()); err != nil {
+		t.Fatal(err)
+	}
 	suite := godog.TestSuite{
 		Name:                "itos-template",
 		ScenarioInitializer: func(sc *godog.ScenarioContext) { initializeScenario(sc, root, bin) },

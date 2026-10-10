@@ -145,10 +145,10 @@ func moduleRoot() (string, error) {
 
 // The environment every command runs in: the caller's, less what would make
 // git, itos or itos-template read anything but the scratch repository (a
-// hook's GIT_DIR, the caller's ITOS_TEMPLATE_ settings, CI's), with no global
-// or system git config and a fixed identity, and the caller's PATH without
-// its claude, its itos, its itos extensions or a git that is an itos
-// (callerPath).
+// hook's GIT_DIR, the caller's ITOS_TEMPLATE_ settings, CI's), with no system
+// git config, the run's own global one (globalConfig) and a fixed identity,
+// and the caller's PATH without its claude, its itos, its itos extensions or
+// a git that is an itos (callerPath).
 func (w *world) env() []string {
 	var env []string
 	for _, kv := range os.Environ() {
@@ -161,7 +161,7 @@ func (w *world) env() []string {
 		env = append(env, kv)
 	}
 	return append(env,
-		"GIT_CONFIG_GLOBAL="+os.DevNull,
+		"GIT_CONFIG_GLOBAL="+globalConfig,
 		"GIT_CONFIG_NOSYSTEM=1",
 		"GIT_AUTHOR_NAME=itos-template features",
 		"GIT_AUTHOR_EMAIL=features@localhost",
@@ -169,6 +169,33 @@ func (w *world) env() []string {
 		"GIT_COMMITTER_EMAIL=features@localhost",
 		"PATH="+callerPath(),
 	)
+}
+
+// globalConfig is the global git config of every git the scenarios start, the
+// steps' and the binary's under test alike, written once a run by
+// writeGlobalConfig. It turns git's auto-maintenance and auto-gc off and holds
+// nothing else, no identity included, so a scenario about git knowing no one
+// still finds none. Without it a step's commit starts git's maintenance
+// detached, and a snapshot of the project, which covers all of .git, meets
+// .git/objects/maintenance.lock coming or going (T-41).
+//
+// A file and not GIT_CONFIG_COUNT: knowingNoOne and withGitConfig set
+// GIT_CONFIG_COUNT for the key they mean, which would drop a key set here the
+// same way, as would any helper written like them; a global file outlives
+// them all. It ranks below a repository's own config, as a person's global
+// one does. No step writes the global config, which os.DevNull refused and
+// this file would take.
+var globalConfig string
+
+// globalConfigText turns off what git starts on its own after a command that
+// writes objects: maintenance.auto for git maintenance run --auto, gc.auto
+// for the git gc --auto a git without maintenance starts instead.
+const globalConfigText = "[maintenance]\n\tauto = false\n[gc]\n\tauto = 0\n"
+
+// writeGlobalConfig writes globalConfig in the folder dir.
+func writeGlobalConfig(dir string) error {
+	globalConfig = filepath.Join(dir, "gitconfig")
+	return os.WriteFile(globalConfig, []byte(globalConfigText), 0o644)
 }
 
 // The programs no scenario reaches on the caller's PATH: its claude, its itos
