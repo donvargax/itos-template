@@ -159,13 +159,16 @@ Feature: new makes a project from a template
   # always, over refusing it only where it would land in a step. Strict as steps are: an emoji
   # built with a selector ("My app" and a heart with U+FE0F) is refused too.
   #
-  # But for two characters. The zero-width non-joiner U+200C and joiner U+200D are spelling in
-  # Persian, Hindi, Malayalam and other scripts, choosing whether letters join, and they hide
-  # or reorder no text, so an answer takes them anywhere (ID-NEW-53) and a correctly spelled
-  # name or description is not refused. The person's call, 2026-10-09, over taking them only
-  # between letters, which a virama, a mark, already breaks, and over refusing them. An emoji
-  # joined without a selector, a family, is then taken in an answer. Setup steps keep refusing
-  # both: a command needs neither.
+  # Answers are judged by PRECIS (RFC 8264), its FreeformClass, through Go's
+  # golang.org/x/text/secure/precis: the IETF's rules for which Unicode free text may hold. It
+  # refuses what the comment above names, and takes the zero-width joiners U+200C and U+200D only
+  # where a script spells with them, by Unicode's own context rules (RFC 5892's CONTEXTJ): after
+  # a virama, or between letters that join, as Persian and Hindi write (ID-NEW-53). Between Latin
+  # letters, or between the people of a family emoji, a joiner hides or joins nothing a script
+  # needs, and is refused. The person's call, 2026-10-09, a library over our own: the joiner rules
+  # are the hard part and PRECIS has them right, where the earlier call took the joiners anywhere.
+  # PRECIS is a validator here: the answer is kept as given, never its normalized form. Setup
+  # steps keep their own rule for now (setup-blank's), a command needing no joiner at all.
   #
   # acme's questions both have patterns that already refuse these characters, so the scenarios
   # take a question with none. A command written here cannot hold an invisible character, which
@@ -181,24 +184,24 @@ Feature: new makes a project from a template
     And the path "made" does not exist
 
     Examples:
-      | what                     | code   |
-      | an escape character      | U+001B |
-      | a right-to-left override | U+202E |
-      | a Hangul filler          | U+3164 |
+      | what                           | code   |
+      | an escape character            | U+001B |
+      | a right-to-left override       | U+202E |
+      | a Hangul filler                | U+3164 |
+      | a joiner between Latin letters | U+200C |
 
-  # It holds before answer-invisible, which refuses nothing yet: a guard that the refusal stops
-  # short of the joiners.
+  # A guard that the refusal stops where a script needs the joiner.
   @ID-NEW-53 @answer-invisible @wip
-  Scenario Outline: new takes an answer holding <what>, as the scripts that spell with it need
+  Scenario Outline: new takes an answer holding a joiner where <script> spells with it
     Given the template "acme" whose question module has no pattern
-    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue{<code>}fox"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/<word>"
     Then it exits with code 0
     And the folder "made" is a git repository with exactly 1 commit
 
     Examples:
-      | what                       | code   |
-      | the zero-width non-joiner  | U+200C |
-      | the zero-width joiner      | U+200D |
+      | script  | word              |
+      | Persian | می{U+200C}خواهم   |
+      | Hindi   | क्{U+200D}ष        |
 
   @ID-NEW-14 @slice-1
   Scenario: new refuses an answer that does not match its question's pattern with exit 2, and writes nothing
