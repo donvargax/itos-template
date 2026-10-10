@@ -9,8 +9,13 @@ import (
 // commit no branch or tag has, and a commit's ancestry of itself.
 func TestRepositoryAnswersAsGitDoes(t *testing.T) {
 	r := &Repository{Root: "main", Branches: map[string]fstest.MapFS{"main": {}}, Tagged: map[string]Tag{"main/v1": {Tree: fstest.MapFS{}, On: "main"}}}
-	if _, _, err := r.File("commit of nosuch", "x"); err == nil {
-		t.Error("File of no commit gave no error")
+	if _, ok, err := r.File("commit of nosuch", "x"); err == nil || ok {
+		t.Errorf("File of no commit gave %v, %v", ok, err)
+	}
+	for _, c := range [][2]string{{"commit of nosuch", "commit of main"}, {"tag main/v1", "commit of nosuch"}} {
+		if is, err := r.IsAncestor(c[0], c[1]); err == nil || is {
+			t.Errorf("IsAncestor(%s, %s) = %v, %v", c[0], c[1], is, err)
+		}
 	}
 	if is, err := r.IsAncestor("commit of main", "commit of main"); err != nil || !is {
 		t.Errorf("a commit is not its own ancestor: %v, %v", is, err)

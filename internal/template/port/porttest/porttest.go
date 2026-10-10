@@ -133,8 +133,13 @@ func (r *Repository) Tags() ([]port.Tag, error) {
 }
 
 // IsAncestor is whether commit is of, or a tag's on the branch whose head
-// of is.
+// of is; either being no commit is an error, as git's.
 func (r *Repository) IsAncestor(commit, of string) (bool, error) {
+	for _, c := range []string{commit, of} {
+		if _, err := r.tree(c); err != nil {
+			return false, err
+		}
+	}
 	if commit == of {
 		return true, nil
 	}
