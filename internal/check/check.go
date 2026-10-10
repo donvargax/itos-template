@@ -75,25 +75,15 @@ func (c *CLI) Run(ui *cli.UI) int {
 		all++
 		if r.Passed() {
 			passed++
-		} else {
-			worst = max(worst, cli.CodeRefused)
-			if r.Err != nil {
-				if code := cli.Code(r.Err); code == cli.CodeEnvironment || code == cli.CodeInternal {
-					worst = max(worst, code)
-				}
-			}
 		}
+		worst = max(worst, exitCode(r))
 		if _, err := io.WriteString(ui.Stdout, block(r)); err != nil {
 			return fmt.Errorf("cannot write the report: %w", err)
 		}
 		return nil
 	})
 	if err == nil {
-		noun := "combinations"
-		if all == 1 {
-			noun = "combination"
-		}
-		if _, werr := fmt.Fprintf(ui.Stdout, "\n%d of %d %s passed.\n", passed, all, noun); werr != nil {
+		if _, werr := io.WriteString(ui.Stdout, summary(passed, all)); werr != nil {
 			err = fmt.Errorf("cannot write the report: %w", werr)
 		}
 	}
@@ -101,6 +91,31 @@ func (c *CLI) Run(ui *cli.UI) int {
 		return ui.Fail(err, false)
 	}
 	return worst
+}
+
+// exitCode is the exit code r makes check end with: 0 when it passed, else
+// 1, or 3 or 70 when the environment or a defect of ours stopped its
+// render.
+func exitCode(r template.Result) int {
+	if r.Passed() {
+		return 0
+	}
+	if r.Err != nil {
+		if code := cli.Code(r.Err); code == cli.CodeEnvironment || code == cli.CodeInternal {
+			return code
+		}
+	}
+	return cli.CodeRefused
+}
+
+// summary is the report's end: an empty line and the count of the
+// combinations that passed of all.
+func summary(passed, all int) string {
+	noun := "combinations"
+	if all == 1 {
+		noun = "combination"
+	}
+	return fmt.Sprintf("\n%d of %d %s passed.\n", passed, all, noun)
 }
 
 // block is a combination's block of the report: its name and whether it

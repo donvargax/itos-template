@@ -30,6 +30,7 @@ type Repository struct {
 	Root     string // the branch HEAD names; "" when it names none
 	Branches map[string]fstest.MapFS
 	Tagged   map[string]Tag // each tag by its name
+	NoTags   error          // why the tags cannot be read, when they cannot
 }
 
 // Tag is a tag of a Repository: the tree of the commit it names, and the
@@ -118,8 +119,12 @@ func (r *Repository) Merge(commits []string) ([]port.File, error) {
 	return files, nil
 }
 
-// Tags are each of Tagged, its commit "tag <name>", in name order.
+// Tags are each of Tagged, its commit "tag <name>", in name order, or
+// NoTags when it is set.
 func (r *Repository) Tags() ([]port.Tag, error) {
+	if r.NoTags != nil {
+		return nil, r.NoTags
+	}
 	var tags []port.Tag
 	for _, name := range slices.Sorted(maps.Keys(r.Tagged)) {
 		tags = append(tags, port.Tag{Name: name, Commit: tagCommit(name)})

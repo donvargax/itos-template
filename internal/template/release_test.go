@@ -241,3 +241,32 @@ func TestCheckProvesTheReleaseUsed(t *testing.T) {
 		t.Errorf("the checks ran in renders holding %q", holds)
 	}
 }
+
+// A bare vX.Y.Z is how a project tags its own releases, so a template
+// beside its project never reads one as a template release (decision 36),
+// nor a version under another branch's name or deeper than one segment.
+func TestOnlyTheRootsOwnTagNamesAVersion(t *testing.T) {
+	repo := released("v1.0.0")
+	for _, name := range []string{"v2.0.0", "other/v3.0.0", "main/x/v4.0.0", "mainline/v5.0.0"} {
+		repo.Tagged[name] = porttest.Tag{Tree: repo.Branches["main"], On: "main"}
+	}
+	tpl := open(t, repo)
+	if ok, err := tpl.UseNewest(); err != nil || !ok || tpl.Release() != "v1.0.0" {
+		t.Errorf("UseNewest = %v, %v, the release %q", ok, err, tpl.Release())
+	}
+	var none *NoRelease
+	if err := open(t, repo).UseRelease("v2.0.0"); !errors.As(err, &none) || !slices.Equal(none.Releases, []string{"v1.0.0"}) {
+		t.Errorf("UseRelease(v2.0.0) = %v", err)
+	}
+}
+
+func TestTagsThatCannotBeReadStopTheChoiceOfARelease(t *testing.T) {
+	repo := released("v1.0.0")
+	repo.NoTags = errors.New("cannot read the tags")
+	if ok, err := open(t, repo).UseNewest(); ok || !errors.Is(err, repo.NoTags) {
+		t.Errorf("UseNewest = %v, %v", ok, err)
+	}
+	if err := open(t, repo).UseRelease("v1.0.0"); !errors.Is(err, repo.NoTags) {
+		t.Errorf("UseRelease = %v", err)
+	}
+}

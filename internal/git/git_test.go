@@ -238,3 +238,24 @@ func TestCloneHereCopiesTheTags(t *testing.T) {
 		t.Errorf("Tags = %v, %v", tags, err)
 	}
 }
+
+// A conflict names the commit, by its place among those merged, whose
+// merge left it: the domain names its branch by that place.
+func TestMergeNamesTheCommitThatConflicts(t *testing.T) {
+	dir := template(t)
+	git(t, dir, "checkout", "-q", "-b", "other", "main")
+	write(t, dir, "README.md", "other\n", 0o644)
+	git(t, dir, "commit", "-q", "-a", "-m", "other")
+	git(t, dir, "checkout", "-q", "stack/go")
+	write(t, dir, "README.md", "stack\n", 0o644)
+	git(t, dir, "commit", "-q", "-a", "-m", "stack")
+	r, err := Clone(dir, filepath.Join(t.TempDir(), "clone"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	_, err = r.Merge([]string{"main", "stack/go", "other"})
+	var conflict *port.Conflict
+	if !errors.As(err, &conflict) || conflict.At != 2 || len(conflict.Paths) != 1 || conflict.Paths[0] != "README.md" {
+		t.Errorf("Merge = %v", err)
+	}
+}
