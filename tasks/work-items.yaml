@@ -1153,15 +1153,9 @@ items:
     title: Pin itos 7.0.0, the release after the 7.0.0-rc.3 this repository runs
     phase: 1
     owner: null
-    status: todo
+    status: dropped
     depends_on: []
     kind: idea
-    why: >
-      itos 7.0.0 is out (github.com/donvargax/itos/releases/tag/v7.0.0) and this repository still
-      pins 7.0.0-rc.3. The person agreed on 2026-10-10 to move the pin as its own item after T-39,
-      so the baseline mutation run is measured with unchanged tools. Read the release notes between
-      rc.3 and 7.0.0 first: a fix there may retire a lesson in docs/ORCHESTRATING.md (itos#21,
-      itos#34) or an entry in upstream-fixes.
   - id: self-adopt
     title: itos-template adopts go-template-itos and takes its first update, proving decision 24
     phase: 1
