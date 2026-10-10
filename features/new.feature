@@ -209,22 +209,24 @@ Feature: new makes a project from a template
   # run needs no network and sends the token nowhere.
 
   # ADR-0031: the itos setup a made project needs is the template's own declaration, a root
-  # setup step naming itos init --agent-rules, run by the setup-steps mechanism ADR-0007
-  # decided. The person sees it before it runs, and a template that does not use itos lists
-  # no such step and its made projects get no itos at all. The generator names no itos, so
-  # itos-template stays runnable on its own.
+  # setup step naming itos init --agent-rules, through the setup steps ADR-0007 decided. The
+  # person sees it before it runs, and a template that does not use itos lists no such step and
+  # its made projects get no itos at all. The generator names no itos, so itos-template stays
+  # runnable on its own.
   #
-  # What is left to pin here is what new-setup does not: that a made project left with the
-  # step run is a working itos project, judged by itos's own check and not by our reading of
-  # three files, and what happens when the step cannot run. A step is a shell command, so on
-  # a machine without itos it fails, and a template naming it is not broken: the render was
-  # committed before the step ran, so it stands.
+  # What is left to pin here is what new-steps does not: that a made project with the step run
+  # is a working itos project, judged by itos's own check and not by our reading of three files.
+  # new runs no step (new-steps), so the scenario runs the steps new printed itself, in the made
+  # folder, as the person would. q-43, the person's call 2026-10-09: this over a slice making
+  # new run them under --trust first, which is the idea new-trust; with nothing run by new, what
+  # a step that cannot run leaves is no longer new's to say, and the scenario that pinned it is
+  # gone.
   @ID-NEW-42 @new-itos-setup @wip
-  Scenario: with the step run the made project is a sound itos project
+  Scenario: with the printed step run the made project is a sound itos project
     Given the template "acme" whose root lists the setup step "itos init --agent-rules"
-    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue/fox --trust"
-    Then it exits with code 0
-    And itos config check passes in the folder "made"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"
+    And the setup steps it printed are run in the folder "made"
+    Then itos config check passes in the folder "made"
     And the ledger of "made" has the task "T-1" titled "Adopt itos"
 
   # ADR-0007 decided that a template, not the generator, drives what a made project needs set
@@ -326,15 +328,6 @@ Feature: new makes a project from a template
     And its error output says "setup"
     And its error output says "control character"
     And the path "made" does not exist
-
-  @ID-NEW-43 @new-itos-setup @wip
-  Scenario: a setup step that cannot run leaves the render and says which step failed
-    Given the template "acme" whose root lists the setup step "itos init --agent-rules"
-    When itos-template runs with no itos on the PATH with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue/fox --trust"
-    Then it exits with code 0
-    And the folder "made" is a git repository with exactly 1 commit
-    And the path "made/itos.yaml" does not exist
-    And its error output says "itos init --agent-rules"
 
   @ID-NEW-41 @bug-4 @wip
   Scenario: a template URL's credential never reaches new's error output
