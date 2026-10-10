@@ -1234,3 +1234,16 @@ items:
       image and git as the last green run, and the suite passes locally. The harness's git env
       (features/steps_test.go) sets no maintenance.auto or gc.auto, so a fix likely turns
       auto-maintenance off there, without changing what the snapshot holds.
+  - id: workflow-action-comments
+    title: The workflows' comments name actions/checkout v4.4.0, while both pin v7.0.1
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Seen 2026-10-10 doing T-40: the comment above the steps of ci.yml's ci job and of release.yml
+      lists every action pinned with its version, and says actions/checkout v4.4.0 while the step
+      under it pins 3d3c42e5 # v7.0.1; Renovate moves the uses line and not the comment. Either the
+      comment drops the versions, which the uses lines already carry, or something keeps the two in
+      step.
