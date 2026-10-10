@@ -1078,17 +1078,9 @@ items:
     title: check run with no template named records the repository's top by its absolute path, not .
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: slice
-    why: >
-      Was check-here-record.
-      check-record-name-slice found, 2026-10-09, that check run with no template named records each
-      render's template as git.Here, a dot. In a render that names the render itself, so a template
-      check that runs update in a render, or reads the record's template, reaches nothing. new never
-      sees the dot, since it is always named a template. Recording the repository's top as an
-      absolute path, as Recorded makes a relative one, would give such a check a name it can reach;
-      the working folder is not that name, being possibly a subfolder.
     refs: [check-record-name-slice]
   - id: check-here-resolved
     title: check and new can name one folder in two forms
