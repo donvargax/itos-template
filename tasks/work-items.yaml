@@ -240,8 +240,8 @@ items:
   - id: releases
     title: new renders a template's newest release or the one --ref names, and check proves its heads or --ref's
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: [slice-1]
     kind: slice
     why: >
