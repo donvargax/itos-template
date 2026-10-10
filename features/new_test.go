@@ -40,6 +40,22 @@ func (w *world) newSteps(sc *godog.ScenarioContext) {
 		return w.templateWithFiles(name, branch, `"`+file+`"`)
 	})
 	sc.Step(`^the template "([^"]*)" whose branch "([^"]*)" holds (".*")$`, w.templateWithFiles)
+	// A step given as one string is its words split at the spaces.
+	sc.Step(`^the template "([^"]*)" whose root lists the setup step "([^"]*)"$`, func(name, step string) error {
+		w.rootSetup = step
+		return w.templateWithSetup(name, strings.Fields(step), nil)
+	})
+	sc.Step(`^the template "([^"]*)" whose root lists the setup step "([^"]*)" and whose stack (\S+) lists the setup step "([^"]*)"$`, func(name, root, stack, step string) error {
+		w.rootSetup = root
+		return w.templateWithSetup(name, strings.Fields(root), map[string][]string{stack: strings.Fields(step)})
+	})
+	sc.Step(`^the template "([^"]*)" whose root lists the setup step with the words (".*")$`, func(name, words string) error {
+		return w.templateWithSetup(name, quotedList(words), nil)
+	})
+	// An escape sequence that would erase the line a terminal shows it on.
+	sc.Step(`^the template "([^"]*)" whose root lists a setup step whose word holds an escape character$`, func(name string) error {
+		return w.templateWithSetup(name, []string{"echo", "made\x1b[2K"}, nil)
+	})
 	sc.Step(`^an empty git repository "([^"]*)"$`, func(dir string) error {
 		if err := os.MkdirAll(w.path(dir), 0o755); err != nil {
 			return err
@@ -104,6 +120,7 @@ func (w *world) newSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^the first commit of "([^"]*)" has the header "([^"]*)"$`, w.firstCommitHasHeader)
 	sc.Step(`^the first commit of "([^"]*)" has the footer "([^"]*)"$`, w.firstCommitHasFooter)
 	sc.Step(`^the first commit of "([^"]*)" has the body line "([^"]*)"$`, w.firstCommitHasBodyLine)
+	sc.Step(`^the first line of the setup steps it printed is the root's$`, w.firstSetupStepIsRoots)
 	sc.Step(`^the folder "([^"]*)" is a git repository with exactly (\d+) commits?$`, w.repositoryWithCommits)
 	sc.Step(`^the working tree of "([^"]*)" has no changes$`, w.noChanges)
 
@@ -513,6 +530,43 @@ func (w *world) recordNamesCommits(dir, branches string) error {
 		if r.Commits[branch] != sha {
 			return fmt.Errorf("the record names %s at %q, not %s", branch, r.Commits[branch], sha)
 		}
+	}
+	return nil
+}
+
+// printedSetupSteps are the setup steps output printed, one to a line: the
+// lines after the one that heads them, a line saying setup steps and ending
+// in a colon, up to an empty line or the end (docs/manifest.md, "Setup
+// steps"). ok is whether output has that heading.
+func printedSetupSteps(output string) (steps []string, ok bool) {
+	lines := outputLines(strings.ReplaceAll(output, "\r\n", "\n"))
+	at := slices.IndexFunc(lines, func(line string) bool {
+		return strings.Contains(line, "setup steps") && strings.HasSuffix(line, ":")
+	})
+	if at < 0 {
+		return nil, false
+	}
+	for _, line := range lines[at+1:] {
+		if line == "" {
+			break
+		}
+		steps = append(steps, line)
+	}
+	return steps, true
+}
+
+// firstSetupStepIsRoots is whether the first setup step new printed is the
+// root's, as the scenario's template lists it.
+func (w *world) firstSetupStepIsRoots() error {
+	if w.rootSetup == "" {
+		return errors.New("the scenario's template lists no setup step of the root")
+	}
+	steps, ok := printedSetupSteps(w.stdout)
+	switch {
+	case !ok:
+		return fmt.Errorf("its standard output prints no setup steps\n%s", w.report())
+	case len(steps) == 0 || steps[0] != w.rootSetup:
+		return fmt.Errorf("the first setup step printed is not the root's, %q\n%s", w.rootSetup, w.report())
 	}
 	return nil
 }

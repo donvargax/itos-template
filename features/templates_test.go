@@ -13,6 +13,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -239,6 +240,45 @@ func (w *world) templateWithMessage(name, key, message string) error {
 		}
 		*version = yaml.Node{Kind: yaml.ScalarNode, Tag: "!!int", Value: "4"}
 		top.Content = append(top.Content, scalar("first_commit"), scalar(message))
+		return nil
+	})
+}
+
+// templateWithSetup is the fixture template name, its manifest on the root
+// branch of version 5, the root listing the setup step root, when it is
+// given, and each stack of stacks the step it maps to: each step a list of
+// words, the program first, as a check is (docs/manifest.md, "Setup
+// steps"). The words are written as they are given, so a word may hold a
+// space or a character no terminal should be shown.
+func (w *world) templateWithSetup(name string, root []string, stacks map[string][]string) error {
+	key := fmt.Sprintf("%s whose root lists the setup step %q and whose stacks list %q", name, root, stacks)
+	steps := func(words []string) *yaml.Node {
+		step := &yaml.Node{Kind: yaml.SequenceNode, Tag: "!!seq", Style: yaml.FlowStyle}
+		for _, word := range words {
+			step.Content = append(step.Content, scalar(word))
+		}
+		return &yaml.Node{Kind: yaml.SequenceNode, Tag: "!!seq", Content: []*yaml.Node{step}}
+	}
+	return w.changedTemplate(name, key, func(top *yaml.Node) error {
+		version := mappingValue(top, "version")
+		if version == nil {
+			return errors.New("the manifest has no version")
+		}
+		*version = yaml.Node{Kind: yaml.ScalarNode, Tag: "!!int", Value: "5"}
+		if root != nil {
+			top.Content = append(top.Content, scalar("setup"), steps(root))
+		}
+		for stack, words := range stacks {
+			list := mappingValue(top, "stacks")
+			if list == nil || list.Kind != yaml.SequenceNode {
+				return errors.New("the manifest lists no stacks")
+			}
+			i := slices.IndexFunc(list.Content, func(s *yaml.Node) bool { return scalarValue(s, "name") == stack })
+			if i < 0 {
+				return fmt.Errorf("the manifest has no stack %s", stack)
+			}
+			list.Content[i].Content = append(list.Content[i].Content, scalar("setup"), steps(words))
+		}
 		return nil
 	})
 }

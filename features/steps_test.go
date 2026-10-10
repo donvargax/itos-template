@@ -35,6 +35,8 @@ type world struct {
 	templateDir string // the fixture template's folder
 
 	named []string // the combinations of check's report the scenario named
+
+	rootSetup string // the root's setup step the scenario's template lists, as it was given
 }
 
 func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
