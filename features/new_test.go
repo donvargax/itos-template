@@ -26,6 +26,7 @@ import (
 
 func (w *world) newSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^the template "([^"]*)"$`, w.theTemplate)
+	sc.Step(`^the template "([^"]*)" in a folder named "([^"]*)"$`, w.templateInFolder)
 	sc.Step(`^the template "([^"]*)" whose question "([^"]*)" has the literal "([^"]*)"$`, w.templateWithLiteral)
 	sc.Step(`^the template "([^"]*)" whose question (\S+) has no pattern$`, w.templateWithoutPattern)
 	sc.Step(`^the template "([^"]*)" whose branch "([^"]*)" holds the files (".*")$`, w.templateWithFiles)

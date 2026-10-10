@@ -44,6 +44,21 @@ func (w *world) theTemplate(name string) error {
 	})
 }
 
+// templateInFolder is the fixture template name built in a folder named
+// folder (with /), so its path holds what folder holds, a space or a letter
+// outside ASCII, and {template} names it there.
+func (w *world) templateInFolder(name, folder string) error {
+	key := fmt.Sprintf("%s in a folder named %q", name, folder)
+	if err := w.useTemplate(key, func(dir string) error {
+		return w.buildTemplate(filepath.Join(w.root, "features", "testdata", name), filepath.Join(dir, filepath.FromSlash(folder)))
+	}); err != nil {
+		return err
+	}
+	w.templateDir = filepath.Join(w.templateDir, filepath.FromSlash(folder))
+	w.template = filepath.ToSlash(w.templateDir)
+	return nil
+}
+
 // templateWithLiteral is the fixture template name, its manifest on the root
 // branch giving the question named question the literal literal, the rest
 // of the question as the fixture has it.
