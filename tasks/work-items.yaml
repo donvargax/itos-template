@@ -1070,3 +1070,19 @@ items:
       drawnAsNothing refuses, and T-33's test $? -eq 1 kept, under which a git whose PCRE2 lacks the
       property fails the gate rather than passing it. Check first that no tracked file holds one, an
       emoji's U+FE0F in a doc included.
+  - id: setup-precis
+    title: Setup steps are judged by PRECIS as answers are, the joiners still refused
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [answer-invisible]
+    kind: idea
+    why: >
+      answer-invisible judges answers by golang.org/x/text/secure/precis, PRECIS's FreeformClass
+      (RFC 8264), the person's call 2026-10-09 over our own predicate. Setup steps still use
+      drawnAsNothing, setup-blank's: Unicode's Default_Ignorable_Code_Point with the line
+      separators. Moving them onto PRECIS gives one rule set for both, with steps keeping two
+      refusals of their own: the joiners U+200C and U+200D anywhere, since a command needs neither,
+      and an emoji's selector, which PRECIS already refuses. Weigh what else PRECIS refuses in a
+      step that drawnAsNothing takes (unassigned code points, some symbols) against the steps
+      templates write, and keep the message naming the code point.
