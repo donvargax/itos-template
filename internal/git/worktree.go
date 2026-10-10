@@ -128,7 +128,8 @@ func (w *Worktree) Files(also []string) ([]port.File, error) {
 			files = append(files, port.File{Path: p, Mode: m})
 		}
 	}
-	if err := readBlobs(w.top, oids, func(i int, data []byte) error {
+	// The project's objects are read as a clone's are.
+	if err := (&Repo{dir: w.top}).blobs(oids, func(i int, data []byte) error {
 		files[blobs[i]].Data = data
 		return nil
 	}); err != nil {
@@ -180,27 +181,25 @@ func (w *Worktree) read(p string) (port.File, bool, error) {
 	if errors.Is(err, fs.ErrNotExist) {
 		return port.File{}, false, nil
 	}
+	f := port.File{Path: p, Mode: 0o644}
+	if err == nil {
+		switch {
+		case info.Mode()&fs.ModeSymlink != 0:
+			f.Mode = fs.ModeSymlink | 0o777
+			var target string
+			target, err = os.Readlink(full)
+			f.Data = []byte(filepath.ToSlash(target))
+		case info.IsDir():
+			f.Mode = fs.ModeIrregular
+		default:
+			if info.Mode()&0o111 != 0 {
+				f.Mode = 0o755
+			}
+			f.Data, err = os.ReadFile(full)
+		}
+	}
 	if err != nil {
 		return port.File{}, false, &Unreadable{Path: p, Err: err}
-	}
-	f := port.File{Path: p, Mode: 0o644}
-	switch {
-	case info.Mode()&fs.ModeSymlink != 0:
-		f.Mode = fs.ModeSymlink | 0o777
-		target, err := os.Readlink(full)
-		if err != nil {
-			return port.File{}, false, &Unreadable{Path: p, Err: err}
-		}
-		f.Data = []byte(filepath.ToSlash(target))
-	case info.IsDir():
-		f.Mode = fs.ModeIrregular
-	default:
-		if info.Mode()&0o111 != 0 {
-			f.Mode = 0o755
-		}
-		if f.Data, err = os.ReadFile(full); err != nil {
-			return port.File{}, false, &Unreadable{Path: p, Err: err}
-		}
 	}
 	return f, true, nil
 }

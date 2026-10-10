@@ -185,7 +185,7 @@ func (r *Repo) files(tree string) ([]port.File, error) {
 		}
 		files = append(files, f)
 	}
-	err = readBlobs(r.dir, oids, func(i int, data []byte) error {
+	err = r.blobs(oids, func(i int, data []byte) error {
 		files[blobs[i]].Data = data
 		return nil
 	})
@@ -208,16 +208,16 @@ func mode(git string) fs.FileMode {
 	}
 }
 
-// readBlobs calls each with the contents of each object of oids, in order, read
-// by one git cat-file in the repository dir.
-func readBlobs(dir string, oids []string, each func(i int, data []byte) error) error {
+// blobs calls each with the contents of each object of oids, in order, read
+// by one git cat-file.
+func (r *Repo) blobs(oids []string, each func(i int, data []byte) error) error {
 	if len(oids) == 0 {
 		return nil
 	}
 	pr, pw := io.Pipe()
 	done := make(chan error, 1)
 	go func() {
-		c := command{dir: dir, stdin: strings.NewReader(strings.Join(oids, "\n") + "\n")}
+		c := command{dir: r.dir, stdin: strings.NewReader(strings.Join(oids, "\n") + "\n")}
 		err := c.stream(pw, "cat-file", "--batch")
 		_ = pw.CloseWithError(err)
 		done <- err

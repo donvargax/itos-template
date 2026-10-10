@@ -66,7 +66,25 @@ func TestThePreviewNamesTheBaselineAndWhatWasDone(t *testing.T) {
 			t.Errorf("the preview does not say %q:\n%s", want, got)
 		}
 	}
+	one := &adoption.Adoption{Baseline: &project.Record{Template: "/t", Stack: "go", Features: []string{"cli"}, Answers: answer.Set{"name": "blue-fox"}}}
+	got = show(one, false)
+	for _, want := range []string{"the features cli.", "Its answers: name=blue-fox."} {
+		if !strings.Contains(got, want) {
+			t.Errorf("the preview does not say %q:\n%s", want, got)
+		}
+	}
 	if got := show(full, false); strings.Contains(got, "Wrote") || strings.Contains(got, "dry run") {
 		t.Errorf("a refusal's preview says it wrote, or ran dry:\n%s", got)
+	}
+}
+
+// A template URL holding a credential is recorded without it, which adopt
+// says once on stderr, as new does; no adopt scenario names such a URL.
+func TestAdoptSaysWhenTheRecordLeavesACredentialOut(t *testing.T) {
+	var stderr strings.Builder
+	credentialLeftOut(&cli.UI{Stderr: &stderr})("https://host/acme.git")
+	want := "itos-template: the record names the template https://host/acme.git, the credential its URL held left out: itos-template update will reach the template through git's credential helper (git help credentials)\n"
+	if stderr.String() != want {
+		t.Errorf("adopt says %q", stderr.String())
 	}
 }

@@ -198,3 +198,20 @@ func TestDifferShowsAFileAddedAndOneUnchanged(t *testing.T) {
 		t.Errorf("the diff of a file unchanged is %q, %v", out, err)
 	}
 }
+
+// A path through a file is one the system refuses to look at, not one that
+// is missing: an *Unreadable naming it. Windows reads it as missing.
+func TestFilesAndHoldsNameAPathTheSystemCannotRead(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("windows reads a path through a file as missing")
+	}
+	dir := project(t)
+	w, _ := looked(t, dir)
+	var unreadable *Unreadable
+	if _, err := w.Files([]string{"a.txt/x"}); !errors.As(err, &unreadable) || unreadable.Path != "a.txt/x" {
+		t.Errorf("Files of a path through a file gave %v", err)
+	}
+	if held, err := w.Holds("a.txt/x"); !errors.As(err, &unreadable) || held {
+		t.Errorf("Holds of a path through a file gave %v, %v", held, err)
+	}
+}
