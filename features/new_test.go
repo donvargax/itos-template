@@ -121,6 +121,9 @@ func (w *world) newSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^the first commit of "([^"]*)" has the footer "([^"]*)"$`, w.firstCommitHasFooter)
 	sc.Step(`^the first commit of "([^"]*)" has the body line "([^"]*)"$`, w.firstCommitHasBodyLine)
 	sc.Step(`^the first line of the setup steps it printed is the root's$`, w.firstSetupStepIsRoots)
+	sc.Step(`^the setup steps it printed are run in the folder "([^"]*)"$`, w.runPrintedSetupSteps)
+	sc.Step(`^itos config check passes in the folder "([^"]*)"$`, w.itosConfigCheckPasses)
+	sc.Step(`^the ledger of "([^"]*)" has the task "([^"]*)" titled "([^"]*)"$`, w.ledgerHasTask)
 	sc.Step(`^the folder "([^"]*)" is a git repository with exactly (\d+) commits?$`, w.repositoryWithCommits)
 	sc.Step(`^the working tree of "([^"]*)" has no changes$`, w.noChanges)
 
@@ -567,6 +570,99 @@ func (w *world) firstSetupStepIsRoots() error {
 		return fmt.Errorf("its standard output prints no setup steps\n%s", w.report())
 	case len(steps) == 0 || steps[0] != w.rootSetup:
 		return fmt.Errorf("the first setup step printed is not the root's, %q\n%s", w.rootSetup, w.report())
+	}
+	return nil
+}
+
+// The setup steps run, as the person runs them.
+
+// withItos is the scenarios' environment with the caller's itos on the PATH,
+// as a person who runs a template's itos steps has it, its claude, its itos
+// extensions and a git that is an itos still hidden (pathHiding). It needs no
+// network: the release server is a closed port on this machine (ITOS_RELEASES),
+// which refuses at once, so itos init pins nothing and says so; the launcher
+// asks for no newer release (ITOS_NO_UPDATE, docs/CLI.md rule 36), and its
+// cache is a folder of the scenario's (ITOS_CACHE), so the itos that runs is
+// the one on the PATH, never one the machine fetched before.
+func (w *world) withItos() []string {
+	env := setEnv(w.env(), "PATH", pathHiding("claude", "itos-*"))
+	return append(env,
+		"ITOS_RELEASES=http://127.0.0.1:1",
+		"ITOS_NO_UPDATE=1",
+		"ITOS_CACHE="+filepath.Join(w.dir, ".itos-cache"),
+	)
+}
+
+// runPrintedSetupSteps runs each setup step new printed (printedSetupSteps),
+// in order, in the folder dir, through sh -c, as a person pastes the line
+// into a POSIX shell: what is proved is the line new printed, its quoting
+// included. A run of new that failed or printed no step has nothing to run,
+// and a step that fails fails the step, naming its line and its output.
+func (w *world) runPrintedSetupSteps(dir string) error {
+	if w.exit != 0 {
+		return fmt.Errorf("new failed, so there are no setup steps to run\n%s", w.report())
+	}
+	steps, ok := printedSetupSteps(w.stdout)
+	if !ok || len(steps) == 0 {
+		return fmt.Errorf("its standard output prints no setup steps\n%s", w.report())
+	}
+	sh, err := exec.LookPath("sh")
+	if err != nil {
+		return fmt.Errorf("no sh on the PATH to run the setup steps: %w", err)
+	}
+	env := w.withItos()
+	for _, line := range steps {
+		cmd := exec.Command(sh, "-c", line)
+		cmd.Dir = w.path(dir)
+		cmd.Env = env
+		if out, err := cmd.CombinedOutput(); err != nil {
+			return fmt.Errorf("the setup step %q failed in %s: %v\n%s", line, dir, err, out)
+		}
+	}
+	return nil
+}
+
+// itosConfigCheckPasses runs the itos on the PATH, itos config check, in the
+// folder dir, in the environment the setup steps ran in: itos's own judgement
+// of the project, exit 0, a warning allowed.
+func (w *world) itosConfigCheckPasses(dir string) error {
+	itos, err := exec.LookPath("itos")
+	if err != nil {
+		return fmt.Errorf("no itos on the PATH: %w", err)
+	}
+	if err := w.runEnv(w.path(dir), w.withItos(), itos, "config", "check"); err != nil {
+		return err
+	}
+	if w.exit != 0 {
+		return fmt.Errorf("itos config check fails in %s\n%s", dir, w.report())
+	}
+	return nil
+}
+
+// ledgerTask is a task of an itos ledger, as far as the steps read it.
+type ledgerTask struct {
+	ID    string `yaml:"id"`
+	Title string `yaml:"title"`
+}
+
+// ledgerHasTask reads the ledger itos init writes, tasks/phase-1.yaml in the
+// folder dir, as YAML, a list of tasks, and is whether it holds the task id
+// with the title.
+func (w *world) ledgerHasTask(dir, id, title string) error {
+	data, err := os.ReadFile(filepath.Join(w.path(dir), "tasks", "phase-1.yaml"))
+	if err != nil {
+		return err
+	}
+	var tasks []ledgerTask
+	if err := yaml.Unmarshal(data, &tasks); err != nil {
+		return fmt.Errorf("reading the ledger of %s: %w", dir, err)
+	}
+	i := slices.IndexFunc(tasks, func(t ledgerTask) bool { return t.ID == id })
+	switch {
+	case i < 0:
+		return fmt.Errorf("the ledger of %s has no task %s:\n%s", dir, id, data)
+	case tasks[i].Title != title:
+		return fmt.Errorf("the ledger of %s has the task %s titled %q, not %q", dir, id, tasks[i].Title, title)
 	}
 	return nil
 }
