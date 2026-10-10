@@ -13,6 +13,7 @@ phases:
 queue:
   - T-33
   - setup-blank
+  - answer-invisible
   - bug-4
 items:
   - id: T-2
