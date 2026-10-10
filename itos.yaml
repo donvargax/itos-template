@@ -122,15 +122,11 @@ ci:
     - { run: itos config check, cost: static } # the config, the ledger, the registry, the smoke set
     - { run: tools/bin/doc-caps, cost: static } # AGENTS.md and docs/ORCHESTRATING.md held to a size
     # Invisible characters in any tracked text file (T-32), Trojan Source (CVE-2021-42574) among
-    # them: Unicode's Default_Ignorable_Code_Point set (T-35), what a renderer draws as nothing,
-    # letters and marks included (the Hangul fillers, U+034F, the variation selectors), beside a
-    # format character (Cf, a byte order mark too), kept since that set leaves a few out (U+0600,
-    # U+FFF9 to U+FFFB), and a line or paragraph separator (Zl, Zp). No path is excepted: a fixture
-    # needing one writes it as an escape and builds it in code. tools/hooks/pre-commit runs the
-    # same pattern over what is staged. It passes on git grep's "none found" alone, exit 1 (T-33):
-    # a match is 0, and git grep's own error, above 1 (a git without PCRE2 or whose PCRE2 lacks a
-    # property, a broken pattern), fails it too, where ! passed it.
-    - { run: 'git grep -P -n -I ''[\p{Cf}\p{Default_Ignorable_Code_Point}\p{Zl}\p{Zp}]''; test $? -eq 1', cost: static } # names each file and line holding one
+    # them: tools/bin/invisible-chars refuses a character a renderer draws as nothing, a format
+    # character or a line or paragraph separator, each file and line named, and refuses when git
+    # grep itself fails (T-33). Its pattern is written there alone (T-37), so this step, the prose
+    # plan's and tools/hooks/pre-commit, which runs it over what is staged, cannot drift apart.
+    - { run: tools/bin/invisible-chars, cost: static }
     # The linters and the vulnerability check, the commands tools/hooks/pre-commit runs, so the
     # versions are pinned in one place each (tools/bin/pinned, go.mod's tool block). That hook is
     # declared per clone (itos's decision 37), so CI is where they hold for every commit.
@@ -158,10 +154,8 @@ ci:
     steps:
       - itos config check
       - tools/bin/doc-caps
-      # a feature file or a doc can carry one too: the same pattern as ci.steps' (T-35), Cf kept
-      # beside Default_Ignorable_Code_Point for the few format characters that set leaves out; it
-      # passes on git grep's "none found" alone (T-33)
-      - 'git grep -P -n -I ''[\p{Cf}\p{Default_Ignorable_Code_Point}\p{Zl}\p{Zp}]''; test $? -eq 1'
+      # a feature file or a doc can carry an invisible character too: the script ci.steps runs
+      - tools/bin/invisible-chars
   # itos push waits for the run of the commit it pushed and exits with its result, and itos status
   # reads it. The range's start is ci.range's default: the last green run of ci.yml.
   watch: { provider: github }

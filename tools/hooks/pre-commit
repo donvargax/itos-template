@@ -12,32 +12,13 @@
 # (Git for Windows' on Windows).
 set -eu
 
-# Invisible characters in what is staged (T-35), before the slower lint: the
-# pattern of CI's gate (itos.yaml's ci.steps), over the index rather than the
-# tracked files, so a character the editing tool wrote is refused before the
-# commit leaves the clone. Unicode's Default_Ignorable_Code_Point set, what a
-# renderer draws as nothing, letters and marks included, beside a format
-# character (Cf, kept for the few that set leaves out) and a line or paragraph
-# separator (Zl, Zp). It runs over every staged file, prose included. It passes
-# on git grep's "none found" alone, exit 1: a match is 0, and git grep's own
-# error, above 1, refuses the commit too. So a git built without PCRE2, or
-# whose PCRE2 lacks the property, refuses every commit, on Linux, macOS and
-# Windows alike, and is meant to: a gate that cannot look must not pass. Use a
-# git that has it (Git for Windows' does, as do most Linux distributions' and
-# Homebrew's).
-invisible=0
-git grep --cached -P -n -I '[\p{Cf}\p{Default_Ignorable_Code_Point}\p{Zl}\p{Zp}]' >&2 || invisible=$?
-case $invisible in
-1) ;;
-0)
-	printf '%s\n' 'pre-commit: the lines above hold an invisible character; write it as an escape (\uXXXX), never literally.' >&2
-	exit 1
-	;;
-*)
-	printf 'pre-commit: git grep failed (exit %s), so the staged files were not checked for invisible characters.\n' "$invisible" >&2
-	exit 1
-	;;
-esac
+# Invisible characters in what is staged (T-35), first, before the slower lint
+# and before the prose-only exit, since prose can carry one too: the script CI's
+# plans run over the tracked files (T-37), over the index here, so a character
+# the editing tool wrote is refused before the commit leaves the clone. It
+# refuses a character a renderer draws as nothing, and refuses too when git grep
+# itself fails: a gate that cannot look must not pass.
+tools/bin/invisible-chars --cached
 
 # Prose and itos's own data need neither the linters nor the vulnerability
 # check: Markdown, docs/**, tasks/** (the ledger and the work registry) and

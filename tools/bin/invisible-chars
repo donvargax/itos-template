@@ -1,0 +1,53 @@
+#!/bin/sh
+# invisible-chars: refuses an invisible character in the tracked text files, or
+# with --cached in what is staged, Trojan Source (CVE-2021-42574) among them
+# (T-32). The pattern is written here alone (T-37), so CI's plans (itos.yaml's
+# ci.steps and ci.prose.steps), which run it over the tracked files, and
+# tools/hooks/pre-commit, which runs it with --cached, cannot drift apart.
+#
+# What it refuses (T-35): Unicode's Default_Ignorable_Code_Point set, what a
+# renderer draws as nothing, letters and marks included (the Hangul fillers,
+# U+034F, the variation selectors), beside a format character (Cf, a byte order
+# mark too), kept since that set leaves a few out (U+0600, U+FFF9 to U+FFFB),
+# and a line or paragraph separator (Zl, Zp). No path is excepted: a fixture
+# needing one writes it as an escape and builds it in code.
+#
+# It passes on git grep's "none found" alone, exit 1 (T-33): a match, 0, is
+# refused with exit 1, each file and line printed, and so is git grep's own
+# error, above 1. So a git built without PCRE2, or whose PCRE2 lacks the
+# property, refuses on Linux, macOS and Windows alike, and is meant to: a gate
+# that cannot look must not pass. Use a git that has it (Git for Windows' does,
+# as do most Linux distributions' and Homebrew's). Any other argument is a usage
+# error, exit 2.
+set -eu
+cd -- "$(dirname -- "$0")/../.."
+
+what='tracked files'
+case $# in
+0) ;;
+1)
+	if [ "$1" != --cached ]; then
+		printf '%s\n' 'usage: tools/bin/invisible-chars [--cached]' >&2
+		exit 2
+	fi
+	what='staged files'
+	;;
+*)
+	printf '%s\n' 'usage: tools/bin/invisible-chars [--cached]' >&2
+	exit 2
+	;;
+esac
+
+found=0
+git grep "$@" -P -n -I '[\p{Cf}\p{Default_Ignorable_Code_Point}\p{Zl}\p{Zp}]' >&2 || found=$?
+case $found in
+1) ;;
+0)
+	printf '%s\n' 'invisible-chars: the lines above hold an invisible character; write it as an escape (\uXXXX), never literally.' >&2
+	exit 1
+	;;
+*)
+	printf 'invisible-chars: git grep failed (exit %s), so the %s were not checked for invisible characters.\n' "$found" "$what" >&2
+	exit 1
+	;;
+esac
