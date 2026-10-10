@@ -69,6 +69,32 @@ func (w *world) templateWithLiteral(name, question, literal string) error {
 	})
 }
 
+// templateWithoutPattern is the fixture template name, its manifest on the
+// root branch giving the question named question no pattern, so it takes
+// any answer, the rest of the question as the fixture has it.
+func (w *world) templateWithoutPattern(name, question string) error {
+	key := fmt.Sprintf("%s whose question %s has no pattern", name, question)
+	return w.changedTemplate(name, key, func(top *yaml.Node) error {
+		questions := mappingValue(top, "questions")
+		if questions == nil || questions.Kind != yaml.SequenceNode {
+			return errors.New("the manifest lists no questions")
+		}
+		for _, q := range questions.Content {
+			if scalarValue(q, "name") != question {
+				continue
+			}
+			for i := 0; i+1 < len(q.Content); i += 2 {
+				if q.Content[i].Value == "pattern" {
+					q.Content = slices.Delete(q.Content, i, i+2)
+					return nil
+				}
+			}
+			return fmt.Errorf("the question %s has no pattern", question)
+		}
+		return fmt.Errorf("the manifest has no question %s", question)
+	})
+}
+
 // templateWithFiles is the fixture template name with one more commit on its
 // branch branch, adding the files listed (with /), each holding its own path
 // and a line ending.

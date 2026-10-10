@@ -28,6 +28,7 @@ import (
 func (w *world) newSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^the template "([^"]*)"$`, w.theTemplate)
 	sc.Step(`^the template "([^"]*)" whose question "([^"]*)" has the literal "([^"]*)"$`, w.templateWithLiteral)
+	sc.Step(`^the template "([^"]*)" whose question (\S+) has no pattern$`, w.templateWithoutPattern)
 	sc.Step(`^the template "([^"]*)" whose branch "([^"]*)" holds the files (".*")$`, w.templateWithFiles)
 	sc.Step(`^the template "([^"]*)" whose manifest is acme's (.+)$`, w.templateWithManifest)
 	sc.Step(`^the template "([^"]*)" whose branch "([^"]*)" holds a submodule at "([^"]*)"$`, w.templateWithSubmodule)
@@ -149,10 +150,20 @@ func (w *world) path(p string) string {
 }
 
 // expand replaces {template} with the fixture template's path, written with
-// / on every system, as git takes it in a path and after file://.
+// / on every system, as git takes it in a path and after file://, and each
+// {U+XXXX} with the character it names: a scenario cannot hold an invisible
+// character, which T-32's gate refuses in any tracked file. A command is
+// split into words before it is expanded, so a character never splits one.
 func (w *world) expand(s string) string {
-	return strings.ReplaceAll(s, "{template}", w.template)
+	s = strings.ReplaceAll(s, "{template}", w.template)
+	return codePoint.ReplaceAllStringFunc(s, func(m string) string {
+		n, _ := strconv.ParseUint(codePoint.FindStringSubmatch(m)[1], 16, 32)
+		return string(rune(n))
+	})
 }
+
+// codePoint is a character written by its code point, {U+XXXX}.
+var codePoint = regexp.MustCompile(`\{U\+([0-9A-F]{4,6})\}`)
 
 // quoted reads a step's list of quoted strings: "a", "b" and "c", or "a" or
 // "b".
