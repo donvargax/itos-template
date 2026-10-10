@@ -26,6 +26,7 @@ func (w *world) checkSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^the template "([^"]*)" whose branch "([^"]*)" holds the file "([^"]*)" with the line "([^"]*)"$`, w.templateWithFileLine)
 	sc.Step(`^the template "([^"]*)" whose root has, after its own, the check "([^"]*)" marked as scanning "([^"]*)"$`, w.templateWithMarkedCheck)
 	sc.Step(`^the template "([^"]*)" whose root has a check that fails where a render holds "([^"]*)"$`, w.templateWithTextCheck)
+	sc.Step(`^the template "([^"]*)" whose root has a check that fails unless a render's record names the template by its absolute path$`, w.templateWithRecordCheck)
 
 	// Split before {template} is expanded, so a path with a space stays one
 	// argument.
@@ -38,6 +39,18 @@ func (w *world) checkSteps(sc *godog.ScenarioContext) {
 			fields[i] = w.expand(f)
 		}
 		return w.run(w.templateDir, w.bin, fields...)
+	})
+	// folder is a folder of the template's working tree, written with /; "."
+	// is its top.
+	sc.Step(`^itos-template runs in the template's folder "([^"]*)" with "([^"]*)"$`, func(folder, args string) error {
+		if w.templateDir == "" {
+			return errors.New("no template in this scenario")
+		}
+		fields := strings.Fields(args)
+		for i, f := range fields {
+			fields[i] = w.expand(f)
+		}
+		return w.run(filepath.Join(w.templateDir, filepath.FromSlash(folder)), w.bin, fields...)
 	})
 	sc.Step(`^a clone "([^"]*)" of the template, only its default branch local$`, w.cloneOfTemplate)
 	sc.Step(`^the clone "([^"]*)" has its HEAD detached$`, w.cloneDetached)
@@ -173,13 +186,71 @@ func (w *world) templateWithTextCheck(name, text string) error {
 // saying where, when the render in the folder it runs in holds text in a
 // tracked file or in a commit's message, and 0 when it holds it in neither.
 func textCheck(text string) string {
-	var octal strings.Builder
-	for _, b := range []byte(text) {
-		fmt.Fprintf(&octal, `\%03o`, b)
-	}
-	return `t=$(printf '` + octal.String() + `'); ` +
+	return `t=$(printf '` + octal(text) + `'); ` +
 		`if git grep -q -F -e "$t"; then echo 'a tracked file holds the text'; exit 1; fi; ` +
 		`case "$(git log --format=%B)" in *"$t"*) echo 'a commit message holds the text'; exit 1;; esac`
+}
+
+// octal is text as printf's format names it by its bytes, each in octal: a
+// word of digits in single quotes, which no shell reads specially, and which
+// shows text in no line of a report.
+func octal(text string) string {
+	var b strings.Builder
+	for _, c := range []byte(text) {
+		fmt.Fprintf(&b, `\%03o`, c)
+	}
+	return b.String()
+}
+
+// templateWithRecordCheck is the fixture template name, its manifest on the
+// root branch giving the root one more check, sh -c and a script, which
+// fails unless a render's record names the template by the fixture's own
+// absolute path (check-here). That path is the folder's as the steps made
+// it, or as the system resolves it, its links followed and on windows its
+// short names made long, as git may give a repository's top: macOS's
+// temporary folder is a link, /var to /private/var, and a Windows runner's
+// sits under an 8.3 name. Both are written as the system writes a path, \
+// on windows, and the script is given them by their bytes, as textCheck is.
+func (w *world) templateWithRecordCheck(name string) error {
+	key := name + " whose root has a check that fails unless a render's record names the template by its absolute path"
+	return w.changedTemplateIn(name, key, func(dir string, top *yaml.Node) error {
+		checks := mappingValue(top, "checks")
+		if checks == nil || checks.Kind != yaml.SequenceNode {
+			return errors.New("the manifest has no checks of the root")
+		}
+		paths := []string{dir}
+		if resolved, err := filepath.EvalSymlinks(dir); err != nil {
+			return err
+		} else if resolved != dir {
+			paths = append(paths, resolved)
+		}
+		checks.Content = append(checks.Content, &yaml.Node{Kind: yaml.SequenceNode, Tag: "!!seq", Style: yaml.FlowStyle, Content: []*yaml.Node{
+			scalar("sh"), scalar("-c"), scalar(recordCheck(paths)),
+		}})
+		return nil
+	})
+}
+
+// recordCheck is the sh script templateWithRecordCheck's check runs: it
+// exits 0 when the record of the render in the folder it runs in,
+// .itos-template.yaml, names the template as one of paths, and 1, saying
+// what it names, when it names another. It reads the record's template
+// line and decodes its value from the YAML style it is written in: plain,
+// single-quoted (a ' within doubled) or double-quoted (a \ before the
+// character it escapes), so it compares the value, never how YAML quotes
+// it.
+func recordCheck(paths []string) string {
+	var b strings.Builder
+	b.WriteString(`v=$(sed -n 's/^template: *//p' .itos-template.yaml | tr -d '\r'); `)
+	b.WriteString(`case "$v" in ` +
+		`"'"*) v=$(printf '%s' "$v" | sed "s/^'//; s/'\$//; s/''/'/g");; ` +
+		`'"'*) v=$(printf '%s' "$v" | sed 's/^"//; s/"$//; s/\\\(.\)/\1/g');; ` +
+		`esac; `)
+	for _, p := range paths {
+		b.WriteString(`[ "$v" = "$(printf '` + octal(p) + `')" ] && exit 0; `)
+	}
+	b.WriteString(`printf 'the record names the template %s\n' "$v"; exit 1`)
+	return b.String()
 }
 
 // changedTemplate builds, once a run for each key, the fixture template name
@@ -187,6 +258,12 @@ func textCheck(text string) string {
 // mapping changed by change. The manifest is read from the root branch
 // alone, so the other branches keep the fixture's.
 func (w *world) changedTemplate(name, key string, change func(top *yaml.Node) error) error {
+	return w.changedTemplateIn(name, key, func(_ string, top *yaml.Node) error { return change(top) })
+}
+
+// changedTemplateIn is changedTemplate, change given the folder the template
+// is built in too.
+func (w *world) changedTemplateIn(name, key string, change func(dir string, top *yaml.Node) error) error {
 	return w.useTemplate(key, func(dir string) error {
 		if err := w.buildTemplate(filepath.Join(w.root, "features", "testdata", name), dir); err != nil {
 			return err
@@ -203,7 +280,7 @@ func (w *world) changedTemplate(name, key string, change func(top *yaml.Node) er
 		if doc.Kind != yaml.DocumentNode || len(doc.Content) != 1 || doc.Content[0].Kind != yaml.MappingNode {
 			return errors.New("the manifest is not a mapping")
 		}
-		if err := change(doc.Content[0]); err != nil {
+		if err := change(dir, doc.Content[0]); err != nil {
 			return err
 		}
 		var out bytes.Buffer
