@@ -1026,14 +1026,15 @@ items:
     status: done
     depends_on: [new-steps]
     kind: slice
-  - id: setup-blank-letters
-    title: The manifest refuses a setup step word holding a letter or mark that prints as blank
+  - id: setup-blank
+    title: The manifest refuses a setup step word holding any character Unicode says is drawn as nothing
     phase: 1
     owner: null
     status: todo
     depends_on: []
-    kind: idea
+    kind: slice
     why: >
+      Was setup-blank-letters.
       setup-invisible refuses the format characters (Cf) and the line and paragraph separators in a
       setup step word, by category. Some characters of other categories print as blank too: the
       Hangul fillers U+115F, U+1160, U+3164 and U+FFA0 are letters (Lo), and the variation selectors
