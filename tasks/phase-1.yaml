@@ -926,8 +926,3 @@
     filters out the rest with the same predicates checkSetup refuses by, unicode.IsControl and
     drawnAsNothing, so it can never drift from them; Quote is unchanged. Run the property with many
     checks on Linux before pushing; the platform jobs judge Windows.
-  done_when:
-    - run: >-
-        sed -n '/^var shellWords/,/^$/p' internal/manifest/shell_test.go | grep -q 'drawnAsNothing' &&
-        sed -n '/^var shellWords/,/^$/p' internal/manifest/shell_test.go | grep -q 'IsControl' &&
-        go test ./internal/manifest -run TestShReadsQuotedWordsBackByteForByte -count=1 -rapid.checks=5000

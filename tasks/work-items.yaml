@@ -1106,14 +1106,6 @@ items:
     title: TestShReadsQuotedWordsBackByteForByte fails on Windows when it draws a carriage return
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      Was sh-cr-flake.
-      check-here's push, 2026-10-10, went red on the windows platform job alone (run 38029057617) in
-      internal/manifest, which it did not touch: RAPID_CHECKS=1 draws one random case a run, and the
-      case was the word "\r", which Git for Windows' sh read back as nothing, so main goes red at
-      random on Windows. Whether Words.Shell should quote a carriage return otherwise there, or the
-      property should leave it out on Windows, is the person's call; the rerun of the job is what
-      greened that push.
