@@ -43,6 +43,82 @@
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/newproject",
+      "name": "show",
+      "hash": "d871cb4036663552",
+      "start_line": 93,
+      "end_line": 110,
+      "killed": 7,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 7,
+      "mutants": [
+        {
+          "line": 99,
+          "column": 5,
+          "offset": 203,
+          "original": "1",
+          "replacement": "0",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 99,
+          "column": 8,
+          "offset": 206,
+          "original": "true",
+          "replacement": "false",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 101,
+          "column": 10,
+          "offset": 266,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 104,
+          "column": 21,
+          "offset": 318,
+          "original": ">",
+          "replacement": ">=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 104,
+          "column": 23,
+          "offset": 320,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 105,
+          "column": 30,
+          "offset": 353,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 109,
+          "column": 9,
+          "offset": 549,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/newproject",
       "name": "printSetup",
       "hash": "9ca974939d2336b5",
       "start_line": 118,
