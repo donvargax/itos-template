@@ -351,7 +351,7 @@ Feature: new makes a project from a template
   # code, a command has no use for an invisible character, and a template that holds one is
   # better told than rendered around. The ones an answer brings into a step after substitution
   # stay setup-answer-controls'.
-  @ID-NEW-50 @setup-invisible @wip
+  @ID-NEW-50 @setup-invisible
   Scenario Outline: new refuses a manifest whose setup step holds <what> with exit 2, naming its code point
     Given the template "acme" whose root lists a setup step whose word holds the character <code>
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"

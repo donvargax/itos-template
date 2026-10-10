@@ -34,11 +34,15 @@ func (s *Step) UnmarshalYAML(n *yaml.Node) error {
 func (s Step) MarshalYAML() (any, error) { return []string(s.Words), nil }
 
 // checkSetup refuses setup before version 5, a step with no program, and a
-// word holding a control character, tab and line endings included. A step
-// is printed for the person to read and paste, from a template not yet
-// trusted, and quoting cannot make a control character safe to print: an
+// word holding a control character, tab and line endings included, or an
+// invisible one. A step is printed for the person to read and paste, from a
+// template not yet trusted, and quoting cannot make either safe to print: an
 // escape sequence can make a terminal show a step other than the one
-// pasted.
+// pasted, and a format character (Unicode Cf, a right-to-left override or a
+// zero-width space) or a line or paragraph separator (U+2028, U+2029)
+// prints as nothing or moves the text around it, the Trojan Source attack
+// (CVE-2021-42574). A word holding both kinds is named once for each, by
+// the first character of that kind.
 func (m *Manifest) checkSetup(add func(string, ...any)) {
 	each := func(where string, steps []Step) {
 		if steps != nil && m.Version < 5 {
@@ -53,6 +57,10 @@ func (m *Manifest) checkSetup(add func(string, ...any)) {
 					r, _ := utf8.DecodeRuneInString(word[at:])
 					add("line %d: %s setup step %d holds a control character, %U, in the word %q: a terminal shown it can show another step than the one run, so write the word without it", step.lines[j], where, i+1, r, word)
 				}
+				if at := strings.IndexFunc(word, invisible); at >= 0 {
+					r, _ := utf8.DecodeRuneInString(word[at:])
+					add("line %d: %s setup step %d holds %U, a character that prints as nothing or moves the text around it, in the word %q: a terminal shown it can show another step than the one run, so write the word without it", step.lines[j], where, i+1, r, word)
+				}
 			}
 		}
 	}
@@ -63,6 +71,13 @@ func (m *Manifest) checkSetup(add func(string, ...any)) {
 	for _, f := range m.Features {
 		each("the feature "+f.Branch()+"'s", f.Setup)
 	}
+}
+
+// invisible says whether r prints as nothing or moves the text around it
+// though it is no control character: a format character, or a line or
+// paragraph separator.
+func invisible(r rune) bool {
+	return unicode.In(r, unicode.Cf, unicode.Zl, unicode.Zp)
 }
 
 // SetupOf are the setup steps of the combination c, in the order check runs

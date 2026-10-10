@@ -296,6 +296,9 @@ A step is the template's code, shown to a person who has not yet chosen to trust
 cannot make a control character safe to print: an escape sequence in a word can make a terminal
 show another step than the one pasted. So a word holding a control character (tab, CR and LF
 included) is a manifest refused, exit 2, each named with its line, before anything is written.
+A word holding a format character (Unicode Cf: a right-to-left override, a zero-width space) or a
+line or paragraph separator (U+2028, U+2029) is refused the same way, named by its code point:
+it prints as nothing or moves the text around it, so the step read is not the step run.
 
 ### Paths only the template keeps
 

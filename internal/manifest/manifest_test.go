@@ -2,6 +2,7 @@ package manifest
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -548,6 +549,45 @@ features:
 	}
 	if !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, want) {
 		t.Errorf("Parse = %v", err)
+	}
+}
+
+// A character that prints as nothing or moves the text around it, a format
+// character (Cf) or a line or paragraph separator (Zl, Zp), is refused as a
+// control character is, each named with its line and its code point, the
+// word escaped so the message itself shows it. A word holding both kinds is
+// named once for each kind, by the first character of that kind, however
+// many it holds. A word of other Unicode, a no-break space included, is
+// taken.
+func TestParseRefusesAnInvisibleCharacterInASetupWordNamingItsLine(t *testing.T) {
+	_, err := Parse([]byte(`version: 5
+setup:
+  - [echo, "ma\u202Ede", "\u200B"]
+  - [echo, "\u2028", "\u2029", "\u00AD"]
+stacks:
+  - name: go
+    setup: [[sh, -c, "\uFEFFx"]]
+features:
+  - {name: cli, stack: go, setup: [[echo, "\u200D\e\u202E\x01"]]}
+  - {name: web, stack: go, setup: [[echo, "é — ünïcode ‘quoted’ \u00A0"]]}
+`))
+	var invalid *Invalid
+	why := ": a terminal shown it can show another step than the one run, so write the word without it"
+	invisible := func(line int, where string, step int, r, word string) string {
+		return fmt.Sprintf("line %d: %s setup step %d holds %s, a character that prints as nothing or moves the text around it, in the word %s", line, where, step, r, word) + why
+	}
+	want := []string{
+		invisible(3, "the root's", 1, "U+202E", `"ma\u202ede"`),
+		invisible(3, "the root's", 1, "U+200B", `"\u200b"`),
+		invisible(4, "the root's", 2, "U+2028", `"\u2028"`),
+		invisible(4, "the root's", 2, "U+2029", `"\u2029"`),
+		invisible(4, "the root's", 2, "U+00AD", `"\u00ad"`),
+		invisible(7, "the stack go's", 1, "U+FEFF", `"\ufeffx"`),
+		`line 9: the feature go/cli's setup step 1 holds a control character, U+001B, in the word "\u200d\x1b\u202e\x01"` + why,
+		invisible(9, "the feature go/cli's", 1, "U+200D", `"\u200d\x1b\u202e\x01"`),
+	}
+	if !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, want) {
+		t.Errorf("Parse = %v\nwant %q", err, want)
 	}
 }
 
