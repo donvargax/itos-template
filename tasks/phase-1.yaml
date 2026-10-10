@@ -815,3 +815,22 @@
         grep -q 'p{Cf}' AGENTS.md &&
         ! grep -q 'An invisible character in a test is written as an escape' docs/ORCHESTRATING.md &&
         ! git grep -P -n -I '[\p{Cf}\p{Zl}\p{Zp}]'
+- id: T-33
+  type: ci
+  title: "The invisible-character gate passes only when git grep finds nothing, never when it fails"
+  why: >
+    T-32's step, ! git grep -P -n -I '[\p{Cf}\p{Zl}\p{Zp}]', negates every non-zero exit, so an
+    error of git grep's own reads as a pass: exit 128 from a git built without PCRE2, as some
+    local clones are, or from a pattern broken by an edit. T-32's agent showed it, a pattern
+    missing its ] passing green. git grep exits 0 on a match, 1 on none and above 1 on an error,
+    so the step becomes git grep -P -n -I '[\p{Cf}\p{Zl}\p{Zp}]'; test $? -eq 1, in ci.steps and
+    in the plan a docs-only push runs, passing on 1 alone. The coordinator's call, routine: the
+    plan's own shell, one line, no tool. gofmt's step has the same shape and stays as it is here:
+    go vet, after it, refuses the file gofmt cannot read. Regenerate AGENTS.md's rules block.
+  done_when:
+    - run: >-
+        test "$(grep -c 'test $? -eq 1' itos.yaml)" -ge 2 &&
+        ! grep -q "'! git grep -P" itos.yaml &&
+        grep -q 'test $? -eq 1' AGENTS.md &&
+        { git grep -P -n -I '[\p{Cf}\p{Zl}\p{Zp}]'; test $? -eq 1; } &&
+        ! { git grep -P -n -I '[\p{Cf}' 2>/dev/null; test $? -eq 1; }
