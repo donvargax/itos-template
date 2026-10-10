@@ -1038,14 +1038,15 @@ items:
       character refused. An --answer with no = is still quoted with %q (answer.Malformed, in
       internal/answer and internal/cli/codes.go), so a malformed one holding such a character prints
       it raw. Quote it as NotTaken is.
-  - id: gate-default-ignorable
+  - id: T-35
     title: CI's invisible-character gate refuses Unicode's whole Default_Ignorable set, as setup steps do
     phase: 1
     owner: null
     status: todo
     depends_on: []
-    kind: idea
+    kind: task
     why: >
+      Was gate-default-ignorable.
       T-32's gate matches Cf, Zl and Zp, which leaves the characters setup-blank found drawn as
       nothing though Unicode calls them letters or marks: the Hangul fillers U+115F, U+1160, U+3164,
       U+FFA0, U+034F and the variation selectors. setup-blank's agent found the editing tool had
