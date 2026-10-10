@@ -203,6 +203,27 @@ Feature: new makes a project from a template
       | Persian | می{U+200C}خواهم   |
       | Hindi   | क्{U+200D}ष        |
 
+  # bug-5: answer-invisible quotes an answer it does not take with %+q, escaping everything
+  # outside ASCII, since Go counts a Hangul filler as printable and %q prints it as itself. Two
+  # refusals still echo what the person typed unescaped: an --answer with no =, quoted with %q,
+  # and a question name the template does not ask, written with no quoting at all, so a
+  # right-to-left override in it reaches the terminal raw and can turn the rest of the line
+  # around. Every refusal that echoes an answer or a question name the person gave quotes it as
+  # NotTaken does, in internal/answer and in internal/cli alike. A name given twice is a name
+  # the template asks, so it holds none of these.
+  @ID-NEW-54 @bug-5 @wip
+  Scenario Outline: new echoes <what> holding <code> escaped, never raw, with exit 2
+    Given the template "acme"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults --answer <given>"
+    Then it exits with code 2
+    And its error output says "<escaped>"
+    And the path "made" does not exist
+
+    Examples:
+      | what                       | code   | given           | escaped       |
+      | an answer with no =        | U+3164 | blue{U+3164}fox | blueㅤfox |
+      | a question it does not ask | U+202E | na{U+202E}me=x  | na‮me    |
+
   @ID-NEW-14 @slice-1
   Scenario: new refuses an answer that does not match its question's pattern with exit 2, and writes nothing
     Given the template "acme"
