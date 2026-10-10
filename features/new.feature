@@ -337,6 +337,36 @@ Feature: new makes a project from a template
     And its error output says "control character"
     And the path "made" does not exist
 
+  # setup-invisible: refusing control characters leaves the ones that print as nothing or move
+  # the text around them. A format character (Unicode Cf: U+202E right-to-left override, U+200B
+  # zero-width space, U+FEFF and their kin) is no control, yet can make a printed step read
+  # otherwise than the bytes a shell runs, the Trojan Source attack (CVE-2021-42574), and the
+  # line and paragraph separators U+2028 and U+2029 (Zl, Zp) break a line where a terminal or an
+  # editor honours them though they are no line ending of Cc. Quoting leaves all of them in
+  # place. So the manifest refuses them in a step word as it refuses a control character, every
+  # problem at once and each with its line, before anything is written, its message naming the
+  # character by its code point, since the character itself would print as nothing.
+  #
+  # Refusing over showing it escaped: the person's call, 2026-10-09. A step is the template's
+  # code, a command has no use for an invisible character, and a template that holds one is
+  # better told than rendered around. The ones an answer brings into a step after substitution
+  # stay setup-answer-controls'.
+  @ID-NEW-50 @setup-invisible @wip
+  Scenario Outline: new refuses a manifest whose setup step holds <what> with exit 2, naming its code point
+    Given the template "acme" whose root lists a setup step whose word holds the character <code>
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 2
+    And its error output says "itos-template.yaml"
+    And its error output says "setup"
+    And its error output says "<code>"
+    And the path "made" does not exist
+
+    Examples:
+      | what                      | code   |
+      | a right-to-left override  | U+202E |
+      | a zero-width space        | U+200B |
+      | a line separator          | U+2028 |
+
   @ID-NEW-41 @bug-4 @wip
   Scenario: a template URL's credential never reaches new's error output
     When itos-template runs with "new https://x-access-token:ghp_EXAMPLETOKENNOTREAL@127.0.0.1:1/acme.git made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"
