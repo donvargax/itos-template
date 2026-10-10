@@ -36,7 +36,7 @@ import (
 type Template struct {
 	// Name is the template as its made project's record names it: as it
 	// was named, which git cloned, unless the caller sets it to the name
-	// Recorded gives (new does).
+	// Recorded gives (new and check do).
 	Name     string
 	Manifest *manifest.Manifest
 

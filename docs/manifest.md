@@ -443,6 +443,11 @@ no credential, though `new` clones it by the name as given (record-name):
   template git cloned; on Windows a path starting with a drive (`C:\acme`, `C:acme`) or a share
   (`\\server\share`) is absolute.
 
+`check` records each of its renders' template by the same name, in its record and its first commit
+(check-record-name-slice), so a template's own credential scan finds no credential its URL held in
+a render; a render is thrown away, so `check` says nothing of the credential left out. The
+repository `check` runs in, when it names none, is recorded as `.`.
+
 The clone `new` renders from is a bare repository in a temporary folder, its origin the name as
 given, removed when `new` ends; the made project is a repository of its own, with no remote.
 

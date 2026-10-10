@@ -127,7 +127,7 @@ Feature: check renders every combination a template allows and runs its checks
   # template.Recorded: the userinfo cut, a relative path made absolute. A render is thrown away,
   # so check says nothing of the credential left out, which new says because a project keeps it.
   # The fixture's root check fails wherever a render's files or commit messages hold the text.
-  @ID-CHECK-25 @check-record-name-slice @wip
+  @ID-CHECK-25 @check-record-name-slice
   Scenario: check renders a template named by a URL with a credential without the credential
     Given the template "acme" whose root has a check that fails where a render holds "ghp_EXAMPLETOKENNOTREAL"
     When itos-template runs with git cloning the template for "https://x-access-token:ghp_EXAMPLETOKENNOTREAL@example.invalid/acme.git", with "check https://x-access-token:ghp_EXAMPLETOKENNOTREAL@example.invalid/acme.git --answer name=blue-fox --defaults"

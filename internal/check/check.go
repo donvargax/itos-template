@@ -16,7 +16,9 @@ package check
 import (
 	"fmt"
 	"io"
+	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/donvargax/itos-template/internal/answer"
@@ -163,7 +165,16 @@ type Query struct {
 
 // Handle checks the template q names, giving its manifest to opened once
 // its answers are resolved, then each combination's result to each as it
-// is found. A failure before any combination is checked (the template
+// is found.
+//
+// git clones the template by its name as given; each render records it,
+// in its .itos-template.yaml and its first commit, by the name
+// template.Recorded gives, from the folder check runs in, on this system,
+// as new records it (check-record-name-slice): a URL's credential left out,
+// so a template's own credential scan finds none in its renders, and a
+// relative path made absolute. A render is thrown away, so nothing is said
+// of a credential left out, as new says it. The repository check runs in,
+// when none is named, is recorded as git.Here. A failure before any combination is checked (the template
 // unreachable, its manifest refused, an answer missing) is returned,
 // nothing given to opened or each, and so is an error each returns.
 func Handle(q Query, opened func(*manifest.Manifest), each func(template.Result) error) error {
@@ -186,6 +197,13 @@ func Handle(q Query, opened func(*manifest.Manifest), each func(template.Result)
 	t, err := template.Open(name, repo)
 	if err != nil {
 		return err
+	}
+	if q.Template != "" {
+		dir, err := os.Getwd()
+		if err != nil {
+			return err
+		}
+		t.Name, _ = template.Recorded(q.Template, dir, template.SystemOf(runtime.GOOS))
 	}
 	answers, err := answer.Resolve(t.Manifest, q.Answers, q.Defaults)
 	if err != nil {
