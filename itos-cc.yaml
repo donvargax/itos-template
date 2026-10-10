@@ -8,3 +8,11 @@ mutation:
       original: '>'
       replacement: '>='
       reason: 'Equivalent: with >= the loop runs once more only at k = 0, where it tests the empty prefix, which PRECIS FreeformClass takes (precis.NewFreeform sets no DisallowEmpty), so it breaks with k still 0 and names the same first rune.'
+    - file: internal/cli/cli.go
+      function: github.com/donvargax/itos-template/internal/cli#report
+      hash: eda630195d9550c6
+      line_in_function: 3
+      column: 10
+      original: "0"
+      replacement: "1"
+      reason: 'Equivalent: report starts code at 0 only as the identity of max over its leaves. leaves always gives at least one error (err itself, or each a join holds; errors.Join drops nils and returns nil for none, fmt.Errorf''s joins hold two or more), and every classify gives a code of at least 1, so max(0, c) and max(1, c) are the same code. Only an error type of no package here, whose Unwrap() []error is empty, would tell them apart.'
