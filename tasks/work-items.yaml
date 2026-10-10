@@ -1136,8 +1136,8 @@ items:
   - id: T-39
     title: One baseline mutation run over all of cmd and internal, reported per package, nothing killed
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: task
     why: >
