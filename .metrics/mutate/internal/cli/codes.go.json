@@ -6,7 +6,7 @@
     "cmd/itos-template/main_test.go": "9e36580f77a88e3eadeed409f12517b12aa45a208524ec9f57b449d35cb7ed59",
     "internal/adopt/adopt_test.go": "3498983581410317dd8b7a835ab84b7a0b6cb519d7cc037e918952286319b3eb",
     "internal/check/check_test.go": "19867f988c0ccd5a52034cf5b0239e2646df6003c1bbc096aebfe31df3fbfe5f",
-    "internal/cli/cli_test.go": "14c31ba94c803c236f309ce05a71f4b015e0afcf89b90149c3c04cece3be157a",
+    "internal/cli/cli_test.go": "4e6841d47be76075bd560e5bd11fba217f66e4fad79a6b0a8ce3ecf0cba21a6c",
     "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
     "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
     "internal/newproject/newproject_test.go": "0cb6019a3fbedc92035018cf3f5adb58ff800545c763533bf6d07c3d57e12f44"
@@ -15,16 +15,16 @@
     {
       "namespace": "github.com/donvargax/itos-template/internal/cli",
       "name": "templateProblem",
-      "hash": "032e34856c1421b2",
-      "start_line": 22,
-      "end_line": 76,
+      "hash": "5c332a1bfd29c92a",
+      "start_line": 23,
+      "end_line": 80,
       "killed": 10,
       "survived": 0,
       "uncovered": 0,
       "sites": 10,
       "mutants": [
         {
-          "line": 32,
+          "line": 33,
           "column": 19,
           "offset": 791,
           "original": "==",
@@ -33,7 +33,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 32,
+          "line": 33,
           "column": 22,
           "offset": 794,
           "original": "0",
@@ -42,7 +42,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 61,
+          "line": 62,
           "column": 22,
           "offset": 3128,
           "original": ">",
@@ -51,7 +51,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 61,
+          "line": 62,
           "column": 24,
           "offset": 3130,
           "original": "0",
@@ -60,7 +60,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 62,
+          "line": 63,
           "column": 35,
           "offset": 3168,
           "original": "+",
@@ -69,7 +69,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 68,
+          "line": 69,
           "column": 27,
           "offset": 3537,
           "original": "+",
@@ -78,7 +78,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 68,
+          "line": 69,
           "column": 31,
           "offset": 3541,
           "original": "+",
@@ -87,7 +87,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 68,
+          "line": 69,
           "column": 37,
           "offset": 3547,
           "original": "+",
@@ -96,7 +96,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 68,
+          "line": 69,
           "column": 49,
           "offset": 3559,
           "original": "+",
@@ -105,7 +105,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 68,
+          "line": 69,
           "column": 69,
           "offset": 3579,
           "original": "+",
@@ -140,16 +140,46 @@
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/cli",
-      "name": "gitProblem",
-      "hash": "352a4bed2474864f",
-      "start_line": 128,
-      "end_line": 146,
+      "name": "projectProblem",
+      "hash": "99a130fc6c77df5e",
+      "start_line": 121,
+      "end_line": 137,
       "killed": 0,
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": [],
-      "stale": true
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/cli",
+      "name": "gitProblem",
+      "hash": "d1b881e6771bbb35",
+      "start_line": 139,
+      "end_line": 160,
+      "killed": 2,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 2,
+      "mutants": [
+        {
+          "line": 156,
+          "column": 72,
+          "offset": 1230,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 156,
+          "column": 79,
+          "offset": 1237,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/cli",
@@ -227,6 +257,55 @@
         }
       ],
       "stale": true
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/cli",
+      "name": "updatingProblem",
+      "hash": "6509928e128a3974",
+      "start_line": 218,
+      "end_line": 251,
+      "killed": 4,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 4,
+      "mutants": [
+        {
+          "line": 237,
+          "column": 73,
+          "offset": 1607,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 237,
+          "column": 80,
+          "offset": 1614,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 243,
+          "column": 84,
+          "offset": 2201,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 243,
+          "column": 95,
+          "offset": 2212,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
     }
   ]
 }

@@ -5,10 +5,11 @@
   "tests": {
     "internal/adopt/adopt_test.go": "3498983581410317dd8b7a835ab84b7a0b6cb519d7cc037e918952286319b3eb",
     "internal/check/check_test.go": "19867f988c0ccd5a52034cf5b0239e2646df6003c1bbc096aebfe31df3fbfe5f",
-    "internal/cli/cli_test.go": "23c0ef64626e04f1a721fe4c8792d0e6b6c9ea3496a5b3c1052eb788bb5ee132",
+    "internal/cli/cli_test.go": "4e6841d47be76075bd560e5bd11fba217f66e4fad79a6b0a8ce3ecf0cba21a6c",
     "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
     "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
     "internal/git/git_test.go": "a9a8a59a7ce106ec082c98eb76505c0c80321785566320990304ff5c2f52a6ae",
+    "internal/git/project_test.go": "2055fdbacff2f84778205c88ad65696b136f810cbe3c2d2aad175c4622e74be8",
     "internal/git/worktree_test.go": "dfe8ab36d1bb0befc9ce7152f4ce4462291ee5263a594ea780c85bb97f0eecca",
     "internal/newproject/newproject_test.go": "0cb6019a3fbedc92035018cf3f5adb58ff800545c763533bf6d07c3d57e12f44"
   },
@@ -23,7 +24,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/git.Unwritable",
@@ -31,6 +33,19 @@
       "hash": "105f384c21289346",
       "start_line": 59,
       "end_line": 59,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": [],
+      "stale": true
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/git.TooOld",
+      "name": "gitError",
+      "hash": "6b282b4da2fdb962",
+      "start_line": 64,
+      "end_line": 64,
       "killed": 0,
       "survived": 0,
       "uncovered": 0,
@@ -47,7 +62,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/git.Unreadable",
@@ -59,7 +75,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/git.Unwritable",
@@ -71,7 +88,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/git.Unwritable",
@@ -83,7 +101,39 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/git.TooOld",
+      "name": "Error",
+      "hash": "d397b58f2f2805dc",
+      "start_line": 74,
+      "end_line": 74,
+      "killed": 2,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 2,
+      "mutants": [
+        {
+          "line": 74,
+          "column": 52,
+          "offset": 51,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 74,
+          "column": 70,
+          "offset": 69,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
     }
   ]
 }

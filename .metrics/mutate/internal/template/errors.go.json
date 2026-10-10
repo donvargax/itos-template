@@ -5,7 +5,7 @@
   "tests": {
     "internal/adopt/adopt_test.go": "3498983581410317dd8b7a835ab84b7a0b6cb519d7cc037e918952286319b3eb",
     "internal/check/check_test.go": "19867f988c0ccd5a52034cf5b0239e2646df6003c1bbc096aebfe31df3fbfe5f",
-    "internal/cli/cli_test.go": "14c31ba94c803c236f309ce05a71f4b015e0afcf89b90149c3c04cece3be157a",
+    "internal/cli/cli_test.go": "4e6841d47be76075bd560e5bd11fba217f66e4fad79a6b0a8ce3ecf0cba21a6c",
     "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
     "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
     "internal/newproject/newproject_test.go": "0cb6019a3fbedc92035018cf3f5adb58ff800545c763533bf6d07c3d57e12f44",
@@ -16,7 +16,9 @@
     "internal/template/property_test.go": "7970a0416c599941f2ef9a15b771bcb9e0bafca49a38dd5f3420140cf853c33c",
     "internal/template/redact_test.go": "8d8616c4910b1e3cd723bde408501d9ab626cbee1a74bbfef5682d89322adeb0",
     "internal/template/release_test.go": "443a18400e896b3be6ddf7617e062ce0177c1192fac505431ab998cea0046e43",
-    "internal/template/template_test.go": "d31eed5a0ee962a350bcbea3ad1b1ba9bb5263aed335be4c6fbc226a161a72e4"
+    "internal/template/rendered_test.go": "2ced4eacdbd9e6b53efbc2408ad1554f0f26353c90b323d6e94dbd8764457330",
+    "internal/template/template_test.go": "d31eed5a0ee962a350bcbea3ad1b1ba9bb5263aed335be4c6fbc226a161a72e4",
+    "internal/updating/updating_test.go": "38f56ceb8e8ae982f39a69e7188f5ffc3ad975b9338d3369738e8320ff678d81"
   },
   "units": [
     {
@@ -29,7 +31,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/template.NoRelease",
@@ -58,6 +61,18 @@
       "stale": true
     },
     {
+      "namespace": "github.com/donvargax/itos-template/internal/template.Unrecorded",
+      "name": "templateError",
+      "hash": "dbe3366ffa98a338",
+      "start_line": 140,
+      "end_line": 140,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
       "namespace": "github.com/donvargax/itos-template/internal/template.BadName",
       "name": "Error",
       "hash": "a6c0f562297e3983",
@@ -67,7 +82,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/template.NoStack",
@@ -120,6 +136,28 @@
       "sites": 0,
       "mutants": [],
       "stale": true
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/template.Unrecorded",
+      "name": "Error",
+      "hash": "977ce12dcf6c8a98",
+      "start_line": 169,
+      "end_line": 169,
+      "killed": 1,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 1,
+      "mutants": [
+        {
+          "line": 169,
+          "column": 80,
+          "offset": 79,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/template.Incomplete",
