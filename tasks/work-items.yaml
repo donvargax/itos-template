@@ -793,22 +793,9 @@ items:
     title: CI's itos action installs the launcher its pinned ref names, not 6.0.0
     phase: 1
     owner: null
-    status: todo
+    status: dropped
     depends_on: []
     kind: idea
-    why: >
-      Found with T-18. ci.yml and release.yml pin donvargax/itos by commit and pass version 6.0.0,
-      so the launcher on the runner is 6.0.0 while the action moved to v6.4.0 (T-6) and v7.0.0-rc.1
-      (T-18); ci.yml's comment says the version is named because the action reads one only from a
-      vX.Y.Z ref. The pin still chooses the itos that runs (a 6.0.0 launcher ran the 7.0.0-rc.1 pin
-      and its config check, tried 2026-10-08), so nothing fails today, but a launcher change itos
-      makes (6.5.1 ordering a pre-release below its release) never reaches CI. Either the version
-      input moves with the action, a stable one when the action is at a pre-release (the action's
-      ref regex takes no pre-release), or the comment says why it stays.
-
-      donvargax/itos#23 (2026-10-08) asks the action to install the launcher of the release it is,
-      from a pre-release tag or a commit too; once it does, CI drops the version input and pins the
-      action by commit alone.
     tags: [ci]
   - id: completion-values
     title: "Completion offers a flag's values from the template: --stack and --feature from its manifest"
