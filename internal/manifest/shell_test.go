@@ -5,6 +5,7 @@ import (
 	"os/exec"
 	"strings"
 	"testing"
+	"unicode"
 
 	"pgregory.net/rapid"
 )
@@ -52,19 +53,27 @@ func TestShellQuotesEachWordAndJoinsThemByOneSpace(t *testing.T) {
 	}
 }
 
-// shellWords are words a step may hold, and more: any text but a NUL, which
-// no shell word can hold, with the characters a shell reads specially drawn
-// often.
+// shellWords are the words a step may hold: any text, with the characters a
+// shell reads specially drawn often, but no word holding a character
+// checkSetup refuses, a control character or one drawnAsNothing. The NUL no
+// shell word can hold is a control character, and so are the tab and the
+// line ending, which the set no longer draws. The filter is checkSetup's own
+// predicates, so the property never tests a word no step can hold (the
+// carriage return Git for Windows' sh reads back as nothing was one), and
+// never drifts from what the manifest takes.
 var shellWords = rapid.OneOf(
 	rapid.String(),
-	rapid.StringOf(rapid.SampledFrom([]rune("'\"\\$`!*?[]{}()<>|&;#~=%@+:,./_- \t\nazAZ09é"))),
-).Filter(func(word string) bool { return !strings.ContainsRune(word, 0) })
+	rapid.StringOf(rapid.SampledFrom([]rune("'\"\\$`!*?[]{}()<>|&;#~=%@+:,./_- azAZ09é"))),
+).Filter(func(word string) bool {
+	return strings.IndexFunc(word, unicode.IsControl) < 0 && strings.IndexFunc(word, drawnAsNothing) < 0
+})
 
-// Any words, quoted and read back by the real sh, are the same words, byte
-// for byte: what a person pastes runs the step's own words. The words go to
-// sh on its standard input, as a pasted line does, so no system's command
-// line reads them first. Where no sh is on the PATH there is nothing to
-// read them back, and the property is skipped.
+// Any words a step may hold, quoted and read back by the real sh, are the
+// same words, byte for byte: what a person pastes runs the step's own words.
+// It draws only the words the manifest takes, since Quote never meets
+// another. The words go to sh on its standard input, as a pasted line does,
+// so no system's command line reads them first. Where no sh is on the PATH
+// there is nothing to read them back, and the property is skipped.
 func TestShReadsQuotedWordsBackByteForByte(t *testing.T) {
 	sh, err := exec.LookPath("sh")
 	if err != nil {
