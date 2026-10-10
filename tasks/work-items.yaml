@@ -1136,3 +1136,18 @@ items:
       repository in a temporary folder, writes each character with byte escapes, and asserts each
       exit and message, the git-grep-error path through a git without the property or a pattern it
       cannot compile.
+  - id: check-ref-refusals
+    title: check refuses a --ref no release has, or an incomplete one, as new does, each held by a scenario
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [releases]
+    kind: idea
+    why: >
+      releases gave check --ref, refused as new refuses it: exit 2 for a version no branch carries a
+      tag of, exit 1 for an incomplete release, each before any combination is rendered, and check's
+      --help names both codes. Only new's refusals have scenarios (ID-NEW-60, ID-NEW-62);
+      docs/CLI.md's rule 33 asks a scenario for each exit code a help names, so check's two want
+      theirs, on the same fixture, and a check run in a checkout (no template named) reading a
+      release from the tags the checkout holds, which git.CloneHere now copies and only a unit test
+      holds.
