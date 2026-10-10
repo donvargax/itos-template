@@ -1030,16 +1030,9 @@ items:
     title: An answer or a question name new echoes back holding an invisible character prints escaped, never raw
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: slice
-    why: >
-      Was answer-malformed-quoted.
-      answer-invisible quotes an answer not taken with %+q, as setup-blank did for steps, since Go
-      counts a Hangul filler and the variation selectors as printable and %q would print the very
-      character refused. An --answer with no = is still quoted with %q (answer.Malformed, in
-      internal/answer and internal/cli/codes.go), so a malformed one holding such a character prints
-      it raw. Quote it as NotTaken is.
   - id: T-35
     title: CI's invisible-character gate refuses Unicode's whole Default_Ignorable set, as setup steps do
     phase: 1
