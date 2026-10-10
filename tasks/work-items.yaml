@@ -1034,3 +1034,17 @@ items:
       are not controls, yet can make a printed step read otherwise than the bytes a shell runs (the
       Trojan Source attack, CVE-2021-42574). Quoting leaves them in place. Decide whether the
       manifest refuses them too, or new shows them escaped.
+  - id: setup-blank-letters
+    title: The manifest refuses a setup step word holding a letter or mark that prints as blank
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      setup-invisible refuses the format characters (Cf) and the line and paragraph separators in a
+      setup step word, by category. Some characters of other categories print as blank too: the
+      Hangul fillers U+115F, U+1160, U+3164 and U+FFA0 are letters (Lo), and the variation selectors
+      and combining marks such as U+034F are marks (Mn), so a word holding one still reads otherwise
+      than it runs, the invisible-identifier trick beside Trojan Source. Decide whether to refuse a
+      listed set of them, or every character a terminal draws as nothing.
