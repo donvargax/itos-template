@@ -864,6 +864,12 @@ items:
       a cd in the same command moved to, so a test building a fixture repository with cd and git
       commit is denied and falls back to git commit-tree. When fixed and pinned, a brief no longer
       needs to warn about it.
+
+      itos#35 (2026-10-09): under 7.0.0-rc.3 a whole CI run, with no green run to start from, judges
+      no code proof, so a first push or a new branch lands code unproved. itos#36: the text plan
+      does not name the proof step and itos init --agent-rules leaves it out of AGENTS.md's gate
+      list; T-34's first check was written from that output and could never pass. When fixed and
+      pinned, AGENTS.md's rules block names the proof itself.
     tags: [ci]
   - id: T-24
     title: Upgrade the Go toolchain to clear the standard-library security failures
