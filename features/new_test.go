@@ -11,7 +11,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -85,6 +84,7 @@ func (w *world) newSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^itos-template runs with git's commit\.cleanup set to ([a-z-]+) with "([^"]*)"$`, func(mode, args string) error {
 		return w.runWith(w.withGitConfig("commit.cleanup", mode), args)
 	})
+	sc.Step(`^itos-template runs with git cloning the template for "([^"]*)", with "([^"]*)"$`, w.runCloningTemplateFor)
 	sc.Step(`^an empty folder "([^"]*)"$`, func(dir string) error {
 		return os.MkdirAll(w.path(dir), 0o755)
 	})
@@ -138,6 +138,7 @@ func (w *world) newSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^the working tree of "([^"]*)" has no changes$`, w.noChanges)
 
 	sc.Step(`^the record in "([^"]*)" names the template as "([^"]*)"$`, w.recordNamesTemplate)
+	sc.Step(`^no file or commit of "([^"]*)" holds "([^"]*)"$`, w.noFileOrCommitHolds)
 	sc.Step(`^the record in "([^"]*)" names the stack "([^"]*)" and the features (".*")$`, w.recordNamesStack)
 	sc.Step(`^the record in "([^"]*)" has the answer (".*")$`, w.recordHasAnswers)
 	sc.Step(`^the record in "([^"]*)" names the commit of the template's branches (".*")$`, w.recordNamesCommits)
@@ -150,12 +151,22 @@ func (w *world) path(p string) string {
 }
 
 // expand replaces {template} with the fixture template's path, written with
-// / on every system, as git takes it in a path and after file://, and each
-// {U+XXXX} with the character it names: a scenario cannot hold an invisible
-// character, which T-32's gate refuses in any tracked file. A command is
-// split into words before it is expanded, so a character never splits one.
+// / on every system, as git takes it in a path and after file://;
+// {template-relative} with that path relative to the scratch folder
+// itos-template runs in, written as the system writes a path (..\ on
+// windows), as a person types ../acme; and each {U+XXXX} with the character
+// it names: a scenario cannot hold an invisible character, which T-32's gate
+// refuses in any tracked file. A command is split into words before it is
+// expanded, so a character never splits one.
 func (w *world) expand(s string) string {
 	s = strings.ReplaceAll(s, "{template}", w.template)
+	if strings.Contains(s, "{template-relative}") {
+		relative, err := filepath.Rel(w.dir, w.templateDir)
+		if err != nil || w.templateDir == "" {
+			relative = "{no template relative to the scratch folder}"
+		}
+		s = strings.ReplaceAll(s, "{template-relative}", relative)
+	}
 	return codePoint.ReplaceAllStringFunc(s, func(m string) string {
 		n, _ := strconv.ParseUint(codePoint.FindStringSubmatch(m)[1], 16, 32)
 		return string(rune(n))
@@ -175,6 +186,18 @@ func quotedList(list string) []string {
 		found = append(found, m[1])
 	}
 	return found
+}
+
+// runCloningTemplateFor runs itos-template with args, git cloning the
+// fixture template wherever it is asked for url: git's url.<base>.insteadOf,
+// set for this run alone (withGitConfig), so a URL on example.invalid, which
+// never resolves, is cloned from the fixture with no network, while
+// itos-template sees and records the URL as given.
+func (w *world) runCloningTemplateFor(url, args string) error {
+	if w.templateDir == "" {
+		return errors.New("no template in this scenario")
+	}
+	return w.runWith(w.withGitConfig("url."+w.template+".insteadOf", url), args)
 }
 
 // Then steps.
@@ -459,100 +482,6 @@ func (w *world) noChanges(dir string) error {
 	}
 	if out != "" {
 		return fmt.Errorf("the working tree of %s has changes:\n%s", dir, out)
-	}
-	return nil
-}
-
-// The record.
-
-// record is a made project's .itos-template.yaml, as far as the steps read
-// it.
-type record struct {
-	Template string            `yaml:"template"`
-	Stack    string            `yaml:"stack"`
-	Features []string          `yaml:"features"`
-	Answers  map[string]string `yaml:"answers"`
-	Commits  map[string]string `yaml:"commits"`
-}
-
-func (w *world) record(dir string) (*record, error) {
-	f, err := os.Open(filepath.Join(w.path(dir), ".itos-template.yaml"))
-	if err != nil {
-		return nil, fmt.Errorf("%v\n%s", err, w.report())
-	}
-	defer func() { _ = f.Close() }()
-	var r record
-	if err := yaml.NewDecoder(f).Decode(&r); err != nil && !errors.Is(err, io.EOF) {
-		return nil, fmt.Errorf("reading the record: %w", err)
-	}
-	return &r, nil
-}
-
-func (w *world) recordNamesTemplate(dir, template string) error {
-	r, err := w.record(dir)
-	if err != nil {
-		return err
-	}
-	if want := w.expand(template); r.Template != want {
-		return fmt.Errorf("the record names the template %q, not %q", r.Template, want)
-	}
-	return nil
-}
-
-func (w *world) recordNamesStack(dir, stack, features string) error {
-	r, err := w.record(dir)
-	if err != nil {
-		return err
-	}
-	if r.Stack != stack {
-		return fmt.Errorf("the record names the stack %q, not %q", r.Stack, stack)
-	}
-	if want := quotedList(features); !slices.Equal(r.Features, want) {
-		return fmt.Errorf("the record names the features %q, not %q", r.Features, want)
-	}
-	return nil
-}
-
-// recordHasAnswers reads "key" as "value" pairs, joined by "and" or commas.
-func (w *world) recordHasAnswers(dir, pairs string) error {
-	r, err := w.record(dir)
-	if err != nil {
-		return err
-	}
-	list := quotedList(pairs)
-	if len(list)%2 != 0 {
-		return fmt.Errorf("the step's answers are not pairs: %s", pairs)
-	}
-	for i := 0; i < len(list); i += 2 {
-		if got, ok := r.Answers[list[i]]; !ok || got != list[i+1] {
-			return fmt.Errorf("the record has the answer %s as %q, not %q", list[i], got, list[i+1])
-		}
-	}
-	return nil
-}
-
-// recordNamesCommits is whether the record names, for each branch, the
-// commit the fixture template's branch is at, and no other branch.
-func (w *world) recordNamesCommits(dir, branches string) error {
-	r, err := w.record(dir)
-	if err != nil {
-		return err
-	}
-	want := map[string]string{}
-	for _, branch := range quotedList(branches) {
-		sha, err := w.gitOut(w.templateDir, "rev-parse", "refs/heads/"+branch)
-		if err != nil {
-			return err
-		}
-		want[branch] = sha
-	}
-	if len(r.Commits) != len(want) {
-		return fmt.Errorf("the record names the commits %v, not %v", r.Commits, want)
-	}
-	for branch, sha := range want {
-		if r.Commits[branch] != sha {
-			return fmt.Errorf("the record names %s at %q, not %s", branch, r.Commits[branch], sha)
-		}
 	}
 	return nil
 }

@@ -385,10 +385,15 @@ func setEnv(env []string, name, value string) []string {
 
 // runEnv runs program in the folder dir in the environment env, its exit
 // code and output what the Then steps read.
+//
+// PWD is dir, as a shell sets it for the folder a person is in: without it
+// the program would read the caller's, and go's os.Getwd would fall back to
+// the folder with its symlinks resolved, /private/var for macOS's /var,
+// which names the folder as no path the scenario gives does.
 func (w *world) runEnv(dir string, env []string, program string, args ...string) error {
 	cmd := exec.Command(program, args...)
 	cmd.Dir = dir
-	cmd.Env = env
+	cmd.Env = setEnv(env, "PWD", dir)
 	var stdout, stderr strings.Builder
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
