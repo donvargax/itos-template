@@ -147,6 +147,76 @@ Feature: new makes a project from a template
     Then it exits with code 0
     And the record in "made" names the template as "{template}"
 
+  # releases: decision 9 has new render a template's newest release by default and --ref pick
+  # one; decision 36 says what a release is. One version tagged <branch>/<version> on every
+  # branch the manifest lists, the root included (main/v1.2.0, stack/go/v1.2.0, go/cli/v1.2.0),
+  # so no template tag reads as a project's own vX.Y.Z. A release is complete when every listed
+  # branch carries its tag. The newest is the highest stable semver that is complete: a
+  # pre-release only when --ref names it, an incomplete release skipped by default and refused
+  # when named. A template with no release renders its branch heads, as before releases existed
+  # (decision 21), and says so on its error output. The record names the release beside the
+  # branch commits, which stay what reproduces a render (decision 10); with no release it names
+  # none. A --ref no release has is the person's mistake, exit 2, as adopt has it; an incomplete
+  # release is the template's, exit 1, naming the branch without its tag.
+  #
+  # The fixture "acme released": acme, then three releases, v1.0.0, v1.1.0 and v1.2.0-rc.1, each
+  # committing release.txt holding its version on main, merging main down into every branch and
+  # tagging every branch <branch>/<version>; then every branch moved one commit past the last,
+  # release.txt holding heads. A render's release.txt says which it came from.
+  @ID-NEW-58 @releases @wip
+  Scenario: new renders the newest complete stable release by default and records it
+    Given the template "acme" released as "v1.0.0", "v1.1.0" and "v1.2.0-rc.1"
+    When itos-template runs with "new {template} made --stack go --feature cli --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And the file "made/release.txt" contains "v1.1.0"
+    And the record in "made" names the release "v1.1.0"
+
+  @ID-NEW-59 @releases @wip
+  Scenario Outline: new renders the release --ref names, a pre-release too
+    Given the template "acme" released as "v1.0.0", "v1.1.0" and "v1.2.0-rc.1"
+    When itos-template runs with "new {template} made --stack go --feature cli --answer name=blue-fox --defaults --ref <ref>"
+    Then it exits with code 0
+    And the file "made/release.txt" contains "<ref>"
+    And the record in "made" names the release "<ref>"
+
+    Examples:
+      | ref         |
+      | v1.0.0      |
+      | v1.2.0-rc.1 |
+
+  @ID-NEW-60 @releases @wip
+  Scenario: new refuses a --ref no release has with exit 2, naming it, and writes nothing
+    Given the template "acme" released as "v1.0.0", "v1.1.0" and "v1.2.0-rc.1"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults --ref v9.9.9"
+    Then it exits with code 2
+    And its error output says "v9.9.9"
+    And the path "made" does not exist
+
+  @ID-NEW-61 @releases @wip
+  Scenario: an incomplete release is skipped by default, the newest complete one rendered
+    Given the template "acme" released as "v1.0.0", "v1.1.0" and "v1.2.0-rc.1", without the tag "go/cli/v1.1.0"
+    When itos-template runs with "new {template} made --stack go --feature cli --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And the file "made/release.txt" contains "v1.0.0"
+    And the record in "made" names the release "v1.0.0"
+
+  @ID-NEW-62 @releases @wip
+  Scenario: new refuses an incomplete release --ref names with exit 1, naming the branch without its tag
+    Given the template "acme" released as "v1.0.0", "v1.1.0" and "v1.2.0-rc.1", without the tag "go/cli/v1.1.0"
+    When itos-template runs with "new {template} made --stack go --feature cli --answer name=blue-fox --defaults --ref v1.1.0"
+    Then it exits with code 1
+    And its error output says "go/cli"
+    And its error output says "v1.1.0"
+    And the path "made" does not exist
+
+  @ID-NEW-63 @releases @wip
+  Scenario: a template with no release renders its branch heads, says so, and records no release
+    Given the template "acme"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And its error output says "no release"
+    And the record in "made" names no release
+
   @ID-NEW-08 @slice-1
   Scenario: new takes a template by a git URL as by a path
     Given the template "acme"

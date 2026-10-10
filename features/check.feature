@@ -162,6 +162,23 @@ Feature: check renders every combination a template allows and runs its checks
       | its top     | .                 |
       | a subfolder | .github/workflows |
 
+  # releases: check proves a template's branch heads by default, what itos-template release will
+  # tag, so a template's CI checks the push in front of it; --ref proves a release, as new renders
+  # one (new.feature's ID-NEW-58 says what a release is). The person's call, 2026-10-09, over
+  # check defaulting to the newest release as new does. The fixture's root check fails unless a
+  # render's release.txt holds the text it names, heads at the branch heads.
+  @ID-CHECK-27 @releases @wip
+  Scenario Outline: check proves <what>
+    Given the template "acme" released as "v1.0.0", "v1.1.0" and "v1.2.0-rc.1", whose root check fails unless release.txt holds "<text>"
+    When itos-template runs with "check {template} --answer name=blue-fox --defaults <args>"
+    Then it exits with code 0
+    And its report says "go + cli" passed
+
+    Examples:
+      | what                        | args         | text   |
+      | the branch heads by default |              | heads  |
+      | the release --ref names     | --ref v1.0.0 | v1.0.0 |
+
   @ID-CHECK-08 @slice-2
   Scenario: check refuses a template git cannot reach with exit 3, naming it
     When itos-template runs with "check nosuch-template --answer name=blue-fox --defaults"
