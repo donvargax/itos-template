@@ -959,7 +959,7 @@ items:
     title: A made project left with the template's itos setup step run is a sound itos project
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: [new-steps, T-27]
     kind: slice
     why: >
