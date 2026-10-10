@@ -834,3 +834,33 @@
         grep -q 'test $? -eq 1' AGENTS.md &&
         { git grep -P -n -I '[\p{Cf}\p{Zl}\p{Zp}]'; test $? -eq 1; } &&
         ! { git grep -P -n -I '[\p{Cf}' 2>/dev/null; test $? -eq 1; }
+- id: T-34
+  type: ci
+  title: "Pin itos 7.0.0-rc.3, with the code proof judged as a step of every CI run"
+  why: >
+    Was proof-in-ci, whose why said to pin the release that carries it. The itos on the PATH is
+    7.0.0-rc.3 and this repository pins rc.1, so every run prints that they differ. rc.3's one
+    breaking change is the one asked for in donvargax/itos#28: the code proof runs as a step of a
+    CI run and leaves itos work done. Pinning rc.3 without the step would drop the proof from
+    every item that touches cmd or internal, which is weakening a gate, so the two land together:
+    itos pin 7.0.0-rc.3 (the version and the checksum of its checksums.txt); the code proof a step
+    of itos.yaml's plan as rc.3 declares one, its check still proof.code.check, judged on every
+    push whose range touches proof.code.paths; and every donvargax/itos action in ci.yml and
+    release.yml pinned to rc.3's commit, 415df6017f451beef8d6e12ea15e8b638f625f1a, with its tag
+    in the comment. rc.3's action installs the launcher of the release its ref names, so the
+    version: 6.0.0 lines go, and the idea launcher-version with them. Agents still run the
+    mutation run and commit .metrics/mutate/ before their last push; what changes is who judges
+    it, so AGENTS.md's Finishing section says CI judges the proof rather than work done, and its
+    rules block is regenerated. Read rc.2's and rc.3's notes for anything else that changes what
+    this repository runs, and itos#20's fix: if a release already pinned carries it, delete the
+    lesson whose exit it is in the same push. Prove the proof step can fail: on a scratch branch
+    never pushed, a range holding a code change with no fresh .metrics/mutate/ fails the plan.
+  done_when:
+    - run: >-
+        grep -q '"7.0.0-rc.3"' itos.yaml &&
+        ! git grep -q 1b9f1f9995be5d20aed3b4f8877a453bbd1e98a3 -- .github &&
+        git grep -q 415df6017f451beef8d6e12ea15e8b638f625f1a -- .github/workflows/ci.yml &&
+        git grep -q 415df6017f451beef8d6e12ea15e8b638f625f1a -- .github/workflows/release.yml &&
+        ! git grep -q 'version: 6.0.0' -- .github &&
+        itos ci plan --whole > /dev/null &&
+        itos ci plan --whole 2>&1 | grep -qi 'proof'
