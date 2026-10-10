@@ -134,7 +134,7 @@ Feature: check renders every combination a template allows and runs its checks
   # bug-4: the same message as new's, built in one place (internal/cli/codes.go), so the
   # credential a URL's userinfo holds would reach check's error output too. Same closed
   # local port, so no network and no token leaves the machine.
-  @ID-CHECK-23 @bug-4 @wip
+  @ID-CHECK-23 @bug-4
   Scenario: a template URL's credential never reaches check's error output
     When itos-template runs with "check https://x-access-token:ghp_EXAMPLETOKENNOTREAL@127.0.0.1:1/acme.git --answer name=blue-fox --defaults"
     Then it exits with code 3

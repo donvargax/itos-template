@@ -283,6 +283,13 @@ Feature: new makes a project from a template
   # redacts it in its own fatal line; we do not. The name is still named, as ID-NEW-19
   # holds, only without its userinfo. 127.0.0.1 on a closed port refuses at once, so the
   # run needs no network and sends the token nowhere.
+  @ID-NEW-41 @bug-4
+  Scenario: a template URL's credential never reaches new's error output
+    When itos-template runs with "new https://x-access-token:ghp_EXAMPLETOKENNOTREAL@127.0.0.1:1/acme.git made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"
+    Then it exits with code 3
+    And its error output does not say "ghp_EXAMPLETOKENNOTREAL"
+    And its error output says "127.0.0.1:1/acme.git"
+    And the path "made" does not exist
 
   # ADR-0034: the itos setup a made project needs is the template's own declaration, a root
   # setup step naming itos init --agent-rules, through the setup steps ADR-0007 decided. The
@@ -479,14 +486,6 @@ Feature: new makes a project from a template
       | a Hangul filler               | U+3164 |
       | the combining grapheme joiner | U+034F |
       | a variation selector          | U+FE0F |
-
-  @ID-NEW-41 @bug-4 @wip
-  Scenario: a template URL's credential never reaches new's error output
-    When itos-template runs with "new https://x-access-token:ghp_EXAMPLETOKENNOTREAL@127.0.0.1:1/acme.git made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"
-    Then it exits with code 3
-    And its error output does not say "ghp_EXAMPLETOKENNOTREAL"
-    And its error output says "127.0.0.1:1/acme.git"
-    And the path "made" does not exist
 
   # slice-3 (the idea scenario-gaps): what only tests outside the domain held
   # after T-9 (decision 19), each scenario reading the exit code, the rule

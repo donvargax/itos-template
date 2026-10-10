@@ -157,3 +157,48 @@ func TestARefusalEchoesWhatThePersonGaveEscaped(t *testing.T) {
 		}
 	}
 }
+
+// A template URL's credential never reaches what we print (bug-4): not
+// through the name it was given, nor through what git said of it, which a
+// git that echoes the userinfo, or a git command failing with nothing on
+// its standard error and so named by its arguments, would carry. ID-NEW-41
+// and ID-CHECK-23 hold the name on the real git, whose fatal line leaves
+// the userinfo out; the rest is held here, on stderr, in --json and in the
+// message check's report shows, with the scenarios' fake token.
+func TestNoMessageEchoesATemplateURLsCredential(t *testing.T) {
+	const token = "ghp_EXAMPLETOKENNOTREAL"
+	name := "https://x-access-token:" + token + "@127.0.0.1:1/acme.git"
+	echoed := &git.Failed{Args: []string{"clone"}, Code: 128, Stderr: "fatal: unable to access '" + name + "/': refused\n"}
+	silent := &git.Failed{Args: []string{"clone", "--bare", "--quiet", "--", name, "t.git"}, Code: 128}
+	cases := []struct {
+		err     error
+		message string
+	}{
+		{&git.Unreachable{Name: name, Err: echoed}, "git cannot reach the template https://127.0.0.1:1/acme.git: fatal: unable to access 'https://127.0.0.1:1/acme.git/': refused. Name a path or a URL git clone takes."},
+		{&git.Unreachable{Name: name, Err: silent}, "git cannot reach the template https://127.0.0.1:1/acme.git: git clone --bare --quiet -- https://127.0.0.1:1/acme.git t.git exited 128. Name a path or a URL git clone takes."},
+		{&template.NoRoot{Template: name}, "the template https://127.0.0.1:1/acme.git has no default branch to read its manifest, itos-template.yaml, from"},
+		{&template.EmptyRoot{Template: name, Root: "main"}, "the template https://127.0.0.1:1/acme.git's default branch, main, has no commit to read its manifest, itos-template.yaml, from"},
+		{&template.NoManifest{Template: name, Root: "main"}, "the template https://127.0.0.1:1/acme.git has no itos-template.yaml on its root branch, main: a template names its stacks, features and questions there (docs/manifest.md)"},
+		{silent, "git clone --bare --quiet -- https://127.0.0.1:1/acme.git t.git exited 128"},
+		{fmt.Errorf("cloning %s: %w", name, errors.New("cause")), "cloning https://127.0.0.1:1/acme.git: cause"},
+		{errors.Join(&template.NoRoot{Template: name}, &template.NoRoot{Template: name}), "the template https://127.0.0.1:1/acme.git has no default branch to read its manifest, itos-template.yaml, from\nthe template https://127.0.0.1:1/acme.git has no default branch to read its manifest, itos-template.yaml, from"},
+	}
+	for _, c := range cases {
+		if got := Message(c.err); got != c.message {
+			t.Errorf("%T says\n%s, not\n%s", c.err, got, c.message)
+		}
+		var stdout, stderr strings.Builder
+		(&UI{Stdout: &stdout, Stderr: &stderr}).Fail(c.err, true)
+		if strings.Contains(stdout.String(), token) || strings.Contains(stderr.String(), token) {
+			t.Errorf("%T prints the token: --json %s, stderr %s", c.err, stdout.String(), stderr.String())
+		}
+	}
+	var stdout, stderr strings.Builder
+	(&UI{Stdout: &stdout, Stderr: &stderr}).Usage(fmt.Errorf("unexpected argument %s", name), true)
+	if want := "itos-template: unexpected argument https://127.0.0.1:1/acme.git\n"; stderr.String() != want {
+		t.Errorf("a usage error says\n%s, not\n%s", stderr.String(), want)
+	}
+	if strings.Contains(stdout.String(), token) {
+		t.Errorf("a usage error's --json prints the token: %s", stdout.String())
+	}
+}

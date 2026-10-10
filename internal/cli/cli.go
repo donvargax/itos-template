@@ -97,7 +97,7 @@ func (u *UI) Fail(err error, withJSON bool) int {
 // Usage reports err, a command line kong could not parse, as Fail does: a
 // usage error, exit 2. kong's own code for one is 80.
 func (u *UI) Usage(err error, withJSON bool) int {
-	return u.fail([]Problem{{Rule: "usage", Message: err.Error()}}, CodeUsage, withJSON)
+	return u.fail([]Problem{{Rule: "usage", Message: template.Redact(err.Error())}}, CodeUsage, withJSON)
 }
 
 func (u *UI) fail(problems []Problem, code int, withJSON bool) int {
@@ -147,12 +147,18 @@ func Message(err error) string {
 }
 
 // report is every problem of err, joined ones each on its own, and the exit
-// code of them all: the highest.
+// code of them all: the highest. Each message has the userinfo of every URL
+// in it left out (template.Redact, bug-4), the name a template was given
+// and what git said of it alike: a credential the person gave git is never
+// ours to print, on stderr, in --json or in check's report.
 func report(err error) ([]Problem, int) {
 	var problems []Problem
 	code := 0
 	for _, e := range leaves(err) {
 		c, p := classify(e)
+		for i := range p {
+			p[i].Message = template.Redact(p[i].Message)
+		}
 		problems = append(problems, p...)
 		code = max(code, c)
 	}
