@@ -1255,3 +1255,16 @@ items:
       error, exit 70, after the renders were written as unreferenced objects; the index and the
       working tree stay as they were. Found building slice-13.
     tags: [update]
+  - id: update-lost-commit
+    title: update names a recorded commit the template no longer holds
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [slice-13]
+    kind: idea
+    why: >
+      update renders the old release from the record's branch commits. When the template's history
+      no longer holds one (a rewritten branch, a shallow mirror), the old render's manifest read
+      fails and update says the root branch has no manifest, naming the commit, which reads as the
+      template's defect rather than a record the template cannot reproduce. Found building slice-13.
+    tags: [update]
