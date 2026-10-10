@@ -1199,3 +1199,14 @@ items:
       Once slice-12 lands, a dry-run adopt of this repository against go-template-itos is the cheap
       first look, nothing written, at whether the preview reads well on a project this size. Becomes
       a task, naming the release it adopts, once slice-13 lands. The person agreed 2026-10-10.
+  - id: update-preview
+    title: itos-template update --dry-run previews what an update would change and where it would conflict, writing nothing
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [slice-13]
+    kind: idea
+    why: >
+      Left out of slice-13 to keep it small: adopt has --dry-run (slice-12), update does not yet.
+      git merge-tree --write-tree already computes the merge without touching the tree, so a preview
+      is cheap once the merge exists.
