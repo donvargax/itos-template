@@ -13,6 +13,16 @@ import (
 // switch that leaves one out. A choice's problems come joined
 // (errors.Join), every one of them, so one run names all there are to fix.
 //
+// An Error's own message is read wherever one is shown unclassified, as a
+// joined error is. A stack or a feature the person named and the template
+// lacks is quoted with every character outside ASCII escaped (%+q), as
+// package answer quotes theirs (bug-5): a Hangul filler or a right-to-left
+// override in it reaches the reader as an escape, never as itself. What the
+// template's own manifest and branches give (a stack or feature found in
+// it, a branch, a root, a path) is the template's and kept as it is. The
+// template's name, the path or URL the person gave, is kept too: how a
+// refusal echoes a path is the person's call (echo-paths-escaped).
+//
 //sumtype:decl
 type Error interface {
 	error
@@ -97,11 +107,9 @@ func (*NoBranch) templateError()        {}
 func (*MergeConflict) templateError()   {}
 func (*HoldsRecord) templateError()     {}
 
-func (e *NoStack) Error() string      { return "no stack chosen" }
-func (e *UnknownStack) Error() string { return "no stack " + e.Name }
-func (e *UnknownFeature) Error() string {
-	return "no feature " + e.Name
-}
+func (e *NoStack) Error() string        { return "no stack chosen" }
+func (e *UnknownStack) Error() string   { return fmt.Sprintf("no stack %+q", e.Name) }
+func (e *UnknownFeature) Error() string { return fmt.Sprintf("no feature %+q", e.Name) }
 func (e *OtherStack) Error() string {
 	return fmt.Sprintf("the feature %s of another stack than %s", e.Feature.Branch(), e.Stack)
 }
