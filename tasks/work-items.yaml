@@ -1009,18 +1009,9 @@ items:
     title: An answer holding a control or invisible character is refused, wherever it would land
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: [setup-blank]
     kind: slice
-    why: >
-      Was setup-answer-controls.
-      new-steps refuses a control character in a manifest's setup word, since an escape sequence can
-      make a terminal show another step than the one pasted. A question with no pattern takes any
-      answer, so an answer holding one (from --answer, or a script's) reaches a printed step after
-      substitution, inside single quotes but raw. The answer is the person's own, so less a threat
-      than the template's, yet the printed line can still mislead or break a terminal. Settle in a
-      scenario: refuse such an answer where it lands in a step, or refuse a control character in any
-      answer.
   - id: setup-invisible
     title: The manifest refuses a setup step word holding a format character or a Unicode line separator
     phase: 1
