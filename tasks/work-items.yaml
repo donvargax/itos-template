@@ -213,7 +213,7 @@ items:
     phase: 1
     owner: null
     status: todo
-    depends_on: [slice-1, update-merges, template-releases]
+    depends_on: [slice-1, template-releases]
     kind: slice
     why: >
       Was adopt.
