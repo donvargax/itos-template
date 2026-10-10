@@ -1057,3 +1057,17 @@ items:
       Zl and Zp (a BOM at the very start excepted, or not), names the file, line and code point.
       Weigh a tool that exists (a gitleaks or golangci-lint rule, bidichk in golangci-lint covers
       only the bidi controls in Go) against a few lines of ours, with the person, per decision 13.
+  - id: invisible-gate-error-passes
+    title: The invisible-character step passes when git grep itself fails
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      T-32's step, ! git grep -P -n -I '[\p{Cf}\p{Zl}\p{Zp}]', inverts every non-zero exit, so git
+      grep's own error (exit 128) reads as a pass: a git built without PCRE2, as some local clones'
+      are, or a broken pattern after an edit, turns the gate off silently. Seen while proving T-32:
+      a pattern missing its closing bracket exits 0. A step that passes only on git grep's exit 1
+      (no match) and fails on 0 and on anything else would hold; whether itos's ci step should
+      express that, or a tools/bin script of ours, is the person's call (decision 13).
