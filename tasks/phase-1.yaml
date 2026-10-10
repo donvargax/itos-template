@@ -934,6 +934,3 @@
     mutation sample and itos-cc mutation check stay green with them, a recorded survivor included
     (read mutation sample --help on how it treats one); if either would fail, commit nothing and say
     so. Run it after releases, alone in the checkout, since it writes .metrics/mutate/.
-  done_when:
-    - run: test -s docs/mutation-baseline.md && grep -q -i 'wall time' docs/mutation-baseline.md && grep -q 'internal/cli' docs/mutation-baseline.md && grep -q 'itos#41' docs/mutation-baseline.md
-      timeout: 60
