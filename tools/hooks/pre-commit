@@ -1,8 +1,9 @@
 #!/bin/sh
-# The pre-commit hook: the linters and the vulnerability check, at the
-# versions pinned here, over the module. itos's own hooks (commit-msg and
-# pre-push) are declared by itos hook install; this one is the project's,
-# declared once in each clone (README.md):
+# The pre-commit hook: the invisible-character gate over what is staged, then
+# the linters and the vulnerability check, at the versions pinned here, over
+# the module. itos's own hooks (commit-msg and pre-push) are declared by itos
+# hook install; this one is the project's, declared once in each clone
+# (README.md):
 #
 #   git config hook.itos-template-pre-commit.event pre-commit
 #   git config hook.itos-template-pre-commit.command tools/hooks/pre-commit
@@ -11,9 +12,37 @@
 # (Git for Windows' on Windows).
 set -eu
 
-# Prose and itos's own data need neither: Markdown, docs/**, tasks/** (the
-# ledger and the work registry) and feature files. itos.yaml, the ledger, the
-# registry and the smoke set are checked by itos's commit-msg hook.
+# Invisible characters in what is staged (T-35), before the slower lint: the
+# pattern of CI's gate (itos.yaml's ci.steps), over the index rather than the
+# tracked files, so a character the editing tool wrote is refused before the
+# commit leaves the clone. Unicode's Default_Ignorable_Code_Point set, what a
+# renderer draws as nothing, letters and marks included, beside a format
+# character (Cf, kept for the few that set leaves out) and a line or paragraph
+# separator (Zl, Zp). It runs over every staged file, prose included. It passes
+# on git grep's "none found" alone, exit 1: a match is 0, and git grep's own
+# error, above 1, refuses the commit too. So a git built without PCRE2, or
+# whose PCRE2 lacks the property, refuses every commit, on Linux, macOS and
+# Windows alike, and is meant to: a gate that cannot look must not pass. Use a
+# git that has it (Git for Windows' does, as do most Linux distributions' and
+# Homebrew's).
+invisible=0
+git grep --cached -P -n -I '[\p{Cf}\p{Default_Ignorable_Code_Point}\p{Zl}\p{Zp}]' >&2 || invisible=$?
+case $invisible in
+1) ;;
+0)
+	printf '%s\n' 'pre-commit: the lines above hold an invisible character; write it as an escape (\uXXXX), never literally.' >&2
+	exit 1
+	;;
+*)
+	printf 'pre-commit: git grep failed (exit %s), so the staged files were not checked for invisible characters.\n' "$invisible" >&2
+	exit 1
+	;;
+esac
+
+# Prose and itos's own data need neither the linters nor the vulnerability
+# check: Markdown, docs/**, tasks/** (the ledger and the work registry) and
+# feature files. itos.yaml, the ledger, the registry and the smoke set are
+# checked by itos's commit-msg hook.
 if [ -z "$(git diff --cached --name-only --diff-filter=ACMRD -- . ':(exclude)*.md' ':(exclude)docs/**' ':(exclude)tasks/**' ':(exclude)features/**/*.feature')" ]; then
 	exit 0
 fi
