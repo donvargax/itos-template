@@ -56,3 +56,8 @@ Each lesson names its exit and its two dates; at most ten.
 - **No commit body line starts `with #,`** (2026-10-08, seen 2026-10-08). itos's lint then warns
   that the footers have no blank line before them, though they do (bug-3's c6cd810), and agents
   reword correct bodies around it. Briefs say so. Exit: itos#21 fixed and pinned.
+- **A throwaway repository is committed with `git -C <dir> commit`** (2026-10-09, seen
+  2026-10-09). The itos plugin's guard judges `cd <dir> && git commit` by the session's folder,
+  this repository, and denies it, so new-steps' agent fell back to `git commit-tree`. The guard
+  follows `-C`, and a folder itos does not manage gets no answer. Briefs say so. Exit: itos#34
+  fixed and pinned.
