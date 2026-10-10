@@ -37,6 +37,11 @@ type world struct {
 	named []string // the combinations of check's report the scenario named
 
 	rootSetup string // the root's setup step the scenario's template lists, as it was given
+
+	released  string                      // the release the scenario's project matches
+	selection []string                    // the template's branches the scenario's project was rendered from
+	snapshots map[string]map[string]entry // each folder's saved snapshot
+	trash     string                      // where the scenario moves what it takes out of the way
 }
 
 func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
@@ -48,6 +53,9 @@ func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
 	// reported twice, as the hook's and as the step's.
 	sc.After(func(ctx context.Context, _ *godog.Scenario, _ error) (context.Context, error) {
 		_ = os.RemoveAll(w.dir)
+		if w.trash != "" {
+			_ = os.RemoveAll(w.trash)
+		}
 		return ctx, nil
 	})
 
@@ -64,8 +72,13 @@ func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
 		}
 		return nil
 	})
+	// A line lists text when it is text, and, for this step, when text is
+	// one of its words: a list of paths with what each is, "project-only
+	// own.txt", lists own.txt as a list of words does.
 	sc.Step(`^its standard output does not list "([^"]*)"$`, func(text string) error {
-		if slices.Contains(outputLines(w.stdout), text) {
+		if slices.ContainsFunc(outputLines(w.stdout), func(line string) bool {
+			return line == text || slices.Contains(strings.Fields(line), text)
+		}) {
 			return fmt.Errorf("standard output lists %q\n%s", text, w.report())
 		}
 		return nil
@@ -99,6 +112,7 @@ func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
 	w.newSteps(sc)
 	w.checkSteps(sc)
 	w.releaseSteps(sc)
+	w.adoptSteps(sc)
 }
 
 // setUp makes the scenario's scratch repository, an empty git repository on
@@ -288,6 +302,11 @@ func (w *world) run(dir, program string, args ...string) error {
 // runWith runs itos-template in the scratch repository with args, split
 // before {template} is expanded, in the environment env.
 func (w *world) runWith(env []string, args string) error {
+	return w.runWithIn(w.dir, env, args)
+}
+
+// runWithIn is runWith in the folder dir.
+func (w *world) runWithIn(dir string, env []string, args string) error {
 	fields, err := commandWords(args)
 	if err != nil {
 		return err
@@ -295,7 +314,7 @@ func (w *world) runWith(env []string, args string) error {
 	for i, f := range fields {
 		fields[i] = w.expand(f)
 	}
-	return w.runEnv(w.dir, env, w.bin, fields...)
+	return w.runEnv(dir, env, w.bin, fields...)
 }
 
 // commandWords splits a scenario's command line without involving a shell.

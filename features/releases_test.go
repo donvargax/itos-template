@@ -143,6 +143,13 @@ func (w *world) mergeDown(dir string, branches []branch, text string) error {
 	if err := w.gitIn(dir, "commit", "-q", "-m", "Release "+text); err != nil {
 		return err
 	}
+	return w.mergeInto(dir, branches)
+}
+
+// mergeInto merges, in the template in dir, each branch's start into it, in
+// the order branches lists them, so what the root holds reaches every
+// branch.
+func (w *world) mergeInto(dir string, branches []branch) error {
 	for _, b := range branches[1:] {
 		if err := w.gitIn(dir, "checkout", "-q", b.name); err != nil {
 			return err
