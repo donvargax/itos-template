@@ -1157,3 +1157,19 @@ items:
       green with them, a recorded survivor included (read mutation sample --help on how it treats
       one); if either would fail, commit nothing and say so. Run it after releases, alone in the
       checkout, since it writes .metrics/mutate/.
+  - id: record-answer-tab
+    title: A record whose answer holds a tab and a newline reads back
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Found by T-39's baseline mutation run on 2026-10-10: the property
+      TestARecordWrittenAndReadBackIsTheSameRecord (internal/project) failed after 90 of rapid's
+      default 100 cases on the record drawn with Answers {"a": "\t\n"}, Template "A", Stack "0",
+      Features ["0"], one commit. Write puts it in the made project's record, which then does not
+      read: yaml line 12, found a tab character where an indentation space is expected. So new can
+      write a record that update cannot read when an answer is a tab then a newline. Seed
+      3687866012010028852; it failed once in the coverage run and 0 times in 30 reruns at 100 cases,
+      so CI's one case a push rarely meets it. A fix item: a bug scenario first.
