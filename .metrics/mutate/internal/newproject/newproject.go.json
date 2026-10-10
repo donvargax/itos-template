@@ -1,0 +1,143 @@
+{
+  "version": 1,
+  "file": "internal/newproject/newproject.go",
+  "language": "go",
+  "tests": {
+    "cmd/itos-template/main_test.go": "9e36580f77a88e3eadeed409f12517b12aa45a208524ec9f57b449d35cb7ed59",
+    "internal/newproject/newproject_test.go": "1fb9a8d9a0257b54475f5c08f84a0c906f85a58d15c53d7b6ee31af714fe7a40"
+  },
+  "units": [
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/newproject.CLI",
+      "name": "Help",
+      "hash": "d74d675b674777a8",
+      "start_line": 58,
+      "end_line": 72,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/newproject.CLI",
+      "name": "Run",
+      "hash": "2f3760251c6e9115",
+      "start_line": 77,
+      "end_line": 89,
+      "killed": 1,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 1,
+      "mutants": [
+        {
+          "line": 85,
+          "column": 9,
+          "offset": 266,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/newproject",
+      "name": "printSetup",
+      "hash": "9ca974939d2336b5",
+      "start_line": 118,
+      "end_line": 126,
+      "killed": 2,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 2,
+      "mutants": [
+        {
+          "line": 119,
+          "column": 16,
+          "offset": 87,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 119,
+          "column": 19,
+          "offset": 90,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/newproject",
+      "name": "Handle",
+      "hash": "4046a90efdcfd3ea",
+      "start_line": 144,
+      "end_line": 172,
+      "killed": 6,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 6,
+      "mutants": [
+        {
+          "line": 147,
+          "column": 9,
+          "offset": 188,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 151,
+          "column": 9,
+          "offset": 284,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 156,
+          "column": 9,
+          "offset": 427,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 160,
+          "column": 9,
+          "offset": 513,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 164,
+          "column": 9,
+          "offset": 652,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 168,
+          "column": 9,
+          "offset": 753,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    }
+  ]
+}

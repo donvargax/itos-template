@@ -1,0 +1,243 @@
+{
+  "version": 1,
+  "file": "internal/manifest/setup.go",
+  "language": "go",
+  "tests": {
+    "internal/answer/answer_test.go": "98a906bfc6fb6e4a7cb0c0ca78145a7c76d3613b7e1fe4cceb7ae36a0c5f4de0",
+    "internal/answer/property_test.go": "9236f807a05507a0cd5fd1d9792bb72ad0d54b9e176c987161bbf28f926fbd26",
+    "internal/cli/cli_test.go": "94f672872f685eadc6bccac62ce19685f1c5a260b4474c103f3dfb63ff2aaf5d",
+    "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
+    "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
+    "internal/manifest/manifest_test.go": "24e51bc3207389d491350fd9f081b9b1269858e5ba7a1ebbf97940bc34c1c510",
+    "internal/manifest/property_test.go": "f94ec42da7843087706957fc590194e1049302b2bb10f4203ad349a6117b2e17",
+    "internal/manifest/shell_test.go": "b7038b14982dfe57bf22ba1b0c47deac4476ace8ae50eae39f1d9dc7404c8527",
+    "internal/newproject/newproject_test.go": "1fb9a8d9a0257b54475f5c08f84a0c906f85a58d15c53d7b6ee31af714fe7a40",
+    "internal/template/check_test.go": "6b408881490821ea2726f0e2820f1b3479116d53e8f91c91860f6778dff0b0f1",
+    "internal/template/choose_test.go": "3f099f90d705b4f635377a4f1f20634e645221961545cdf088dab9ea7bbe1368",
+    "internal/template/property_test.go": "a0fcdbaa3c137e4ebc37d7c13817e3f24a2f088c5b8d51a4ed394c8003be18a4",
+    "internal/template/template_test.go": "298134f337ce8b115d7995d1b00cf8fc725fae4c624b11bec01346b4a85c54c4"
+  },
+  "units": [
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/manifest.Step",
+      "name": "UnmarshalYAML",
+      "hash": "1c320540d0a89b16",
+      "start_line": 23,
+      "end_line": 31,
+      "killed": 1,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 1,
+      "mutants": [
+        {
+          "line": 24,
+          "column": 12,
+          "offset": 62,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/manifest.Step",
+      "name": "MarshalYAML",
+      "hash": "98a5aad2a2ac3a14",
+      "start_line": 34,
+      "end_line": 34,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/manifest.Manifest",
+      "name": "checkSetup",
+      "hash": "eaab7d4039b8d251",
+      "start_line": 42,
+      "end_line": 66,
+      "killed": 18,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 18,
+      "mutants": [
+        {
+          "line": 44,
+          "column": 12,
+          "offset": 113,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 44,
+          "column": 19,
+          "offset": 120,
+          "original": "&&",
+          "replacement": "||",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 44,
+          "column": 32,
+          "offset": 133,
+          "original": "<",
+          "replacement": "<=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 48,
+          "column": 23,
+          "offset": 262,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 48,
+          "column": 26,
+          "offset": 265,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 48,
+          "column": 28,
+          "offset": 267,
+          "original": "||",
+          "replacement": "&&",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 48,
+          "column": 42,
+          "offset": 281,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 48,
+          "column": 45,
+          "offset": 284,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 49,
+          "column": 100,
+          "offset": 391,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 49,
+          "column": 101,
+          "offset": 392,
+          "original": "1",
+          "replacement": "0",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 52,
+          "column": 61,
+          "offset": 497,
+          "original": ">=",
+          "replacement": ">",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 52,
+          "column": 64,
+          "offset": 500,
+          "original": "0",
+          "replacement": "1",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 54,
+          "column": 198,
+          "offset": 749,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 54,
+          "column": 199,
+          "offset": 750,
+          "original": "1",
+          "replacement": "0",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 61,
+          "column": 20,
+          "offset": 858,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 61,
+          "column": 27,
+          "offset": 865,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 64,
+          "column": 22,
+          "offset": 937,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 64,
+          "column": 33,
+          "offset": 948,
+          "original": "+",
+          "replacement": "-",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/manifest.Manifest",
+      "name": "SetupOf",
+      "hash": "dc9a0fe377b36005",
+      "start_line": 71,
+      "end_line": 73,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    }
+  ]
+}

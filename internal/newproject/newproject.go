@@ -85,7 +85,13 @@ func (c *CLI) Run(ui *cli.UI) int {
 	if err != nil {
 		return ui.Fail(err, c.JSON)
 	}
-	if c.JSON {
+	return show(ui, p, steps, c.JSON)
+}
+
+// show shows what new made, p, and the setup steps it leaves the person to
+// run: a line or with --json its object on stdout, then the steps.
+func show(ui *cli.UI, p *project.Project, steps []manifest.Words, withJSON bool) int {
+	if withJSON {
 		ui.JSON(struct {
 			Schema int  `json:"schema"`
 			OK     bool `json:"ok"`

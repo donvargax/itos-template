@@ -595,3 +595,27 @@ func TestASetupStepIsWrittenAsItsWords(t *testing.T) {
 		t.Errorf("written out, the manifest reads\n%s", data)
 	}
 }
+
+func TestParseSaysAQuestionIsListedTwice(t *testing.T) {
+	_, err := Parse([]byte("version: 1\nstacks: [{name: go}]\nquestions: [{name: a, literal: x, question: Q}, {name: a, literal: y, question: Q}]\n"))
+	var invalid *Invalid
+	if !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, []string{"the question a is listed twice"}) {
+		t.Errorf("Parse = %v", err)
+	}
+}
+
+// A template_only path is relative to the template's top, written with /
+// and as path.Clean writes it, each refused alone for what it is.
+func TestParseRefusesATemplateOnlyPathNotInTheTemplate(t *testing.T) {
+	for _, p := range []string{"", "/ci.yml", `.github\ci.yml`, "docs/", "./ci.yml", "a//b", ".", "..", "../ci.yml"} {
+		_, err := Parse([]byte("version: 1\nstacks: [{name: go}]\ntemplate_only: [" + strconv.Quote(p) + "]\n"))
+		var invalid *Invalid
+		want := []string{"the template_only path " + strconv.Quote(p) + " is not a path in the template: write it relative to its top, with /"}
+		if !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, want) {
+			t.Errorf("%q: Parse = %v", p, err)
+		}
+	}
+	if _, err := Parse([]byte("version: 1\nstacks: [{name: go}]\ntemplate_only: [.github/workflows/ci.yml, docs]\n")); err != nil {
+		t.Errorf("paths in the template refused: %v", err)
+	}
+}
