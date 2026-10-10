@@ -1013,3 +1013,18 @@ items:
       fails or cannot start leaves (the render is committed before any step, so it stands), whether
       later steps still run, and the exit code; ADR-0031's consequences describe the failing case
       under --trust.
+  - id: setup-answer-controls
+    title: A setup step an answer gives a control character is not printed raw
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [new-steps]
+    kind: idea
+    why: >
+      new-steps refuses a control character in a manifest's setup word, since an escape sequence can
+      make a terminal show another step than the one pasted. A question with no pattern takes any
+      answer, so an answer holding one (from --answer, or a script's) reaches a printed step after
+      substitution, inside single quotes but raw. The answer is the person's own, so less a threat
+      than the template's, yet the printed line can still mislead or break a terminal. Settle in a
+      scenario: refuse such an answer where it lands in a step, or refuse a control character in any
+      answer.
