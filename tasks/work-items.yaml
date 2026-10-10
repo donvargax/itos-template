@@ -1009,7 +1009,7 @@ items:
     phase: 1
     owner: null
     status: todo
-    depends_on: [new-steps]
+    depends_on: [setup-blank]
     kind: slice
     why: >
       Was setup-answer-controls.
