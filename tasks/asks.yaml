@@ -212,3 +212,4 @@ questions:
   - id: q-48
     item: "update-merges"
     question: "What can change in the answers during an update? Recommended: only a question the new release adds is answered, as new answers one (--answer, a terminal, --defaults, refused without one); the recorded answers, stack and features stay as they are, changing them a later idea. Or: --answer may also override a recorded answer, renaming through update; or answers and --feature both, so update can add a feature."
+    answer: "Only new questions: a question the new release adds is answered as new answers one; the recorded answers, stack and features stay, and changing them is a later idea. The person's call, 2026-10-10."
