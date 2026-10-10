@@ -1132,3 +1132,27 @@ items:
       theirs, on the same fixture, and a check run in a checkout (no template named) reading a
       release from the tags the checkout holds, which git.CloneHere now copies and only a unit test
       holds.
+  - id: T-39
+    title: One baseline mutation run over all of cmd and internal, reported per package, nothing killed
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: task
+    why: >
+      Whether the mutation proof earns its keep over the whole CLI, from numbers. 18 of the 37
+      production files under cmd and internal hold mutation records, made since T-22 for the
+      functions each item changed; the 19 others have never been judged, so how many of their
+      mutants the tests let live is unknown. The person's call, 2026-10-10: one baseline run over
+      everything, reported, before deciding the testing tiers proposed in donvargax/itos#41. Run
+      tools/bin/pinned itos-cc mutation run --fail-uncovered --no-annotate cmd internal with no
+      --since and no --all-tests, each mutant against its file's own tests, the fast tier; then
+      rerun only the files left with survivors with --all-tests, so the report tells survivors no
+      test kills from those only scenarios kill. Time both runs. Write the report to
+      docs/mutation-baseline.md, the record itos#41 will be answered from: per package, mutants,
+      killed by own tests, killed only with the scenarios, survived, uncovered, and the wall time.
+      Kill nothing and except nothing in this task: the numbers are for the person, who decides what
+      follows. Commit the records only if itos-cc mutation sample and itos-cc mutation check stay
+      green with them, a recorded survivor included (read mutation sample --help on how it treats
+      one); if either would fail, commit nothing and say so. Run it after releases, alone in the
+      checkout, since it writes .metrics/mutate/.
