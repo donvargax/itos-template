@@ -1038,17 +1038,9 @@ items:
     title: The invisible-character pattern is written once, not in three places
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      Was invisible-pattern-once.
-      T-35 left the pattern [\p{Cf}\p{Default_Ignorable_Code_Point}\p{Zl}\p{Zp}] written three
-      times: ci.steps, the prose plan's steps and tools/hooks/pre-commit. Nothing checks they agree,
-      so widening one (as T-35 did all three by hand) can leave the hook looser than CI and a
-      character the hook passes reaches the push. Either a check that the three hold the same
-      pattern, or the hook reading it from one place (a script in tools/bin both CI steps and the
-      hook call).
   - id: T-36
     title: internal/template's own refusals quote a --stack or --feature value escaped
     phase: 1

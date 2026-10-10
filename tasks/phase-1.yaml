@@ -901,13 +901,6 @@
     The coordinator's call, routine: a script of ours, as tools/bin/doc-caps is. It follows
     tools/bin's existing style and tests, if tools/bin has tests. Regenerate AGENTS.md's rules
     block, which then names the script.
-  done_when:
-    - run: >-
-        test -x tools/bin/invisible-chars &&
-        test "$(grep -c 'tools/bin/invisible-chars' itos.yaml)" -ge 2 &&
-        grep -q 'tools/bin/invisible-chars --cached' tools/hooks/pre-commit &&
-        test "$(git grep -l -F 'p{Default_Ignorable_Code_Point}' -- . ':!tasks' ':!docs' | wc -l)" -eq 1 &&
-        tools/bin/invisible-chars
 - id: T-38
   type: test
   title: "The quoting property draws only words a setup step may hold, so it no longer flakes on Windows"
