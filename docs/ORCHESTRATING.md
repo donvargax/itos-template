@@ -65,4 +65,4 @@ Each lesson names its exit and its two dates; at most ten.
   seen 2026-10-09). setup-invisible's agent found its edits had put literal U+FEFF and kin into a
   Go raw string, caught only because Go refuses a BOM there; a U+202E would have compiled
   unseen. Briefs touching such characters say to write `\uXXXX` in an interpreted string and to
-  scan the diff for them before committing. Exit: source-invisible-gate.
+  scan the diff for them before committing. Exit: T-32.

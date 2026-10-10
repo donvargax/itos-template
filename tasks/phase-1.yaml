@@ -792,3 +792,26 @@
         ! git -C "$d/p" log --format=%B -1 | grep -q 'Task:' &&
         env -C "$d/p" go build ./... && env -C "$d/p" go vet ./... &&
         env -C "$d/p" go test ./... && env -C "$d/p" go run ./cmd/blue-fox count README.md --json
+- id: T-32
+  type: ci
+  title: "CI refuses a tracked file holding a format character or a Unicode line separator"
+  why: >
+    setup-invisible's agent found that its edits had turned \uXXXX escapes in a Go raw string
+    into the literal characters, and only Go's refusal of a byte order mark there exposed it: a
+    U+202E or a U+200B would have compiled, putting Trojan Source (CVE-2021-42574) in our own code
+    where a review sees nothing. Nothing refuses one today. The person's call, 2026-10-09, over
+    golangci-lint's bidichk (Go files and bidi controls alone) and a Go check of our own: one
+    static step, ! git grep -P -n -I '[\p{Cf}\p{Zl}\p{Zp}]', which names each file and line, in
+    itos.yaml's ci.steps beside the other static checks and in the plan a docs-only push runs,
+    since a feature file or a doc can carry one as well. A byte order mark is Cf and is refused
+    anywhere, the start of a file too; none is tracked today. It needs git built with PCRE2, which
+    the ubuntu ci job has. A fixture or a test that needs such a character writes it as an escape
+    and builds it in code, as ID-NEW-49 and ID-NEW-50's steps do, so the gate never has to except
+    a path. Regenerate AGENTS.md's rules block with itos init --agent-rules, and delete the lesson
+    in docs/ORCHESTRATING.md whose exit this is, in the same push.
+  done_when:
+    - run: >-
+        test "$(grep -c 'p{Cf}' itos.yaml)" -ge 2 &&
+        grep -q 'p{Cf}' AGENTS.md &&
+        ! grep -q 'An invisible character in a test is written as an escape' docs/ORCHESTRATING.md &&
+        ! git grep -P -n -I '[\p{Cf}\p{Zl}\p{Zp}]'
