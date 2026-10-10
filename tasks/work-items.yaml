@@ -1091,3 +1091,19 @@ items:
       unclassified, as Resolve's joined error is, so a right-to-left override or a Hangul filler in
       the value reaches that reader as itself. Quote it with %+q there too, with a unit test holding
       both characters, as answer's Malformed and Unknown now do.
+  - id: echo-paths-escaped
+    title: Decide how a refusal echoes a path, a shell or a flag the person gave
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      bug-5 settled that a refusal echoing an answer, a question name, a --stack or a --feature
+      value quotes it with %+q. internal/cli's other messages still echo what the person typed as
+      written: the template argument and the folder (template-unreachable, manifest-missing,
+      folder-not-empty, folder-unreadable, folder-unwritable, with %s), the shell completion is not
+      given (completion.go, with %q, which prints a Hangul filler raw) and the flag given where a
+      value was wanted (flags.go, with %s). A path may rightly hold letters outside ASCII a person
+      wants to read as written, so whether these quote with %+q, escape only the invisible
+      characters, or stay as they are is the person's call, made before a scenario for it.
