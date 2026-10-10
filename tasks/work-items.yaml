@@ -1008,8 +1008,8 @@ items:
   - id: answer-invisible
     title: An answer holding a control or invisible character is refused, wherever it would land
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: [setup-blank]
     kind: slice
     why: >
