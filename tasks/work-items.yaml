@@ -959,15 +959,9 @@ items:
     title: A made project left with the template's itos setup step run is a sound itos project
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: [new-steps, T-27]
     kind: slice
-    why: >
-      ADR-0032 leaves a made project with no itos data at all: the template's own is template_only,
-      kept out of every render. So the project docs/template-contents.md promises, itos from the
-      first commit, has to be created rather than inherited. The specification is in
-      features/new.feature, ID-NEW-42, and the reason is in the comments above it; this entry is
-      only the index.
     tags: [new, cli]
   - id: T-30
     title: The template's manifest declares what every render must pass, so check proves something
