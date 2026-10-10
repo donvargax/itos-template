@@ -268,35 +268,42 @@ func (w *world) changedTemplateIn(name, key string, change func(dir string, top 
 		if err := w.buildTemplate(filepath.Join(w.root, "features", "testdata", name), dir); err != nil {
 			return err
 		}
-		file := filepath.Join(dir, "itos-template.yaml")
-		data, err := os.ReadFile(file)
-		if err != nil {
-			return err
-		}
-		var doc yaml.Node
-		if err := yaml.Unmarshal(data, &doc); err != nil {
-			return err
-		}
-		if doc.Kind != yaml.DocumentNode || len(doc.Content) != 1 || doc.Content[0].Kind != yaml.MappingNode {
-			return errors.New("the manifest is not a mapping")
-		}
-		if err := change(dir, doc.Content[0]); err != nil {
-			return err
-		}
-		var out bytes.Buffer
-		enc := yaml.NewEncoder(&out)
-		enc.SetIndent(2)
-		if err := enc.Encode(&doc); err != nil {
-			return err
-		}
-		if err := enc.Close(); err != nil {
-			return err
-		}
-		if err := os.WriteFile(file, out.Bytes(), 0o644); err != nil {
-			return err
-		}
-		return w.gitIn(dir, "commit", "-q", "-a", "-m", "Change the manifest: "+key)
+		return w.changeManifest(dir, key, func(top *yaml.Node) error { return change(dir, top) })
 	})
+}
+
+// changeManifest commits, on the root branch of the template in dir,
+// checked out, its manifest's top mapping changed by change, the commit's
+// message naming key.
+func (w *world) changeManifest(dir, key string, change func(top *yaml.Node) error) error {
+	file := filepath.Join(dir, "itos-template.yaml")
+	data, err := os.ReadFile(file)
+	if err != nil {
+		return err
+	}
+	var doc yaml.Node
+	if err := yaml.Unmarshal(data, &doc); err != nil {
+		return err
+	}
+	if doc.Kind != yaml.DocumentNode || len(doc.Content) != 1 || doc.Content[0].Kind != yaml.MappingNode {
+		return errors.New("the manifest is not a mapping")
+	}
+	if err := change(doc.Content[0]); err != nil {
+		return err
+	}
+	var out bytes.Buffer
+	enc := yaml.NewEncoder(&out)
+	enc.SetIndent(2)
+	if err := enc.Encode(&doc); err != nil {
+		return err
+	}
+	if err := enc.Close(); err != nil {
+		return err
+	}
+	if err := os.WriteFile(file, out.Bytes(), 0o644); err != nil {
+		return err
+	}
+	return w.gitIn(dir, "commit", "-q", "-a", "-m", "Change the manifest: "+key)
 }
 
 // cloneOfTemplate clones the scenario's template into the folder name of the

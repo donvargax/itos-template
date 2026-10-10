@@ -357,7 +357,7 @@ func (w *world) useTemplate(key string, build func(dir string) error) error {
 // records what update-index says. The root branch is checked out at the
 // end, so it is the template's default branch.
 func (w *world) buildTemplate(src, dir string) error {
-	list, err := os.ReadFile(filepath.Join(src, "branches.txt"))
+	branches, err := branchList(src)
 	if err != nil {
 		return err
 	}
@@ -368,20 +368,14 @@ func (w *world) buildTemplate(src, dir string) error {
 	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return err
 	}
-	root := ""
-	lines := bufio.NewScanner(bytes.NewReader(list))
-	for lines.Scan() {
-		fields := strings.Fields(lines.Text())
-		if len(fields) == 0 || strings.HasPrefix(fields[0], "#") {
-			continue
-		}
-		branch := fields[0]
-		if root == "" {
-			root = branch
+	root := branches[0].name
+	for i, b := range branches {
+		branch := b.name
+		if i == 0 {
 			if err := w.gitIn(dir, "init", "-q", "-b", branch); err != nil {
 				return err
 			}
-		} else if err := w.gitIn(dir, "checkout", "-q", "-b", branch, fields[1]); err != nil {
+		} else if err := w.gitIn(dir, "checkout", "-q", "-b", branch, b.from); err != nil {
 			return err
 		}
 		files := filepath.Join(src, filepath.FromSlash(branch))
@@ -402,10 +396,43 @@ func (w *world) buildTemplate(src, dir string) error {
 			return err
 		}
 	}
-	if err := lines.Err(); err != nil {
-		return err
-	}
 	return w.gitIn(dir, "checkout", "-q", root)
+}
+
+// branch is a line of a fixture's branches.txt: a branch and the branch it
+// starts from, "" for the root.
+type branch struct{ name, from string }
+
+// branchList is the branches the testdata folder src's branches.txt lists,
+// in its order, the root first: each branch after the one it starts from.
+func branchList(src string) ([]branch, error) {
+	list, err := os.ReadFile(filepath.Join(src, "branches.txt"))
+	if err != nil {
+		return nil, err
+	}
+	var branches []branch
+	lines := bufio.NewScanner(bytes.NewReader(list))
+	for lines.Scan() {
+		fields := strings.Fields(lines.Text())
+		if len(fields) == 0 || strings.HasPrefix(fields[0], "#") {
+			continue
+		}
+		switch {
+		case len(branches) == 0 && len(fields) == 1:
+			branches = append(branches, branch{name: fields[0]})
+		case len(branches) > 0 && len(fields) == 2:
+			branches = append(branches, branch{name: fields[0], from: fields[1]})
+		default:
+			return nil, fmt.Errorf("%s: %q is not a branch and the branch it starts from, the root alone first", filepath.Join(src, "branches.txt"), lines.Text())
+		}
+	}
+	if err := lines.Err(); err != nil {
+		return nil, err
+	}
+	if len(branches) == 0 {
+		return nil, fmt.Errorf("%s lists no branch", filepath.Join(src, "branches.txt"))
+	}
+	return branches, nil
 }
 
 // copyOver copies every file under the folder src into the folder dir, at

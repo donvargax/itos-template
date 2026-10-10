@@ -21,6 +21,7 @@ import (
 // it.
 type record struct {
 	Template string            `yaml:"template"`
+	Release  *string           `yaml:"release"` // nil when the record has no release key
 	Stack    string            `yaml:"stack"`
 	Features []string          `yaml:"features"`
 	Answers  map[string]string `yaml:"answers"`

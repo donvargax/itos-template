@@ -98,6 +98,7 @@ func initializeScenario(sc *godog.ScenarioContext, root, bin string) {
 	})
 	w.newSteps(sc)
 	w.checkSteps(sc)
+	w.releaseSteps(sc)
 }
 
 // setUp makes the scenario's scratch repository, an empty git repository on
