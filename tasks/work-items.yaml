@@ -11,7 +11,6 @@
 phases:
   1: donvargax # the ledger's phase 1: a handle, or null
 queue:
-  - T-34
   - bug-4
 items:
   - id: T-2
