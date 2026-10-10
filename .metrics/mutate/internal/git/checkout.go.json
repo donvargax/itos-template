@@ -3,79 +3,73 @@
   "file": "internal/git/checkout.go",
   "language": "go",
   "tests": {
-    "internal/cli/cli_test.go": "94f672872f685eadc6bccac62ce19685f1c5a260b4474c103f3dfb63ff2aaf5d",
-    "internal/git/git_test.go": "a383ea8d67169fc2f089ebfc50c4e22f17bfada8aac0517ba32c48a7cca61e02"
+    "internal/cli/cli_test.go": "24c5974726c5fa711819e9f225b00e7de1f26842720fdea368cec4deb12769d5",
+    "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
+    "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
+    "internal/git/git_test.go": "a383ea8d67169fc2f089ebfc50c4e22f17bfada8aac0517ba32c48a7cca61e02",
+    "internal/newproject/newproject_test.go": "595d0ab89c460a3b6551f0e7070308ef45c3cd621c0440e542fd20f66d7c228f"
   },
   "units": [
     {
       "namespace": "github.com/donvargax/itos-template/internal/git",
       "name": "CloneHere",
-      "hash": "f277cf654e8876b2",
+      "hash": "ac0855d09bbcf509",
       "start_line": 24,
-      "end_line": 52,
-      "killed": 7,
+      "end_line": 48,
+      "killed": 6,
       "survived": 0,
       "uncovered": 0,
-      "sites": 7,
+      "sites": 6,
       "mutants": [
         {
-          "line": 26,
-          "column": 9,
-          "offset": 76,
-          "original": "!=",
-          "replacement": "==",
-          "outcome": "killed",
-          "scope": "all-tests"
-        },
-        {
-          "line": 29,
+          "line": 25,
           "column": 62,
-          "offset": 167,
+          "offset": 110,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 39,
+          "line": 35,
           "column": 36,
-          "offset": 555,
+          "offset": 498,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 44,
+          "line": 40,
           "column": 5,
-          "offset": 638,
+          "offset": 581,
           "original": "!",
           "replacement": "",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 45,
+          "line": 41,
           "column": 14,
-          "offset": 657,
+          "offset": 600,
           "original": "true",
           "replacement": "false",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 48,
+          "line": 44,
           "column": 58,
-          "offset": 738,
+          "offset": 681,
           "original": "+",
           "replacement": "-",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 48,
+          "line": 44,
           "column": 70,
-          "offset": 750,
+          "offset": 693,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",
@@ -85,28 +79,28 @@
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/git",
-      "name": "topLevel",
-      "hash": "d539b2f98447d4bc",
-      "start_line": 57,
-      "end_line": 66,
+      "name": "Top",
+      "hash": "26db8b90ec6f520a",
+      "start_line": 54,
+      "end_line": 63,
       "killed": 2,
       "survived": 0,
       "uncovered": 0,
       "sites": 2,
       "mutants": [
         {
-          "line": 58,
+          "line": 55,
           "column": 62,
-          "offset": 95,
+          "offset": 90,
           "original": "==",
           "replacement": "!=",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 62,
+          "line": 59,
           "column": 9,
-          "offset": 216,
+          "offset": 211,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",
@@ -206,7 +200,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     }
   ]
 }
