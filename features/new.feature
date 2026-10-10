@@ -221,6 +221,14 @@ Feature: new makes a project from a template
   # new run them under --trust first, which is the idea new-trust; with nothing run by new, what
   # a step that cannot run leaves is no longer new's to say, and the scenario that pinned it is
   # gone.
+  #
+  # The step runs each line new printed through sh, in the made folder, as a person pastes it
+  # into a POSIX shell, so the quoting new-steps prints is what is proved. It needs a real itos
+  # on the PATH, and the platform jobs run every scenario on Linux, macOS and Windows, so they
+  # install the same pinned itos action the ci job does; the scenario never skips without one,
+  # which would let the gate pass by not running. It needs no network: itos init pins the newest
+  # release, and where the release server cannot be reached it pins nothing and says so, which
+  # itos config check still passes.
   @ID-NEW-42 @new-itos-setup @wip
   Scenario: with the printed step run the made project is a sound itos project
     Given the template "acme" whose root lists the setup step "itos init --agent-rules"
