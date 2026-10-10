@@ -27,6 +27,7 @@ func TestRedactLeavesOutAURLsUserinfo(t *testing.T) {
 			"git cannot reach the template https://you:secret@127.0.0.1:1/acme.git: fatal: unable to access 'https://you:secret@127.0.0.1:1/acme.git/': refused",
 			"git cannot reach the template https://127.0.0.1:1/acme.git: fatal: unable to access 'https://127.0.0.1:1/acme.git/': refused",
 		},
+		{"a URL its text starts with, its scheme cut off", "://you:secret@host/acme.git", "://host/acme.git"},
 		{"a URL with no userinfo", "https://github.com/you/template.git", "https://github.com/you/template.git"},
 		{"an @ in the path", "https://host/@scope/pkg", "https://host/@scope/pkg"},
 		{"an @ in a path after an empty authority", "file:///home/you@work/template", "file:///home/you@work/template"},
