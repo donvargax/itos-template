@@ -1218,3 +1218,19 @@ items:
       block with itos init --agent-rules and commit what changes. itos#21 and itos#34 are still
       open, so their lessons in docs/ORCHESTRATING.md stay. Any text here that tells a reader to
       give an item an ID changes to let itos mint it.
+  - id: adopt-snapshot-maintenance-lock
+    title: The adopt scenarios' snapshot races git's detached auto-maintenance
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Seen 2026-10-10 in run 38083566107 (T-40's pin, which changes no code): ID-ADOPT-02 on ubuntu,
+      ID-ADOPT-04 and ID-ADOPT-06 on macos, and the features package in the mutation sample's
+      baseline failed at the adoption snapshot of made is unchanged, the only difference removed
+      .git/objects/maintenance.lock. The Given steps commit in made, git 2.55 then runs its
+      auto-maintenance detached, and the snapshot is taken while its lock is there. Same runner
+      image and git as the last green run, and the suite passes locally. The harness's git env
+      (features/steps_test.go) sets no maintenance.auto or gc.auto, so a fix likely turns
+      auto-maintenance off there, without changing what the snapshot holds.
