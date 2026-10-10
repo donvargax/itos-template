@@ -31,7 +31,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       # Every action pinned to a commit, as itos pins them: actions/checkout v4.4.0,
-      # actions/setup-go v7.0.0, actions/setup-node v7.0.0, and itos's own action at v7.0.0-rc.3,
+      # actions/setup-go v7.0.0, actions/setup-node v7.0.0, and itos's own action at v7.0.0,
       # the release itos.yaml pins.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -50,7 +50,7 @@ jobs:
           node-version: 24
       # The global itos, the launcher, on the PATH: the release the action's commit is tagged with;
       # itos.yaml's pin chooses the itos that runs.
-      - uses: donvargax/itos@415df6017f451beef8d6e12ea15e8b638f625f1a # v7.0.0-rc.3
+      - uses: donvargax/itos@4618aeb201c8c15b2ffb947cc355b85747929a17 # v7.0.0
       # Where the range starts, computed once for every step below: a pull request's base, else
       # the head's nearest first parent with a green run of this workflow, on any branch, else
       # empty (run everything). On main that is the last green run; on a Renovate branch, the last
@@ -96,7 +96,7 @@ jobs:
       # The global itos on the PATH, as the ci job installs it: ID-NEW-42 runs the itos setup step
       # a template prints, and itos config check, with the real itos, on every system, and never
       # skips without one. This repository's pin does not reach it: the made project has none.
-      - uses: donvargax/itos@415df6017f451beef8d6e12ea15e8b638f625f1a # v7.0.0-rc.3
+      - uses: donvargax/itos@4618aeb201c8c15b2ffb947cc355b85747929a17 # v7.0.0
       # go test carries on past a package that fails, so one run shows a platform's every failure.
       # The features build the binary themselves, itos-template.exe on windows.
       # RAPID_CHECKS=1: each property of the domain on one random case, as in the CI plan (decision 20).
