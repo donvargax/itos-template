@@ -1032,8 +1032,8 @@ items:
   - id: setup-blank
     title: The manifest refuses a setup step word holding any character Unicode says is drawn as nothing
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: slice
     why: >
