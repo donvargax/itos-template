@@ -263,25 +263,9 @@ items:
     title: "A made project records its template by a name update can reach, never holding a credential"
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: [slice-1]
     kind: slice
-    why: >
-      Was new-template-name.
-      slice-1 records the template exactly as it was named (decision 10). A relative path (../acme)
-      reaches the template only from the folder new ran in, so update run from the made project
-      cannot; a URL with a user and password (https://user:token@host/…) would put a credential in a
-      committed file, against PLAN.md's no-credentials principle (decision 9 has git's own
-      credential helpers supply them). Settle in its scenarios whether new resolves a path against
-      its working folder, and refuses or strips a URL's credentials.
-
-      bug-4's agent found, 2026-10-09, that a successful new prints or commits the template's name
-      verbatim in three more places than the record: the Made ... from ... line
-      (internal/newproject, show), the --json success object's template field (the record printed as
-      it is, internal/project), and the made project's first commit message (commitMessage). A URL
-      holding a credential therefore lands in the made project's history and on stdout, not only in
-      .itos-template.yaml. bug-4 redacts it in error output only; this item settles all four
-      together.
     tags: [new]
   - id: template-special-files
     title: new renders a template's symbolic links on Windows and its submodules
