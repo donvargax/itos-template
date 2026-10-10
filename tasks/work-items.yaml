@@ -211,7 +211,7 @@ items:
     phase: 1
     owner: null
     status: todo
-    depends_on: [slice-1, template-releases]
+    depends_on: [slice-1, releases]
     kind: slice
     why: >
       Was adopt.
@@ -236,14 +236,15 @@ items:
       reproducible rendered template version; adopting latest treats current differences as project
       customizations rather than importing those changes.
     tags: [update]
-  - id: template-releases
-    title: A template release tags every branch, and new renders the newest release or the one --ref names
+  - id: releases
+    title: new renders a template's newest release or the one --ref names, and check proves its heads or --ref's
     phase: 1
     owner: null
     status: todo
     depends_on: [slice-1]
-    kind: idea
+    kind: slice
     why: >
+      Was template-releases.
       Decision 9 has --ref pick a tag, by default the newest release; decision 10 left how one
       release is tagged across a template's branches for later, the recorded commits being enough to
       reproduce a render. new-renders renders the branches' heads; this item settles the tagging (a
@@ -1106,7 +1107,7 @@ items:
     phase: 1
     owner: null
     status: todo
-    depends_on: [template-releases]
+    depends_on: [releases]
     kind: idea
     why: >
       The person's call, 2026-10-09: a command cuts a template release, rather than each template's
