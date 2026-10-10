@@ -228,3 +228,4 @@ questions:
   - id: q-51
     item: "template-release-command"
     question: "Are a template release's tags annotated or lightweight? Recommended: annotated, each carrying who cut it, when, and a message naming the version, so git describe and GitHub treat them as releases and they can be signed later without changing the scheme; new and check read either kind. Or: lightweight, plain refs as the test fixture makes them."
+    answer: "Annotated, each naming its version in its message. The person's call, 2026-10-10."
