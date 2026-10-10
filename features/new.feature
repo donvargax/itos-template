@@ -148,6 +148,36 @@ Feature: new makes a project from a template
     And its error output says "name"
     And the path "made" does not exist
 
+  # answer-invisible: an answer lands in file contents, file names, the record and the setup
+  # steps new prints, and a question with no pattern takes any answer. So an answer holding a
+  # control character or one drawn as nothing (the set setup steps refuse: Cc, Zl, Zp and
+  # Unicode's Default_Ignorable_Code_Point, setup-blank's) is refused wherever it comes from,
+  # --answer, a terminal or the manifest's default, with exit 2 naming the question and the
+  # character's code point, before anything is written. The answer is the person's own, so less
+  # a threat than a template's step, yet a project name or a module path never wants one, and
+  # the printed step or file can still mislead. The person's call, 2026-10-09: every answer,
+  # always, over refusing it only where it would land in a step. Strict as steps are: an emoji
+  # built with a selector or a joiner ("My app" and a heart with U+FE0F) is refused too.
+  #
+  # acme's questions both have patterns that already refuse these characters, so the scenarios
+  # take a question with none. A command written here cannot hold an invisible character, which
+  # T-32's gate refuses in any tracked file, so {U+XXXX} in a command is the character it names.
+  # new, check and adopt read answers through one check; adopt's is held by its unit tests.
+  @ID-NEW-52 @answer-invisible @wip
+  Scenario Outline: new refuses an answer holding <what> with exit 2, naming the question and its code point
+    Given the template "acme" whose question module has no pattern
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue{<code>}fox"
+    Then it exits with code 2
+    And its error output says "module"
+    And its error output says "<code>"
+    And the path "made" does not exist
+
+    Examples:
+      | what                     | code   |
+      | an escape character      | U+001B |
+      | a right-to-left override | U+202E |
+      | a Hangul filler          | U+3164 |
+
   @ID-NEW-14 @slice-1
   Scenario: new refuses an answer that does not match its question's pattern with exit 2, and writes nothing
     Given the template "acme"
