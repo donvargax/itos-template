@@ -229,7 +229,7 @@ Feature: new makes a project from a template
   # which would let the gate pass by not running. It needs no network: itos init pins the newest
   # release, and where the release server cannot be reached it pins nothing and says so, which
   # itos config check still passes.
-  @ID-NEW-42 @new-itos-setup @wip
+  @ID-NEW-42 @new-itos-setup
   Scenario: with the printed step run the made project is a sound itos project
     Given the template "acme" whose root lists the setup step "itos init --agent-rules"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --answer module=example.com/blue/fox"

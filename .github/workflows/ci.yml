@@ -94,6 +94,12 @@ jobs:
         with:
           go-version-file: go.mod
           cache-dependency-path: go.sum
+      # The global itos on the PATH, as the ci job installs it: ID-NEW-42 runs the itos setup step
+      # a template prints, and itos config check, with the real itos, on every system, and never
+      # skips without one. This repository's pin does not reach it: the made project has none.
+      - uses: donvargax/itos@1b9f1f9995be5d20aed3b4f8877a453bbd1e98a3 # v7.0.0-rc.1
+        with:
+          version: 6.0.0
       # go test carries on past a package that fails, so one run shows a platform's every failure.
       # The features build the binary themselves, itos-template.exe on windows.
       # RAPID_CHECKS=1: each property of the domain on one random case, as in the CI plan (decision 20).
