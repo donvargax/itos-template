@@ -272,6 +272,14 @@ items:
       committed file, against PLAN.md's no-credentials principle (decision 9 has git's own
       credential helpers supply them). Settle in its scenarios whether new resolves a path against
       its working folder, and refuses or strips a URL's credentials.
+
+      bug-4's agent found, 2026-10-09, that a successful new prints or commits the template's name
+      verbatim in three more places than the record: the Made ... from ... line
+      (internal/newproject, show), the --json success object's template field (the record printed as
+      it is, internal/project), and the made project's first commit message (commitMessage). A URL
+      holding a credential therefore lands in the made project's history and on stdout, not only in
+      .itos-template.yaml. bug-4 redacts it in error output only; this item settles all four
+      together.
     tags: [new]
   - id: template-special-files
     title: new renders a template's symbolic links on Windows and its submodules
