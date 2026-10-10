@@ -25,6 +25,7 @@ func (w *world) checkSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^the template "([^"]*)" whose manifest lists the stack "([^"]*)" with the features (".*") as unsupported$`, w.templateWithUnsupported)
 	sc.Step(`^the template "([^"]*)" whose branch "([^"]*)" holds the file "([^"]*)" with the line "([^"]*)"$`, w.templateWithFileLine)
 	sc.Step(`^the template "([^"]*)" whose root has, after its own, the check "([^"]*)" marked as scanning "([^"]*)"$`, w.templateWithMarkedCheck)
+	sc.Step(`^the template "([^"]*)" whose root has a check that fails where a render holds "([^"]*)"$`, w.templateWithTextCheck)
 
 	// Split before {template} is expanded, so a path with a space stays one
 	// argument.
@@ -143,6 +144,42 @@ func (w *world) templateWithMarkedCheck(name, check, scan string) error {
 		}})
 		return nil
 	})
+}
+
+// templateWithTextCheck is the fixture template name, its manifest on the
+// root branch giving the root one more check, which fails where a render
+// holds text: in a file git tracks there (git grep) or in a commit's
+// message (git log). The CLI runs a check with no shell, so it is sh -c and
+// a script, which sh is on every platform's runner. The report prints a
+// check's words, so the script names text by its bytes in octal, which
+// printf turns back into it: text itself is never in a word, and so in no
+// line of the report the scenario reads, and the octal digits in single
+// quotes are a word no shell reads specially, whatever text holds.
+func (w *world) templateWithTextCheck(name, text string) error {
+	key := fmt.Sprintf("%s whose root has a check that fails where a render holds %q", name, text)
+	return w.changedTemplate(name, key, func(top *yaml.Node) error {
+		checks := mappingValue(top, "checks")
+		if checks == nil || checks.Kind != yaml.SequenceNode {
+			return errors.New("the manifest has no checks of the root")
+		}
+		checks.Content = append(checks.Content, &yaml.Node{Kind: yaml.SequenceNode, Tag: "!!seq", Style: yaml.FlowStyle, Content: []*yaml.Node{
+			scalar("sh"), scalar("-c"), scalar(textCheck(text)),
+		}})
+		return nil
+	})
+}
+
+// textCheck is the sh script templateWithTextCheck's check runs: it exits 1,
+// saying where, when the render in the folder it runs in holds text in a
+// tracked file or in a commit's message, and 0 when it holds it in neither.
+func textCheck(text string) string {
+	var octal strings.Builder
+	for _, b := range []byte(text) {
+		fmt.Fprintf(&octal, `\%03o`, b)
+	}
+	return `t=$(printf '` + octal.String() + `'); ` +
+		`if git grep -q -F -e "$t"; then echo 'a tracked file holds the text'; exit 1; fi; ` +
+		`case "$(git log --format=%B)" in *"$t"*) echo 'a commit message holds the text'; exit 1;; esac`
 }
 
 // changedTemplate builds, once a run for each key, the fixture template name
