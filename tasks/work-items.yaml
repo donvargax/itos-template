@@ -1044,8 +1044,8 @@ items:
   - id: T-35
     title: CI's invisible-character gate refuses Unicode's whole Default_Ignorable set, as setup steps do
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: task
     why: >
