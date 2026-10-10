@@ -1268,3 +1268,16 @@ items:
       fails and update says the root branch has no manifest, naming the commit, which reads as the
       template's defect rather than a record the template cannot reproduce. Found building slice-13.
     tags: [update]
+  - id: update-heads
+    title: update a project to a template's branch heads when the template has no release
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [slice-13]
+    kind: idea
+    why: >
+      new renders a template's branch heads when it has no complete release, and records no release;
+      update refuses such a template (exit 1, release-missing), so a template still in development
+      cannot update its made projects. Whether update should take the heads, and how a project
+      records them, is open. Found building slice-13.
+    tags: [update]
