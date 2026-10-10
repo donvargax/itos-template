@@ -1023,8 +1023,8 @@ items:
   - id: setup-invisible
     title: The manifest refuses a setup step word holding a format character or a Unicode line separator
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: [new-steps]
     kind: slice
     why: >
