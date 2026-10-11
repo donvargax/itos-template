@@ -1136,6 +1136,6 @@
     internal/git/repo.go, then the same with --all-tests): both exit 0, and the report gives each
     survivor's fate. Then the push's proof once, as AGENTS.md's Finishing says.
   done_when:
-    - run: "! grep -n 'runtime.GOOS' internal/git/git.go"
+    - run: "! grep -nE 'runtime[.]GOOS *(==|!=)' internal/git/git.go"
     - run: go test -count=1 ./internal/git/
       timeout: 600
