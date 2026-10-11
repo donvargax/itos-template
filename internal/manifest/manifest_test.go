@@ -9,6 +9,8 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+
+	"github.com/donvargax/itos-template/internal/caseform"
 )
 
 // The acme fixture's manifest, the one the scenarios render.
@@ -62,6 +64,30 @@ func TestFeaturesNamed(t *testing.T) {
 	}
 }
 
+// A name several stacks' features share gives the chosen stack's first and
+// the others in the manifest's order, with no stack of its own too, so the
+// feature choose names as of another stack is the manifest's first.
+func TestFeaturesNamedKeepTheManifestsOrderAfterTheStacksOwn(t *testing.T) {
+	m, err := Parse([]byte("version: 1\nstacks: [{name: a}, {name: b}, {name: c}, {name: d}]\nfeatures: [{name: cli, stack: a}, {name: cli, stack: b}, {name: cli, stack: c}]\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	cases := map[string][]string{
+		"a": {"a/cli", "b/cli", "c/cli"},
+		"c": {"c/cli", "a/cli", "b/cli"},
+		"d": {"a/cli", "b/cli", "c/cli"},
+	}
+	for stack, want := range cases {
+		var got []string
+		for _, f := range m.FeaturesNamed("cli", stack) {
+			got = append(got, f.Branch())
+		}
+		if !slices.Equal(got, want) {
+			t.Errorf("cli for %s is %q, want %q", stack, got, want)
+		}
+	}
+}
+
 func TestCheckTakesAnAnswerMatchingThePatternWhole(t *testing.T) {
 	m := acme(t)
 	name, _ := m.Question("name")
@@ -88,6 +114,24 @@ func TestCheckTakesAnyAnswerButAnEmptyOneWithoutAPattern(t *testing.T) {
 	}
 	if err := q.Check(""); err == nil {
 		t.Error("Check takes an empty answer")
+	}
+}
+
+// A case-forms question with no pattern still takes only words in kebab
+// case, which its five forms are made from.
+func TestCheckTakesOnlyKebabCaseForACaseFormsQuestionWithoutAPattern(t *testing.T) {
+	m, err := Parse([]byte("version: 1\nstacks: [{name: go}]\nquestions: [{name: name, literal: acme-widget, question: Q, case_forms: true}]\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	q, _ := m.Question("name")
+	if err := q.Check("blue-fox"); err != nil {
+		t.Errorf("Check refuses blue-fox: %v", err)
+	}
+	for _, bad := range []string{"Blue_Fox", "blue--fox", "blue fox"} {
+		if err := q.Check(bad); err == nil {
+			t.Errorf("Check takes %q", bad)
+		}
 	}
 }
 
@@ -279,6 +323,8 @@ func TestParseSaysWhichCaseFormsOfALiteralCollide(t *testing.T) {
 	cases := map[string]string{
 		"2fa-code":    `the question name has case forms, so the five forms of its literal "2fa-code" must be five different strings: its camel and Pascal forms are both 2faCode: start its first word with a letter`,
 		"1-2":         `the question name has case forms, so the five forms of its literal "1-2" must be five different strings: its snake and upper snake forms are both 1_2; its camel and Pascal forms are both 12: start its first word with a letter`,
+		"0day-fix":    `the question name has case forms, so the five forms of its literal "0day-fix" must be five different strings: its camel and Pascal forms are both 0dayFix: start its first word with a letter`,
+		"9lives-cat":  `the question name has case forms, so the five forms of its literal "9lives-cat" must be five different strings: its camel and Pascal forms are both 9livesCat: start its first word with a letter`,
 		"acme-2fa":    "",
 		"acme-widget": "",
 	}
@@ -291,6 +337,25 @@ func TestParseSaysWhichCaseFormsOfALiteralCollide(t *testing.T) {
 		case want == "":
 		case !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, []string{want}):
 			t.Errorf("%s: Parse = %v, want the problem\n%s", literal, err, want)
+		}
+	}
+}
+
+// collidingForms holds every form to the promise, one added later too, so
+// it names each string several forms are once, with all of them, and gives
+// the fix a literal's first character calls for. No literal Parse takes
+// reaches all of that today: of two words or more, at most two forms are
+// one string, and only when the first word starts with a digit. One word
+// makes three forms or five one string, so it is called here directly.
+func TestCollidingFormsNamesEachSharedStringOnceWithEveryFormThatIsIt(t *testing.T) {
+	cases := map[string]caseform.Words{
+		"its kebab, snake and camel forms are all acme: rename it so they differ":                              {"acme"},
+		"its kebab, snake, camel, Pascal and upper snake forms are all 42: start its first word with a letter": {"42"},
+		"": {"acme", "widget"},
+	}
+	for want, words := range cases {
+		if got := collidingForms(words); got != want {
+			t.Errorf("collidingForms(%q) = %q, want %q", words, got, want)
 		}
 	}
 }
@@ -510,6 +575,20 @@ func TestParseSaysALongCheckIsOfVersion3(t *testing.T) {
 	_, err := Parse([]byte("version: 2\nstacks: [{name: go, checks: [{run: [x], scans: [credentials]}]}]\n"))
 	var invalid *Invalid
 	want := []string{"the stack go's check 1 is in the long form, {run, scans}, of version 3: write version: 3"}
+	if !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, want) {
+		t.Errorf("Parse = %v", err)
+	}
+}
+
+// A check with no program is named by its place among its owner's checks,
+// counted from 1, as every other problem with a check is.
+func TestParseNamesACheckWithNoProgramByItsPlace(t *testing.T) {
+	_, err := Parse([]byte("version: 2\nstacks: [{name: go, checks: [[], [go, vet], ['', x]]}]\n"))
+	var invalid *Invalid
+	want := []string{
+		"the stack go's check 1 names no program: a check is a list of words, the program first",
+		"the stack go's check 3 names no program: a check is a list of words, the program first",
+	}
 	if !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, want) {
 		t.Errorf("Parse = %v", err)
 	}
