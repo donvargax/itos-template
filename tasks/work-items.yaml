@@ -1398,3 +1398,22 @@ items:
       changed functions with changed-line coverage, and twenty sites a night. Decision 27 says a
       template's projects carry the same gate, so the document says which one a made project gets
       before first-template carries it.
+  - id: failing-git
+    title: Tests make internal/git's real git fail on cue, so the adapter's error branches are covered
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      internal/git returns git's failures as its sealed errors (decision 17), and no test reaches
+      those returns: T-43 counted 187 uncovered statements across cmd and internal, among them 8 in
+      internal/git/project.go's Merge and relabel (lines 105, 109, 230, 234, 255, 260, 267, 273),
+      each a return of a failed read-tree, ls-files, merge-file, update-index or empty blob. The
+      changed-line proof (decision 40) asks for a test only when a push changes such a line. The way
+      the person chose (2026-10-11): internal/git already runs the git ITOS_GIT names, so a test
+      points it at a small Go helper the tests build (Windows runs no shell script) that runs the
+      real git but fails the subcommand an environment variable names. Real git stays real (decision
+      19), and nothing in production changes. Rejected: an interface over how internal/git runs
+      commands, its stub failing the Nth call, since a test knowing the exact order of git calls is
+      a mock in all but name (decision 19).
