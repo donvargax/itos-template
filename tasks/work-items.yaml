@@ -1316,3 +1316,18 @@ items:
       Repeatability section of docs/mutation-baseline.md with the run, the numbers and the cause,
       and correct the baseline's ranges if the cause moves them. Kill or except nothing here; the
       person decides what follows from itos#41.
+  - id: itos-cc-35-worker-copies
+    title: Pin the itos-cc whose workers no longer carry a test run's files into later mutants
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Found by T-42 (docs/mutation-baseline.md, Repeatability): itos-cc 0.5.0 keeps each worker's
+      copy of the project for the whole run, so a file one test run leaves there, such as the
+      failfile rapid saves under testdata/rapid and replays, fails every later mutant of that
+      worker. That is how T-39's flaky record property turned into 20 false whole-suite flips.
+      Reported as donvargax/itos-cc#35 with a reproduction. Nothing flips on main now, but any test
+      that writes into its package folder and fails once would bring it back. Once #35 is fixed in a
+      release, pin it.
