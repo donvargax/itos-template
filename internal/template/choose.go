@@ -57,10 +57,9 @@ func Choose(m *manifest.Manifest, choice manifest.Choice, given answer.Given, de
 		switch {
 		case len(found) == 0:
 			unknown = append(unknown, &UnknownFeature{Name: name, Stack: stackName, Known: m.FeatureNames(stackName)})
-		case !stackOK:
-		case found[0].Stack != stackName:
+		case stackOK && found[0].Stack != stackName:
 			refused = append(refused, &OtherStack{Feature: found[0], Stack: stackName})
-		default:
+		case stackOK:
 			chosen = append(chosen, found[0])
 		}
 	}
