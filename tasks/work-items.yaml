@@ -1317,8 +1317,8 @@ items:
   - id: T-43
     title: Pin itos-cc 0.11.0 and refresh every record of cmd and internal, so no function is stale or missing
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: task
     why: >
