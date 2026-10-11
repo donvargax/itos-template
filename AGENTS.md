@@ -52,12 +52,19 @@ owner or a status by hand.
 
 The gates run themselves: commit and read what they say, never run them by hand first. An item
 touching `cmd` or `internal` lands only on its code proof (itos.yaml's `proof`), which CI judges
-over the push's range, not `itos work done`. Before its last push run `tools/bin/pinned itos-cc
-mutation run --since <the parent of its first commit> --fail-uncovered --all-tests --no-annotate
-cmd internal` (an item about code it does not change names that code's files, without `--since`),
-commit `.metrics/mutate/`, and kill each survivor with a test. A truly equivalent one is excepted
-(`itos-cc mutation except`) with its reason, for the person to review; an uncovered one needs a
-test, never an exception.
+over the push's range, not `itos work done`. Before its last push run its own tests, then the
+whole suite on what they leave, as two runs (`--all-tests` alone runs the whole suite for every
+mutant): `tools/bin/pinned itos-cc mutation run --since <the parent of its first commit>
+--fail-uncovered --no-annotate cmd internal`, then the same with `--all-tests`, which reuses the
+first run's kills (an item about code it does not change names that code's files, without
+`--since`). Commit `.metrics/mutate/`,
+and kill each survivor with a test. A truly equivalent one is excepted (`itos-cc mutation
+except`) with its reason, for the person to review; an uncovered one needs a test, never an
+exception. Add `--fail-fast` while fixing: it stops at the first survivor and keeps what it
+judged, so the next run picks up from there; the records are complete only once a run finishes.
+Keep no untracked `.go` file in the checkout while itos-cc measures coverage: it counts every one
+as an input of every function (itos-cc#37). A `mutation sample` run here draws one mutant
+(`--count 1`); CI and the nightly draw more (`itos.yaml`'s `ci`).
 
 Push with `itos push` in the background, watched with a Monitor, never a wait loop. Done is its
 run green; report its URL. A gap the work leaves is an idea (`itos work add`), never a commit
