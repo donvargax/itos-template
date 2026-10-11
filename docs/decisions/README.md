@@ -36,5 +36,6 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0037: update leaves its merge staged and commits nothing, so the project's own gates judge it](0037-update-leaves-its-merge-staged-and-commits-nothing-so-the-project-s-own-gates-judge-it.md)
 - [ADR-0038: update merges with git's own merge through its command line, the old render the base](0038-update-merges-with-git-s-own-merge-through-its-command-line-the-old-render-the-base.md)
 - [ADR-0040: Mutation without a cache: one fresh mutant a push, twenty a night, as itos does](0040-mutation-without-a-cache-one-fresh-mutant-a-push-twenty-a-night-as-itos-does.md)
+- [ADR-0041: Secure by design: input checked at its edge into value objects, trusted inside, never checked again](0041-secure-by-design-input-checked-at-its-edge-into-value-objects-trusted-inside-never-checked-again.md)
 
 <!-- itos:decisions:end -->

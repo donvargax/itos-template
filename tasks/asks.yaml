@@ -250,3 +250,4 @@ questions:
   - id: q-56
     question: "Where is input checked, and what do inner layers trust: secure by design for itos-template?"
     answer: "Secure by design. Every input from outside is checked where it enters, at the outer layers that meet other systems: the command line and the terminal, the template repository (its manifest, paths and contents), the project's record, git's output, and the environment. There it becomes a checked value, a value object with unexported fields whose one constructor checks it, so holding one proves it was checked. Inner layers trust those values and never check them again. Bad input is refused with an error naming it; a lossless normalization (path separators, case forms) is fine, a silent repair is not. It holds because everything lives under internal/, which no other module can import: nothing outside reaches an inner layer. The person's call, 2026-10-11."
+    decision: 41
