@@ -1515,8 +1515,8 @@ items:
   - id: slice-18
     title: "Declined paths: a project turns template paths down in its record, and every later update leaves them out of both renders"
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: [slice-17]
     kind: slice
     why: >
