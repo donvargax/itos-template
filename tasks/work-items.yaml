@@ -850,6 +850,11 @@ items:
       itos#45 (2026-10-11, found by T-45): itos ci run --help says the code proof reads recorded
       results and runs none of its own, while a counted proof runs coverage, a baseline and a mutant
       (about 70 s here). Nothing changes here when it is fixed.
+
+      itos#46 (2026-10-11): draft add mints an id before checking the command, so a command promote
+      then refuses (an undeclared tag) or a draft dropped to change its text burns the id; slice-16
+      and T-44 are gaps from it. When fixed and pinned, a coordinator can redraft without renaming
+      specs.
     tags: [ci]
   - id: T-24
     title: Upgrade the Go toolchain to clear the standard-library security failures
