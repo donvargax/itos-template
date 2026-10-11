@@ -1257,8 +1257,8 @@ items:
   - id: slice-15
     title: update's conflict markers name the release, not a tree's object
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: [slice-13]
     kind: slice
     why: >
