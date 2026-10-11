@@ -35,6 +35,6 @@ file and leaves this list, which itos decision record writes.
 - [ADR-0036: A template release is one version tagged <branch>/<version> on every branch, the newest the highest stable complete one, cut by itos-template release](0036-a-template-release-is-one-version-tagged-branch-version-on-every-branch-the-newest-the-highest-stable-complete-one-cut-by-itos-template-release.md)
 - [ADR-0037: update leaves its merge staged and commits nothing, so the project's own gates judge it](0037-update-leaves-its-merge-staged-and-commits-nothing-so-the-project-s-own-gates-judge-it.md)
 - [ADR-0038: update merges with git's own merge through its command line, the old render the base](0038-update-merges-with-git-s-own-merge-through-its-command-line-the-old-render-the-base.md)
-- [ADR-0039: Testing tiers: two-run mutation locally, changed-line proof per push, sampled nightly](0039-testing-tiers-two-run-mutation-locally-changed-line-proof-per-push-sampled-nightly.md)
+- [ADR-0040: Mutation without a cache: one fresh mutant a push, twenty a night, as itos does](0040-mutation-without-a-cache-one-fresh-mutant-a-push-twenty-a-night-as-itos-does.md)
 
 <!-- itos:decisions:end -->
