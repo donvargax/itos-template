@@ -855,6 +855,10 @@ items:
       then refuses (an undeclared tag) or a draft dropped to change its text burns the id; slice-16
       and T-44 are gaps from it. When fixed and pinned, a coordinator can redraft without renaming
       specs.
+
+      itos-cc#40 (2026-10-11, found by T-52): mutation run --since panics (index out of range) on a
+      range that changes porttest.go, on 0.12.0 and 0.14.2; counted runs are not affected. Until
+      fixed, judge internal/template with full runs (no --since) or counted ones.
     tags: [ci]
   - id: T-24
     title: Upgrade the Go toolchain to clear the standard-library security failures
