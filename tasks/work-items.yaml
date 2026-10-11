@@ -1471,8 +1471,8 @@ items:
   - id: T-49
     title: golangci-lint holds every code design rule a linter can decide, and docs/design-rules.md says how each rule is held
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: task
     why: >
