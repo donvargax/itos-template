@@ -1578,3 +1578,21 @@ items:
     status: done
     depends_on: []
     kind: task
+  - id: p1-template-name-value
+    title: Carry the template name as a checked value, not a raw string
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Edge: the command line (new, adopt, check) and the project record (update). Input: the
+      template name. template.CheckName refuses a name holding a control or drawn-as-nothing
+      character (manifest.Refused) at each slice Handle, but the name then travels inward as a raw
+      string into git.Clone, template.Open and template.Recorded, and CheckName is called afresh at
+      four edges. Nothing in the type proves the refusal ran, so a new caller that clones or opens a
+      name without CheckName would pass unnoticed (decision 41 wants a value object whose one
+      constructor checks, as manifest.Answer is). What could go wrong: an unchecked name reaching
+      git clone, printed into the record and the first commit. The wrap crosses the port boundary
+      into infra, which cannot import a domain value object, so the type would be unwrapped to a
+      string for git.Clone; weigh that before building it.
