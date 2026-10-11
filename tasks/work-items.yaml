@@ -1375,7 +1375,7 @@ items:
     phase: 1
     owner: null
     status: todo
-    depends_on: [T-43]
+    depends_on: [T-43, T-46]
     kind: task
     why: >
       The person chose donvargax/itos#41's testing tiers for this repository (2026-10-10): fast
