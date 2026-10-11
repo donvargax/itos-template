@@ -10,11 +10,11 @@
     "internal/render/render_test.go": "9c8ec4cdc9bd18735acd36803a81cf3162dbd507c26c6b02c0720b11964c5a3c",
     "internal/template/check_test.go": "6b408881490821ea2726f0e2820f1b3479116d53e8f91c91860f6778dff0b0f1",
     "internal/template/choose_test.go": "3f099f90d705b4f635377a4f1f20634e645221961545cdf088dab9ea7bbe1368",
-    "internal/template/port/porttest/porttest_test.go": "293ac35aafd417dd0d44a7cd3484afe9ffcf50e55706d833e2d25932393271e5",
+    "internal/template/port/porttest/porttest_test.go": "ec26ca19b2ea6e6b40deca116530940ebdbbcaaa06d5f4d5037f8883e1465f8d",
     "internal/template/property_test.go": "9923978fdab4f5fcaed05ca7abea784b5fdd56d81ba6305b1197e3f5335ea938",
     "internal/template/release_test.go": "28e2d6f115dbbe502bbaab519008410e520b4c476ce28abf8450ba626007a961",
-    "internal/template/template_test.go": "d31eed5a0ee962a350bcbea3ad1b1ba9bb5263aed335be4c6fbc226a161a72e4",
-    "internal/updating/updating_test.go": "38f56ceb8e8ae982f39a69e7188f5ffc3ad975b9338d3369738e8320ff678d81"
+    "internal/template/template_test.go": "c2efd65ff69ba7d5bb9973cdd5cf6d602e575db3024397445f7d8fb7fc3d07dc",
+    "internal/updating/updating_test.go": "8e8858065ed9a658b8dc10d59e303ce8877e7f1f3c22e39696385cb106e92ffb"
   },
   "units": [
     {
@@ -454,124 +454,123 @@
     {
       "namespace": "github.com/donvargax/itos-template/internal/template/port/porttest.Project",
       "name": "Merge",
-      "hash": "e28d5e2cef6e1286",
-      "start_line": 364,
-      "end_line": 399,
+      "hash": "a3478ab133c4bc54",
+      "start_line": 366,
+      "end_line": 402,
       "killed": 12,
       "survived": 0,
       "uncovered": 0,
       "sites": 12,
       "mutants": [
         {
-          "line": 365,
+          "line": 367,
           "column": 12,
-          "offset": 84,
+          "offset": 104,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 380,
+          "line": 383,
           "column": 19,
-          "offset": 570,
+          "offset": 609,
           "original": "1",
           "replacement": "0",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 382,
+          "line": 385,
           "column": 19,
-          "offset": 602,
+          "offset": 641,
           "original": "0",
           "replacement": "1",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 382,
+          "line": 385,
           "column": 29,
-          "offset": 612,
+          "offset": 651,
           "original": "1",
           "replacement": "0",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 384,
+          "line": 387,
           "column": 8,
-          "offset": 645,
+          "offset": 684,
           "original": "!",
           "replacement": "",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 384,
+          "line": 387,
           "column": 20,
-          "offset": 657,
+          "offset": 696,
           "original": "1",
           "replacement": "0",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 384,
+          "line": 387,
           "column": 34,
-          "offset": 671,
+          "offset": 710,
           "original": "&&",
           "replacement": "||",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 384,
+          "line": 387,
           "column": 37,
-          "offset": 674,
+          "offset": 713,
           "original": "!",
           "replacement": "",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 384,
+          "line": 387,
           "column": 49,
-          "offset": 686,
+          "offset": 725,
           "original": "0",
           "replacement": "1",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 387,
+          "line": 390,
           "column": 14,
-          "offset": 814,
+          "offset": 853,
           "original": "==",
           "replacement": "!=",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 391,
+          "line": 394,
           "column": 13,
-          "offset": 866,
+          "offset": 905,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 394,
+          "line": 397,
           "column": 41,
-          "offset": 945,
+          "offset": 984,
           "original": "1",
           "replacement": "0",
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ],
-      "stale": true
+      ]
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/template/port/porttest",
@@ -919,7 +918,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/template/port/porttest.Tagger",

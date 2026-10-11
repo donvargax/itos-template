@@ -4,21 +4,22 @@
   "language": "go",
   "tests": {
     "internal/adopt/adopt_test.go": "3498983581410317dd8b7a835ab84b7a0b6cb519d7cc037e918952286319b3eb",
-    "internal/check/check_test.go": "19867f988c0ccd5a52034cf5b0239e2646df6003c1bbc096aebfe31df3fbfe5f",
-    "internal/cli/cli_test.go": "4e6841d47be76075bd560e5bd11fba217f66e4fad79a6b0a8ce3ecf0cba21a6c",
+    "internal/cli/cli_test.go": "2faf62d77e0908a833f27eef14713a0aaf7f279e0f74473263fcdae6186bda9f",
     "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
     "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
+    "internal/cli/report_test.go": "5a6ae76b5c3ad6839ce48f02b848b2a8e6d65404f60dcfe83f2e1300e1b593ab",
     "internal/newproject/newproject_test.go": "0cb6019a3fbedc92035018cf3f5adb58ff800545c763533bf6d07c3d57e12f44",
+    "internal/releasing/releasing_test.go": "80428281ee7b309c87c65159bf25c7b5409ed4897692cf5e00bfd42fcf8f1f9a",
     "internal/template/check_test.go": "6b408881490821ea2726f0e2820f1b3479116d53e8f91c91860f6778dff0b0f1",
     "internal/template/choose_test.go": "3f099f90d705b4f635377a4f1f20634e645221961545cdf088dab9ea7bbe1368",
     "internal/template/errors_test.go": "a0020df66b30147a26d58d1225527c71a78239c997e27c21d7a668fb336bbc58",
     "internal/template/name_test.go": "840b7006177164391a2fa15dc2963b49b40c4287fba665e864b01d74f3f69afd",
-    "internal/template/property_test.go": "7970a0416c599941f2ef9a15b771bcb9e0bafca49a38dd5f3420140cf853c33c",
+    "internal/template/property_test.go": "9923978fdab4f5fcaed05ca7abea784b5fdd56d81ba6305b1197e3f5335ea938",
     "internal/template/redact_test.go": "8d8616c4910b1e3cd723bde408501d9ab626cbee1a74bbfef5682d89322adeb0",
-    "internal/template/release_test.go": "443a18400e896b3be6ddf7617e062ce0177c1192fac505431ab998cea0046e43",
+    "internal/template/release_test.go": "28e2d6f115dbbe502bbaab519008410e520b4c476ce28abf8450ba626007a961",
     "internal/template/rendered_test.go": "2ced4eacdbd9e6b53efbc2408ad1554f0f26353c90b323d6e94dbd8764457330",
-    "internal/template/template_test.go": "d31eed5a0ee962a350bcbea3ad1b1ba9bb5263aed335be4c6fbc226a161a72e4",
-    "internal/updating/updating_test.go": "38f56ceb8e8ae982f39a69e7188f5ffc3ad975b9338d3369738e8320ff678d81"
+    "internal/template/template_test.go": "c2efd65ff69ba7d5bb9973cdd5cf6d602e575db3024397445f7d8fb7fc3d07dc",
+    "internal/updating/updating_test.go": "8e8858065ed9a658b8dc10d59e303ce8877e7f1f3c22e39696385cb106e92ffb"
   },
   "units": [
     {
@@ -79,6 +80,18 @@
         }
       ],
       "stale": true
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/template.Template",
+      "name": "Root",
+      "hash": "0d7deb5f2118527e",
+      "start_line": 71,
+      "end_line": 71,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/template.Template",
@@ -208,7 +221,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/template",
@@ -220,7 +234,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/template.Template",
@@ -296,7 +311,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/template.Template",
