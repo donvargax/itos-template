@@ -89,20 +89,24 @@ hooks:
 work:
   tags: [new, check, update, sync, cli, ci, windows]
 
-# The code proof (T-20, judged in CI since T-34): itos ci run makes the check a step of a push's
-# plan when its range touches these paths, among the static steps and before the tests, {base}
-# the range's start, so every commit since the last green run is judged; a failure fails the run,
-# and so the release. No step in ci.steps declares it: itos adds it from this key (itos#28), and
-# itos ci plan lists it. A plan with no range start, a whole run, has none. It runs no test: it
-# reads the results itos-cc mutation run recorded in .metrics/mutate/, committed with the code, so
-# each function the range changed has fresh results, no survivor itos-cc.yaml does not except, and
-# no uncovered mutant (AGENTS.md, Finishing). The check names cmd and internal, so it judges exactly
-# the paths that make it run: paths decides whether it runs, not what it judges (itos#24), and
-# without them a change elsewhere (a comment in tools/bin) would need mutation results too.
+# The code proof (T-20, judged in CI since T-34, by counted runs since T-45 and decision 40): itos
+# ci run makes the check a step of a push's plan when its range touches these paths, among the
+# static steps and before the tests, {base} the range's start, so every commit since the last
+# green run is judged; a failure fails the run, and so the release. No step in ci.steps declares
+# it: itos adds it from this key (itos#28), and itos ci plan lists it. A plan with no range start,
+# a whole run, has none. It judges one mutation site of the range's changed functions freshly,
+# with no cache (nothing is recorded or committed), and fails on a survivor itos-cc.yaml does not
+# except and on any Go block the range adds or changes that no test runs (=lines, itos-cc 0.12.0):
+# old uncovered code beside a change is not the range's. A range with no site is not applicable
+# and passes. --all-tests, the whole suite for each mutant, until the scenarios that reach a site
+# can be listed (the idea listed-tests): they kill mutants the packages' own tests leave. Linux
+# only, as CI's ci job is. The check names cmd and internal, so it judges exactly the paths that
+# make it run: paths decides whether it runs, not what it judges (itos#24), and without them a
+# change elsewhere (a comment in tools/bin) would be judged too.
 proof:
   code:
     paths: ["{cmd,internal}/**/*.go"]
-    check: "tools/bin/pinned itos-cc mutation check --since {base} --fail-uncovered --json cmd internal"
+    check: "tools/bin/pinned itos-cc mutation run --count 1 --since {base} --fail-uncovered=lines --all-tests --json cmd internal"
 
 # What CI runs on a push (.github/workflows/ci.yml): itos ci run over the range from the last green
 # run, these steps in cost order, then the checks of the tasks the range names. Harvested from
@@ -141,14 +145,9 @@ ci:
     # case each run: a package that falls under with no change names a branch to pin with a test.
     - { run: tools/bin/domain-coverage, cost: late }
     # The one merged run of the scenarios: the smoke set and those the range names, the whole suite
-    # when there is no green run to start from. No nightly yet: the whole suite is the smoke set's
-    # size.
+    # when there is no green run to start from. The nightly runs no scenario suite of its own: the
+    # whole suite is the smoke set's size, and the platform jobs run it on every push.
     - { tests: scenario }
-    # The code proof trusts .metrics/mutate/, so CI runs again a few of the mutants it records, the
-    # draw seeded by the commit, each with the tests it was recorded with, and fails when an outcome
-    # differs: a cache written by hand or against other code. With nothing recorded it samples
-    # nothing and passes.
-    - { run: tools/bin/pinned itos-cc mutation sample --count 10, cost: late }
   prose: # a range that touches only these runs only the prose steps: what a docs commit may touch
     paths: ["**/*.md", "docs/**", "tasks/**"]
     steps:
@@ -156,6 +155,23 @@ ci:
       - tools/bin/doc-caps
       # a feature file or a doc can carry an invisible character too: the script ci.steps runs
       - tools/bin/invisible-chars
+  # What .github/workflows/nightly.yml runs once a day, and by hand (itos ci run --nightly).
+  nightly:
+    steps:
+      # itos-cc's counted run builds with Go offline (GOPROXY=off), so the modules are fetched
+      # first, should the runner's module cache hold none.
+      - { run: go mod download, cost: static }
+      # Twenty mutation sites of cmd and internal judged freshly (decision 40, as itos's nightly),
+      # drawn with no cache; a survivor itos-cc.yaml does not except fails the night, and the 50
+      # docs/mutation-baseline.md lists will, until items kill them. --all-tests as in the proof.
+      # Not --fail-uncovered: with no range, strict coverage judges every function, and T-43's
+      # uncovered statements are a backlog of their own. The seed is the run's, GitHub's run id
+      # (the time, run by hand), not HEAD's, so two nights on one commit draw differently; the
+      # report names it, to reproduce a draw.
+      - {
+          run: 'tools/bin/pinned itos-cc mutation run --count 20 --all-tests --seed "${GITHUB_RUN_ID:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}" --json cmd internal',
+          cost: late,
+        }
   # itos push waits for the run of the commit it pushed and exits with its result, and itos status
   # reads it. The range's start is ci.range's default: the last green run of ci.yml.
   watch: { provider: github }

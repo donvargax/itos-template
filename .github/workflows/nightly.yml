@@ -1,0 +1,41 @@
+name: Nightly
+
+# What a push's CI leaves to the night (itos.yaml's ci.nightly), once a day on main and by hand from
+# the Actions tab (gh workflow run nightly.yml): twenty mutation sites of cmd and internal judged
+# freshly with the whole suite, with no cache (decision 40, T-45). Harvested from itos's
+# (github.com/donvargax/itos, .github/workflows/nightly.yml), its features, self-tests, Claude Code
+# and red-issue steps left behind: the whole scenario suite runs on every push here, and the job
+# only reads. A red night is a survivor to kill with a test, or to except for the person's review.
+on:
+  schedule:
+    - cron: "23 4 * * *" # 04:23 UTC every day
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# A group of its own: the nightly never cancels a push's run, nor is cancelled by one. A second
+# nightly waits for the first.
+concurrency:
+  group: nightly-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    steps:
+      # Set up as ci.yml's ci job sets itos, Go and the pinned tools up, every action pinned to the
+      # same commit: actions/checkout v7.0.1, actions/setup-go v7.0.0, and itos's own action at
+      # v7.0.0, the release itos.yaml pins. tools/bin/pinned fetches itos-cc itself. No Node: no
+      # step of the nightly plan runs it.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      # Go for the build, the tests and the scenarios' steps (godog), the version go.mod's
+      # toolchain line pins.
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache-dependency-path: go.sum
+      # The global itos, the launcher, on the PATH: itos.yaml's pin chooses the itos that runs. The
+      # whole suite each mutant runs holds ID-NEW-42, which runs the real itos.
+      - uses: donvargax/itos@4618aeb201c8c15b2ffb947cc355b85747929a17 # v7.0.0
+      - run: itos ci run --nightly

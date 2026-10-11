@@ -419,11 +419,11 @@
     mutation site, and AGENTS.md says so beside the proof's step.
   done_when:
     - run: tools/bin/pinned itos-cc version | grep -qx 'itos-cc 0.12.0'
-    - run: "grep -qF 'tools/bin/pinned itos-cc mutation check --since {base} --fail-uncovered --json' itos.yaml"
-    - run: grep -q 'itos-cc mutation sample' itos.yaml
-    - run: grep -q 'itos-cc mutation run --since' AGENTS.md
+    - run: "grep -qF 'tools/bin/pinned itos-cc mutation run --count 1 --since {base} --fail-uncovered=lines --all-tests --json' itos.yaml"
+    - run: grep -qF 'itos-cc mutation run --count 20 --all-tests' itos.yaml
+    - run: grep -qF 'itos-cc mutation run --count 1 --since' AGENTS.md
     - run: grep -q 'runtime.GOOS' AGENTS.md
-    - run: tools/bin/pinned itos-cc mutation check --since HEAD --fail-uncovered --json
+    - run: tools/bin/pinned itos-cc mutation run --count 1 --since HEAD --fail-uncovered=lines --all-tests --json cmd internal
 - id: T-21
   type: ci
   title: "CI checks the locked install: go mod verify, and go.mod and go.sum tidy"
