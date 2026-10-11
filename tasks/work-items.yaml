@@ -1366,16 +1366,9 @@ items:
     title: T-20's done check finds the mutation run in AGENTS.md again
     phase: 1
     owner: null
-    status: todo
+    status: dropped
     depends_on: []
     kind: idea
-    why: >
-      Found by T-43: itos task T-20 fails, before and after T-43's pin, on its check grep -q
-      'itos-cc mutation run --since' AGENTS.md, since AGENTS.md's Finishing wraps the command
-      between itos-cc and mutation run (tools/bin/pinned itos-cc / mutation run --since …). The
-      other five checks pass. CI runs a task's static checks when a push names it, so the next
-      commit naming T-20 turns main red. Make the check match a phrase AGENTS.md keeps on one line
-      (mutation run --since, say), not AGENTS.md's wrap to fit the check.
     tags: [ci]
   - id: T-45
     title: Per push the proof judges the changed lines and CI samples two mutants; nightly samples twenty (itos#41 tiers)
