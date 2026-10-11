@@ -1412,8 +1412,8 @@ items:
   - id: T-46
     title: Re-record the mutants of cmd and internal in two tiers, so own-test outcomes stay fresh when another package's tests change
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: task
     why: >
