@@ -124,14 +124,6 @@ itos-cc)
 	esac
 	url=https://github.com/donvargax/itos-cc/releases/download/v$version/$asset
 	member=itos-cc$exe
-	# itos-cc binds its strict Go coverage evidence to the raw value of
-	# GOTOOLCHAIN, among others, and actions/setup-go sets it to local for
-	# every later step of CI, where a shell here leaves it unset: records
-	# made here then read coverage-stale in CI, where the code proof is
-	# judged. So every itos-cc run sets it as CI does. Go then builds with
-	# the go on the PATH, never fetching go.mod's toolchain, as in CI. Drop
-	# this once itos-cc fingerprints what go env resolves (itos-cc#36).
-	export GOTOOLCHAIN=local
 	;;
 *) die "no pinned tool named $tool (golangci-lint, goreleaser, git-cliff, itos-cc)" ;;
 esac

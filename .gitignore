@@ -10,5 +10,7 @@
 # failure is reported, never committed (decision 20).
 **/testdata/rapid/
 
-# .metrics/mutate/, itos-cc's mutation results, is committed with the code: the
-# code proof reads it (itos.yaml's proof). .metrics/coverage/ ignores itself.
+# .metrics/mutate/, the results a complete itos-cc mutation run records: none are
+# kept since decision 40 (T-45), the code proof and the nightly judging fresh
+# mutants with no cache. .metrics/coverage/ ignores itself.
+/.metrics/mutate/
