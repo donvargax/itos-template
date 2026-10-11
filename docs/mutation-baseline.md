@@ -262,3 +262,194 @@ measured. With them in place:
   records (the recorded survivor among them, `internal/git/git.go:115:94` `0` → `1`, survived
   again). One did not: `mismatch internal/manifest/decode.go:77:17` `1` → `0`
   `in github.com/donvargax/itos-template/internal/manifest#strict: recorded killed, now survived`.
+
+## The records refreshed under itos-cc 0.12.0 (T-43)
+
+T-43 pinned itos-cc 0.12.0 and wrote a fresh record of every function of `cmd` and `internal`, so
+that the code proof and CI's sample trust records that match the code. Before it, at `19a5a87`
+(`docs: take T-43`), a check under 0.5.0 found 148 functions stale and 115 missing. After it, a
+check finds none stale, missing, coverage-missing or coverage-stale: all 505 functions of the 49
+files are fresh, 301 of them holding mutants. The check still exits 1, on the survivors, the
+uncovered mutants and the uncovered statements below, which stay: nothing was killed, covered or
+excepted, no test was added and no code changed, since what to kill waits on itos#41's tiers.
+`itos-cc.yaml` holds the same three exceptions.
+
+### How it was run
+
+- The run started at `de8be5f`, which pinned 0.11.0, on a clean tree; Go 1.27.2, linux/amd64, the
+  same i7-4790K (4 cores, 8 threads, 30 GB), itos-cc's default 4 workers. The machine was not
+  quiet: other projects' work kept its load average between 20 and 45 the whole run, so the wall
+  times are high.
+- 0.12.0 came out during the run. Pinned at `36d0674`, its check read every record of the 0.11.0
+  run fresh, coverage evidence included, so nothing was run again: 0.12.0 makes only Python and
+  TypeScript evidence stale once.
+
+```
+tools/bin/pinned itos-cc mutation run --fail-uncovered --all-tests --no-annotate --json cmd internal
+tools/bin/pinned itos-cc mutation check --fail-uncovered --json cmd internal
+tools/bin/pinned itos-cc mutation sample --count 1 cmd internal
+```
+
+| Command | Wall time | Exit |
+|---|---|---|
+| `mutation run`, 0.11.0 | 11001 s (3 h 3 min), 1484 mutants run, 20 uncovered, none reused | 1 |
+| `mutation check`, 0.12.0 | 2 s | 1 |
+| `mutation sample --count 1`, 0.12.0 | 32 s | 0 |
+
+Every mutant ran against the whole suite: under 0.11.0 and 0.12.0, `--all-tests` runs the whole
+suite for every mutant it runs, and reuses only fresh results, which 0.5.0's records were not. A
+mutant took 24 s at the median and 632 s at most. The tier AGENTS.md names, own tests first and
+the whole suite for what they leave, holds only as two runs: tried in a scratch worktree, an
+`--all-tests` run of `internal/answer/answer.go` after an own-tests run reused its 10 own kills and
+ran 1 mutant. Done that way here, it would have run an own-tests pass (313 s, below) and then about
+345 mutants with the whole suite rather than 1484.
+
+After the run no rapid failfile was left in the tree (no `testdata/rapid` anywhere), and before the
+records were committed one mutant was sampled again (the person's choice of a local sample of 1;
+CI samples 10): `internal/answer/answer.go:33` `0` → `1`, killed again, seed `36d06748`, no
+mismatch.
+
+### Per package
+
+The records hold every outcome with scope `all-tests`. Which kills the package's own tests make
+comes from a second run, in a scratch worktree at `36d0674` with no records, without `--all-tests`
+(313 s): a kill there is **Killed, own tests**, and a whole-suite kill it left survived or uncovered
+is **Killed only with the whole suite**. No mutant its own tests killed survived the whole suite.
+**Survived** leaves out the three excepted survivors, counted under **Excepted**. **Uncovered** is
+a mutant no test of the whole suite executes; **Uncovered statements** are the
+`mutation.uncovered-statement` blocks, mutants or not, strict coverage reports.
+
+| Package | Mutants | Killed, own tests | Killed only with the whole suite | Survived | Excepted | Uncovered | Uncovered statements |
+|---|---|---|---|---|---|---|---|
+| cmd/itos-template | 18 | 11 | 7 | 0 | 0 | 0 | 2 |
+| internal/adopt | 39 | 22 | 17 | 0 | 0 | 0 | 7 |
+| internal/adoption | 42 | 41 | 1 | 0 | 0 | 0 | 2 |
+| internal/answer | 11 | 10 | 1 | 0 | 0 | 0 | 0 |
+| internal/caseform | 16 | 16 | 0 | 0 | 0 | 0 | 1 |
+| internal/check | 18 | 0 | 18 | 0 | 0 | 0 | 4 |
+| internal/cli | 135 | 117 | 16 | 1 | 1 | 0 | 6 |
+| internal/cutrelease | 25 | 0 | 25 | 0 | 0 | 0 | 7 |
+| internal/disk | 13 | 10 | 1 | 0 | 0 | 2 | 6 |
+| internal/git | 270 | 214 | 33 | 17 | 0 | 6 | 72 |
+| internal/manifest | 255 | 229 | 3 | 12 | 1 | 10 | 13 |
+| internal/newproject | 26 | 13 | 13 | 0 | 0 | 0 | 2 |
+| internal/program | 7 | 0 | 7 | 0 | 0 | 0 | 0 |
+| internal/project | 30 | 28 | 2 | 0 | 0 | 0 | 6 |
+| internal/prompt | 17 | 15 | 0 | 2 | 0 | 0 | 3 |
+| internal/release | 61 | 54 | 1 | 6 | 0 | 0 | 18 |
+| internal/release/releasetest | 10 | 0 | 10 | 0 | 0 | 0 | 8 |
+| internal/releasing | 44 | 43 | 1 | 0 | 0 | 0 | 0 |
+| internal/render | 45 | 42 | 1 | 2 | 0 | 0 | 1 |
+| internal/tempdir | 14 | 9 | 1 | 4 | 0 | 0 | 5 |
+| internal/template | 206 | 180 | 20 | 4 | 1 | 1 | 5 |
+| internal/template/port | 5 | 4 | 0 | 0 | 0 | 1 | 2 |
+| internal/template/port/porttest | 115 | 41 | 72 | 2 | 0 | 0 | 4 |
+| internal/update | 21 | 0 | 21 | 0 | 0 | 0 | 11 |
+| internal/updating | 47 | 46 | 1 | 0 | 0 | 0 | 2 |
+| internal/version | 14 | 14 | 0 | 0 | 0 | 0 | 1 |
+| **Total** | **1504** | **1159** | **272** | **50** | **3** | **20** | **188** |
+
+Under its own tests alone the project leaves 73 survivors, 272 uncovered mutants and 653 uncovered
+statements; the whole suite kills 272 of those 345 mutants and leaves 50 survivors, 3 excepted
+and 20 uncovered.
+
+### The survivors
+
+Each survivor, by file, line and column, with its mutation and function, for the kill items to be
+split from:
+
+**internal/cli** (1)
+
+- `internal/cli/cli.go:126:20` `false` → `true` in `cli.UI#JSON`
+
+**internal/git** (17)
+
+- `internal/git/commit.go:28:10` `!=` → `==` in `git.Committer#Identity`
+- `internal/git/commit.go:55:22` `>` → `>=` in `git.Committer#Commit`
+- `internal/git/commit.go:55:24` `0` → `1` in `git.Committer#Commit`
+- `internal/git/git.go:98:18` `!=` → `==` in `git#names`
+- `internal/git/git.go:115:33` `&&` → `||` in `git#executable`
+- `internal/git/git.go:115:50` `==` → `!=` in `git#executable`
+- `internal/git/git.go:115:63` `||` → `&&` in `git#executable`
+- `internal/git/git.go:115:91` `!=` → `==` in `git#executable`
+- `internal/git/git.go:115:94` `0` → `1` in `git#executable`
+- `internal/git/git.go:197:10` `1` → `0` in `git#exitCode`
+- `internal/git/repo.go:178:10` `||` → `&&` in `git.Repo#files`
+- `internal/git/repo.go:214:18` `0` → `1` in `git.Repo#blobs`
+- `internal/git/repo.go:218:27` `1` → `0` in `git.Repo#blobs`
+- `internal/git/repo.go:233:24` `!=` → `==` in `git.Repo#blobs`
+- `internal/git/repo.go:233:31` `&&` → `||` in `git.Repo#blobs`
+- `internal/git/repo.go:233:42` `==` → `!=` in `git.Repo#blobs`
+- `internal/git/repo.go:245:22` `||` → `&&` in `git#readBlob`
+
+**internal/manifest** (12)
+
+- `internal/manifest/decode.go:77:17` `1` → `0` in `manifest#strict`
+- `internal/manifest/decode.go:77:19` `<` → `<=` in `manifest#strict`
+- `internal/manifest/manifest.go:94:16` `1` → `0` in `manifest.Check#UnmarshalYAML`
+- `internal/manifest/manifest.go:94:18` `<` → `<=` in `manifest.Check#UnmarshalYAML`
+- `internal/manifest/manifest.go:343:18` `true` → `false` in `manifest#collidingForms`
+- `internal/manifest/manifest.go:349:19` `>` → `>=` in `manifest#collidingForms`
+- `internal/manifest/manifest.go:357:33` `>=` → `>` in `manifest#collidingForms`
+- `internal/manifest/manifest.go:357:40` `&&` → `||` in `manifest#collidingForms`
+- `internal/manifest/manifest.go:357:49` `<=` → `<` in `manifest#collidingForms`
+- `internal/manifest/manifest.go:392:96` `+` → `-` in `manifest.Manifest#checkChecks`
+- `internal/manifest/manifest.go:392:97` `1` → `0` in `manifest.Manifest#checkChecks`
+- `internal/manifest/manifest.go:566:79` `&&` → `||` in `manifest.Manifest#FeaturesNamed`
+
+**internal/prompt** (2)
+
+- `internal/prompt/prompt.go:47:45` `||` → `&&` in `prompt.Lines#Ask`
+- `internal/prompt/prompt.go:77:45` `&&` → `||` in `prompt#Terminal`
+
+**internal/release** (6)
+
+- `internal/release/build.go:157:10` `!=` → `==` in `release#goIn`
+- `internal/release/build.go:183:14` `!=` → `==` in `release#extract`
+- `internal/release/build.go:230:34` `!=` → `==` in `release#write`
+- `internal/release/release.go:75:58` `>` → `>=` in `release#Newest`
+- `internal/release/release.go:86:16` `<=` → `<` in `release#compareTags`
+- `internal/release/release.go:91:12` `!=` → `==` in `release#compareTags`
+
+**internal/render** (2)
+
+- `internal/render/leftover.go:81:38` `0` → `1` in `render.Scan#find`
+- `internal/render/leftover.go:84:68` `-` → `+` in `render.Scan#find`
+
+**internal/tempdir** (4)
+
+- `internal/tempdir/tempdir.go:48:17` `*` → `/` in `tempdir#Remove`
+- `internal/tempdir/tempdir.go:48:56` `<=` → `<` in `tempdir#Remove`
+- `internal/tempdir/tempdir.go:58:29` `!=` → `==` in `tempdir#Discard`
+- `internal/tempdir/tempdir.go:74:29` `!=` → `==` in `tempdir.Renders#Remove`
+
+**internal/template** (4)
+
+- `internal/template/choose.go:29:52` `>` → `>=` in `template#Choose`
+- `internal/template/choose.go:29:54` `0` → `1` in `template#Choose`
+- `internal/template/choose.go:73:13` `&&` → `||` in `template#Choose`
+- `internal/template/release.go:131:11` `false` → `true` in `template.Template#UseNewest`
+
+**internal/template/port/porttest** (2)
+
+- `internal/template/port/porttest/porttest.go:154:13` `0` → `1` in `porttest#file`
+- `internal/template/port/porttest/porttest.go:549:19` `&&` → `||` in `porttest.Terminal#Ask`
+
+### A test file's change makes every whole-suite outcome stale
+
+Tried in a scratch worktree at `36d0674` with these records: one comment added at the end of
+`internal/caseform/caseform_test.go`, and a bare check (`mutation check --fail-uncovered --json cmd
+internal`) reports all 301 functions holding mutants `mutation.stale` ("whole-suite results made
+before inputs changed") and all 505 `mutation.coverage-stale`. A new, empty test file does the
+same. Every outcome here is whole-suite, so any change to any `_test.go` file under the module
+makes the whole record stale until a full run, and a bare check of the records cannot stay green
+between items. Strict Go coverage evidence goes stale more often still: a comment added to
+`internal/caseform/caseform.go` left every mutant outcome fresh but made all 505 functions
+coverage-stale. The proof's form is not affected: with only the test file changed,
+`mutation check --since HEAD --fail-uncovered --json cmd internal` judges no source file and passes.
+A change to a scenario's `.feature` file makes nothing stale, since `itos-cc.yaml` names no
+`mutation.tests.support` files, so a whole-suite kill a scenario made stays fresh when the scenario
+changes (the idea `mutation-support-features`). For itos#41: own-scope outcomes go stale only when
+their package's tests change, so a record whose kills are own tests where they can be, the whole
+suite deciding only the rest, would stay fresh across most items, though its coverage evidence
+would not.
