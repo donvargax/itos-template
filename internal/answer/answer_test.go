@@ -51,6 +51,10 @@ func TestResolveNamesEveryMissingOneAndNeverAsks(t *testing.T) {
 			t.Errorf("problem %d is %v, not the missing %s", i, joined.Unwrap()[i], name)
 		}
 	}
+	var missing *Missing
+	if _, err := Resolve(m, Given{"name=blue-fox"}, false); !errors.As(err, &missing) || missing.Question.Name != "owner" {
+		t.Errorf("one missing: Resolve = %v", err)
+	}
 	got, err := Resolve(m, Given{"name=blue-fox"}, true)
 	if err != nil || got.Texts()["name"] != "blue-fox" || got.Texts()["owner"] != "Nobody" {
 		t.Errorf("Resolve = %v, %v", got, err)
