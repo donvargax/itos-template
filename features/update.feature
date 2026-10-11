@@ -257,3 +257,33 @@ Feature: update brings a made project to a newer template release by a 3-way mer
       | dir   | state                               | problem |
       | plain | a folder outside any git repository | git     |
       | bare  | a bare git repository               | bare    |
+
+  # slice-15: git merge-tree labels a conflict's markers with the arguments it
+  # was given, HEAD and the new render's tree, an object id no person
+  # recognises, and under diff3 the base's tree id too. update names the sides
+  # as a person reads them: HEAD for the project, as git merge does, and
+  # "template" and the release for the renders: "template v1.1.0" for the new
+  # one, "template v1.0.0" for the base, or the template's root commit,
+  # abbreviated, for a record naming no release. The person's
+  # merge.conflictStyle is kept (merge, diff3, zdiff3), as merge-tree keeps it.
+  # Tried 2026-10-10 on git 2.56: git merge-file -L over a conflict's three
+  # index stages gives the same markers with the names chosen, still git's
+  # own merge (decision 38); the stages stay as they were (ID-UPDATE-08).
+  @ID-UPDATE-21 @slice-15 @wip
+  Scenario: a conflict's markers name HEAD and the release, never a git object id
+    Given a committed project change to "made/release.txt" containing "project-release"
+    When itos-template runs in "made" with "update"
+    Then it exits with code 1
+    And the file "made/release.txt" has the line "<<<<<<< HEAD"
+    And the file "made/release.txt" has the line ">>>>>>> template v1.1.0"
+    And the file "made/release.txt" names no git object id
+    And the index of "made" holds "release.txt" unmerged, its base "v1.0.0", the project's "project-release" and the release's "v1.1.0"
+
+  @ID-UPDATE-22 @slice-15 @wip
+  Scenario: under the person's diff3 conflict style the base's section names the recorded release
+    Given a committed project change to "made/release.txt" containing "project-release"
+    When itos-template runs in "made" with git's merge.conflictStyle set to diff3 with "update"
+    Then it exits with code 1
+    And the file "made/release.txt" has the line "||||||| template v1.0.0"
+    And the file "made/release.txt" has the line ">>>>>>> template v1.1.0"
+    And the file "made/release.txt" names no git object id
