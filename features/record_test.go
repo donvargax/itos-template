@@ -26,6 +26,7 @@ type record struct {
 	Features []string          `yaml:"features"`
 	Answers  map[string]string `yaml:"answers"`
 	Commits  map[string]string `yaml:"commits"`
+	Declined []string          `yaml:"declined"`
 }
 
 func (w *world) record(dir string) (*record, error) {
@@ -114,6 +115,40 @@ func (w *world) recordNamesCommits(dir, branches string) error {
 		}
 	}
 	return nil
+}
+
+// recordDeclines is whether the record in dir lists path among the paths
+// the project declines.
+func (w *world) recordDeclines(dir, path string) error {
+	r, err := w.record(dir)
+	if err != nil {
+		return err
+	}
+	if !slices.Contains(r.Declined, path) {
+		return fmt.Errorf("the record declines %q, not %q\n%s", r.Declined, path, w.report())
+	}
+	return nil
+}
+
+// recordsDeclined declines path in dir's record as a person would: it adds
+// a declined list holding path to the end of .itos-template.yaml, which
+// holds none yet, and commits the record.
+func (w *world) recordsDeclined(dir, path string) error {
+	file := filepath.Join(w.path(dir), ".itos-template.yaml")
+	data, err := os.ReadFile(file)
+	if err != nil {
+		return err
+	}
+	if strings.Contains(string(data), "\ndeclined:") {
+		return fmt.Errorf("the record in %s declines paths already:\n%s", dir, data)
+	}
+	if err := os.WriteFile(file, append(data, []byte("declined:\n  - "+path+"\n")...), 0o644); err != nil {
+		return err
+	}
+	if err := w.gitIn(w.path(dir), "add", "--", ".itos-template.yaml"); err != nil {
+		return err
+	}
+	return w.commit(dir, "Decline "+path)
 }
 
 // noFileOrCommitHolds is whether nothing the repository dir keeps holds

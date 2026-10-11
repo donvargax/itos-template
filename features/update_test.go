@@ -51,6 +51,9 @@ func (w *world) updateSteps(sc *godog.ScenarioContext) {
 		return w.unmerged(dir, file, map[string]string{"2": ours, "3": theirs})
 	})
 	sc.Step(`^its update JSON conflicts are (".*")$`, w.updateConflicts)
+
+	sc.Step(`^the record in "([^"]*)" declines "([^"]*)"$`, w.recordDeclines)
+	sc.Step(`^"([^"]*)" records "([^"]*)" as declined, committed$`, w.recordsDeclined)
 }
 
 // The project.
