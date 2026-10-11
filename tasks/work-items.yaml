@@ -1300,3 +1300,16 @@ items:
       says it (git ls-remote --symref), as check reads a detached checkout's. An origin naming no
       default branch is refused as check refuses one. check keeps its rule; whether it shares the
       flaw is the idea check-root-branch. The person's call, 2026-10-10.
+  - id: check-root-branch
+    title: check reads the root from origin's default branch when the checkout is on another branch, if it shares release's flaw
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Unverified, from bug-7 (2026-10-10): check's root is the branch the checkout's HEAD names, so
+      check run in a template's clone with stack/go checked out may read stack/go as the root and
+      render its combinations wrong. A detached checkout already reads origin's HEAD. Try it first;
+      if it holds, the fix is a bug as bug-7 was, and check without an origin keeps the checked-out
+      branch.
