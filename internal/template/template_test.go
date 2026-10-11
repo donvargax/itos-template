@@ -365,3 +365,21 @@ func TestRenderRefusesASubmoduleWritingNothing(t *testing.T) {
 		t.Error("the project's folder was written")
 	}
 }
+
+// A failure of git reading a branch's commit or merging them means nothing
+// to a render, and is passed through untouched, nothing written.
+func TestRenderPassesAGitFailureThrough(t *testing.T) {
+	for _, method := range []string{"Commit", "Merge"} {
+		tpl := open(t, acme())
+		c := combination(t, tpl, "sh")
+		broken := errors.New("git cannot read the repository")
+		tpl.repo.(*porttest.Repository).Fails = map[string]error{method: broken}
+		w, d, _ := writer()
+		if _, err := tpl.Render(c, taken(t, tpl.Manifest, answers), project.Folder{Path: "made", New: true}, nil, w); !errors.Is(err, broken) {
+			t.Errorf("%s failing: Render = %v", method, err)
+		}
+		if _, ok := d.Folders["made"]; ok {
+			t.Errorf("%s failing: the project's folder was written", method)
+		}
+	}
+}

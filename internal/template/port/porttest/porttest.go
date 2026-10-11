@@ -25,12 +25,15 @@ import (
 
 // Repository is a template's repository held in memory: each branch a tree
 // of files, its commit named after it, and each tag a tree of its own, its
-// commit named after the tag, on the history of the branch it says.
+// commit named after the tag, on the history of the branch it says. A
+// method Fails names by its name fails with that error, as a git that
+// cannot be read does.
 type Repository struct {
 	Root     string // the branch HEAD names; "" when it names none
 	Branches map[string]fstest.MapFS
-	Tagged   map[string]Tag // each tag by its name
-	NoTags   error          // why the tags cannot be read, when they cannot
+	Tagged   map[string]Tag   // each tag by its name
+	NoTags   error            // why the tags cannot be read, when they cannot
+	Fails    map[string]error // by method: Commit, Merge
 }
 
 // Tag is a tag of a Repository: the tree of the commit it names, and the
@@ -52,6 +55,9 @@ func (r *Repository) DefaultBranch() (string, error) {
 
 // Commit is the branch's commit, "commit of <branch>".
 func (r *Repository) Commit(branch string) (string, bool, error) {
+	if err := r.Fails["Commit"]; err != nil {
+		return "", false, err
+	}
 	if _, ok := r.Branches[branch]; !ok {
 		return "", false, nil
 	}
@@ -93,6 +99,9 @@ func (r *Repository) File(commit, name string) ([]byte, bool, error) {
 // *port.Conflict naming every such file. The files come in path order, as
 // git's are.
 func (r *Repository) Merge(commits []string) ([]port.File, error) {
+	if err := r.Fails["Merge"]; err != nil {
+		return nil, err
+	}
 	merged := map[string]port.File{}
 	for i, c := range commits {
 		tree, err := r.tree(c)
