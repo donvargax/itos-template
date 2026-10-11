@@ -1350,3 +1350,15 @@ items:
       stale (tried in a scratch worktree), since that decides whether a whole check of the records
       can stay green between items, and it bears on itos#41. Mutation of tools/bin (release-notes,
       release-version), which a bare check covers but the proof does not, is out of scope.
+  - id: tools-bin-mutation
+    title: Mutation results for tools/bin (release-notes, release-version), which a bare itos-cc check covers and the proof does not
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      A bare tools/bin/pinned itos-cc mutation check reads tools/bin too and finds 21 functions
+      there with no result (T-39, T-43), so it cannot pass while the proof, scoped to cmd and
+      internal, does. Either record and judge them, or scope the bare check (itos-cc.yaml) to what
+      the proof judges.
