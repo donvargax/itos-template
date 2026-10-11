@@ -15,7 +15,8 @@ import (
 )
 
 // Project is a made or adopted project's git repository: the port.Project
-// update merges into (decision 38). It reads as a Worktree reads, and
+// update merges into (decision 38), and the port.Merger adopt --merge
+// merges its baseline into, over an empty base. It reads as a Worktree reads, and
 // merges with git's own merge through its command line, as git merge
 // would: the two renders are written to the project's objects as trees no
 // ref or commit names (git hash-object, then git update-index and git
@@ -70,6 +71,10 @@ func (p *Project) Committed(path string) ([]byte, bool, error) {
 	data, err := g.output("cat-file", "blob", strings.TrimSpace(string(oid)))
 	return data, err == nil, err
 }
+
+// CanMerge is nil when the git itos-template runs can merge as Merge
+// does (Supports).
+func (p *Project) CanMerge() error { return Supports() }
 
 // Merge merges into HEAD the change from base to target, as port.Project
 // says.

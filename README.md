@@ -28,10 +28,14 @@ itos-template release v1.2.0 --answer name=blue-fox --defaults
 
 `itos-template adopt` links a project made before the template to the release it matches, writing
 only the record `new` writes, `.itos-template.yaml`, for you to commit; `--dry-run` previews how the
-project differs from that release's render, and `--force` accepts the differences:
+project differs from that release's render, and `--force` accepts the differences. `--merge` takes
+that render in instead, for a project that grew on its own: git's own merge, over an empty base,
+adds each file the project lacks and leaves a file both hold differently as a conflict, staged with
+the record for you to commit, and `git reset --hard` undoes it. It needs git 2.45 or later:
 
 ```sh
 itos-template adopt ../acme --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --defaults --dry-run
+itos-template adopt ../acme --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --defaults --merge
 ```
 
 `itos-template update`, in a made or adopted project, merges the template's newest release, or the

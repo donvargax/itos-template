@@ -472,7 +472,9 @@ the heads'. A template may not hold a file of that name.
 `adopt` writes the same record beside an existing project, for the release `--ref` names and the
 stack, features and answers given (decision 24, `features/adopt.feature`): it renders that release
 as `new` does, writes nothing else, and leaves the record unstaged and uncommitted, for the person
-to commit through the project's own gates before `update`.
+to commit through the project's own gates before `update`. With `--merge` it merges that render into
+the project with git's own merge over an empty base, as `update` merges, and leaves the record
+staged with the merge, uncommitted.
 
 `update` reads the record at the project's HEAD (`features/update.feature`): it renders again the
 render the record names, from its branch commits, never from a tag, and the target release with the

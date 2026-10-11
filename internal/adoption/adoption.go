@@ -9,16 +9,25 @@
 // written (template.Baseline). Here it is compared with the project's
 // working tree as git sees it (port.Checkout): each path the two hold
 // otherwise is a Difference, project-only, modified or missing from the
-// project, a binary file and a mode git records otherwise told apart. A
-// missing file is a deletion the project made, kept for a later update,
-// never a file adoption installs, and a difference is accepted with Force,
-// never applied: adopting writes the record alone, unstaged and
-// uncommitted, beside files, HEAD and index left as they are.
+// project, a binary file and a mode git records otherwise told apart.
+//
+// A difference is accepted in one of two ways. Force accepts it as it is:
+// adopting writes the record alone, unstaged and uncommitted, beside
+// files, HEAD and index left as they are, so a missing file is a deletion
+// of the project's that a later update keeps only while the template
+// leaves the file unchanged. Merge takes the baseline in (GitHub issue #3):
+// git's merge, as update merges (decision 38), merges the baseline into
+// the project over an empty base, the record with it, so a file the project
+// lacks is added, one both hold alike or the project alone holds is left
+// as it is, and one both hold otherwise is a conflict both added; the
+// merge and the record are staged, as update leaves its own (decision 37),
+// HEAD unmoved and nothing committed.
 //
 // It is domain (decision 17): it reaches the project's repository only
-// through a port.Checkout and git's diff only through a port.Differ, so its
-// tests run it against fakes of both. Its refusals are a sealed set
-// (Error), plain domain types carrying no exit code or wording.
+// through a port.Checkout, git's merge only through a port.Merger and git's
+// diff only through a port.Differ, so its tests run it against fakes of
+// them. Its refusals are a sealed set (Error), plain domain types carrying
+// no exit code or wording.
 package adoption
 
 import (
@@ -27,6 +36,7 @@ import (
 	"errors"
 	"io/fs"
 	"slices"
+	"strings"
 
 	"github.com/donvargax/itos-template/internal/project"
 	"github.com/donvargax/itos-template/internal/template/port"
@@ -60,30 +70,39 @@ type Difference struct {
 
 // Adoption is what adopting found and did: the baseline's record, the
 // differences, sorted by path, whether the project's index or working tree
-// was dirty, and whether the record was written.
+// was dirty, whether the record was written, and the paths a merge left
+// conflicted, sorted, as update names its own.
 type Adoption struct {
 	Written     bool            `json:"written"`
 	Dirty       bool            `json:"dirty"`
 	Baseline    *project.Record `json:"baseline"`
 	Differences []Difference    `json:"differences"`
+	Conflicts   []port.Unmerged `json:"conflicts"`
 }
 
 // How is how adopting goes: DryRun previews and writes nothing; Force
-// accepts the differences, writing the record over them; Diff asks for each
-// text difference's diff.
+// accepts the differences, writing the record over them; Merge accepts them
+// by merging the baseline in, the record staged with it; Diff asks for each
+// text difference's diff. The UI never gives Force and Merge together.
 type How struct {
-	DryRun, Force, Diff bool
+	DryRun, Force, Merge, Diff bool
 }
+
+// Unrelated is how a merge's conflict markers name its base, which a
+// conflict style showing the base marks: an empty tree, as git merge names
+// the base of histories with no commit in common.
+const Unrelated = "empty tree"
 
 // Open looks at the project co was opened in, before anything is rendered,
 // and gives what it is. It refuses a folder in no git repository
 // (*NotRepository) and a repository with no working tree (*NoWorkTree);
-// unless dryRun, it refuses too a repository with no commit (*NoCommit), a
-// dirty index or working tree, untracked files git does not ignore
-// included (*Dirty), and one holding a record already (*HasRecord), every
-// one of these found, joined: --force accepts differences from the
+// unless how.DryRun, it refuses too a repository with no commit
+// (*NoCommit), a dirty index or working tree, untracked files git does not
+// ignore included (*Dirty), one holding a record already (*HasRecord), and,
+// with how.Merge, a merger that cannot merge, as it says, every one of
+// these found, joined: --force and --merge accept differences from the
 // baseline, never these.
-func Open(co port.Checkout, dryRun bool) (port.CheckoutState, error) {
+func Open(co port.Checkout, how How, merger port.Merger) (port.CheckoutState, error) {
 	state, err := co.Look()
 	switch {
 	case err != nil:
@@ -92,7 +111,7 @@ func Open(co port.Checkout, dryRun bool) (port.CheckoutState, error) {
 		return state, &NotRepository{Why: state.Why}
 	case !state.WorkTree:
 		return state, &NoWorkTree{}
-	case dryRun:
+	case how.DryRun:
 		return state, nil
 	}
 	var refused []error
@@ -109,17 +128,23 @@ func Open(co port.Checkout, dryRun bool) (port.CheckoutState, error) {
 	if held {
 		refused = append(refused, &HasRecord{File: project.RecordFile})
 	}
+	if how.Merge {
+		refused = append(refused, merger.CanMerge())
+	}
 	return state, errors.Join(refused...)
 }
 
 // Adopt compares the project co holds, as Open found it in state, with
 // baseline, the render record names, and, unless how.DryRun, writes record
 // as the project's .itos-template.yaml: refused, a *Differs, when the
-// project differs from the baseline and how.Force does not accept it, and
-// a *HasRecord when a record appeared since Open looked. With how.Diff,
-// each text difference has differ's diff. The Adoption comes back with a
-// refusal too, so its differences are reported with it.
-func Adopt(co port.Checkout, state port.CheckoutState, baseline []port.File, record project.Record, how How, differ port.Differ) (*Adoption, error) {
+// project differs from the baseline and neither how.Force nor how.Merge
+// accepts it, and a *HasRecord when a record appeared since Open looked.
+// With how.Merge, merger merges baseline and the record into the project
+// instead, over an empty base, a *Conflicted when the merge leaves
+// conflicts. With how.Diff, each text difference has differ's diff. The
+// Adoption comes back with a refusal too, so its differences and conflicts
+// are reported with it.
+func Adopt(co port.Checkout, state port.CheckoutState, baseline []port.File, record project.Record, how How, merger port.Merger, differ port.Differ) (*Adoption, error) {
 	paths := make([]string, len(baseline))
 	for i, f := range baseline {
 		paths[i] = f.Path
@@ -128,7 +153,7 @@ func Adopt(co port.Checkout, state port.CheckoutState, baseline []port.File, rec
 	if err != nil {
 		return nil, err
 	}
-	a := &Adoption{Baseline: &record, Dirty: len(state.Changed) > 0, Differences: Compare(baseline, files)}
+	a := &Adoption{Baseline: &record, Dirty: len(state.Changed) > 0, Differences: Compare(baseline, files), Conflicts: []port.Unmerged{}}
 	if how.Diff {
 		if err := diffs(a.Differences, baseline, files, differ); err != nil {
 			return nil, err
@@ -137,12 +162,15 @@ func Adopt(co port.Checkout, state port.CheckoutState, baseline []port.File, rec
 	if how.DryRun {
 		return a, nil
 	}
-	if len(a.Differences) > 0 && !how.Force {
+	if len(a.Differences) > 0 && !how.Force && !how.Merge {
 		return a, &Differs{Count: len(a.Differences)}
 	}
 	file, err := record.File()
 	if err != nil {
 		return nil, err
+	}
+	if how.Merge {
+		return merge(a, merger, append(baseline[:len(baseline):len(baseline)], file), record.Release)
 	}
 	if err := co.Create(file.Path, file.Data); err != nil {
 		if errors.Is(err, fs.ErrExist) {
@@ -152,6 +180,27 @@ func Adopt(co port.Checkout, state port.CheckoutState, baseline []port.File, rec
 	}
 	a.Written = true
 	return a, nil
+}
+
+// merge has merger merge target, the baseline and its record, into the
+// project a found, over an empty base, labelled by release, the baseline's:
+// the record written and staged with the rest, a *Conflicted naming each
+// path the merge leaves conflicted.
+func merge(a *Adoption, merger port.Merger, target []port.File, release string) (*Adoption, error) {
+	merged, err := merger.Merge(nil, target, port.Labels{Base: Unrelated, Target: "template " + release})
+	if err != nil {
+		return nil, err
+	}
+	a.Written = true
+	if len(merged.Conflicts) == 0 {
+		return a, nil
+	}
+	a.Conflicts = merged.Conflicts
+	paths := make([]string, len(merged.Conflicts))
+	for i, c := range merged.Conflicts {
+		paths[i] = c.Path
+	}
+	return a, &Conflicted{Release: release, Paths: paths}
 }
 
 // Compare is every path project holds otherwise than baseline, sorted by
@@ -255,8 +304,15 @@ type Dirty struct{ Paths []string }
 type HasRecord struct{ File string }
 
 // Differs is a project differing from the baseline in Count paths, which
-// adopting without Force refuses.
+// adopting without Force or Merge refuses.
 type Differs struct{ Count int }
+
+// Conflicted is a merge of the baseline, the release Release, that left
+// conflicts in Paths.
+type Conflicted struct {
+	Release string
+	Paths   []string
+}
 
 func (*NotRepository) adoptionError() {}
 func (*NoWorkTree) adoptionError()    {}
@@ -264,6 +320,7 @@ func (*NoCommit) adoptionError()      {}
 func (*Dirty) adoptionError()         {}
 func (*HasRecord) adoptionError()     {}
 func (*Differs) adoptionError()       {}
+func (*Conflicted) adoptionError()    {}
 
 func (e *NotRepository) Error() string { return "in no git repository: " + e.Why }
 func (*NoWorkTree) Error() string      { return "a git repository with no working tree" }
@@ -271,3 +328,4 @@ func (e *NoCommit) Error() string      { return "no commit in " + e.Top }
 func (e *Dirty) Error() string         { return "changes from HEAD" }
 func (e *HasRecord) Error() string     { return "a record " + e.File + " already" }
 func (e *Differs) Error() string       { return "differences from the baseline" }
+func (e *Conflicted) Error() string    { return "conflicts in " + strings.Join(e.Paths, ", ") }

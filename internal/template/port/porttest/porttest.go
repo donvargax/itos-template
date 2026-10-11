@@ -333,6 +333,9 @@ type Project struct {
 	State port.CheckoutState
 	Head  map[string]port.File
 	Fail  error
+	// Unable is why it cannot merge at all, as a git too old cannot, when
+	// it cannot.
+	Unable error
 
 	// Tree is the working tree after Merge, each path's file; a conflicted
 	// one is HEAD's side, or the target's when HEAD has none.
@@ -350,6 +353,9 @@ var _ port.Project = (*Project)(nil)
 
 // Look is State.
 func (p *Project) Look() (port.CheckoutState, error) { return p.State, nil }
+
+// CanMerge is Unable.
+func (p *Project) CanMerge() error { return p.Unable }
 
 // Committed is Head's file path, or Fail.
 func (p *Project) Committed(path string) ([]byte, bool, error) {

@@ -16,11 +16,14 @@
 // folder in no repository, or one not ready for a record, is refused at
 // once. The baseline is rendered from the template's bare clone into
 // memory, in a temporary folder removed when adopt ends: no check of the
-// manifest's runs, and no setup step, and nothing of the project is
-// written but its record.
+// manifest's runs, and no setup step. Nothing of the project is written
+// but its record, unless --merge merges the baseline in with git's merge,
+// as update merges a release (GitHub issue #3), the merge and the record
+// left staged.
 package adopt
 
 import (
+	"errors"
 	"fmt"
 	"io/fs"
 	"maps"
@@ -44,8 +47,9 @@ import (
 // ── UI ──
 
 // CLI is itos-template adopt as kong reads it (decision 4): its flags.
-// --dry-run and --force have no environment variable: each is a choice
-// about one run, never one to set once for a shell (docs/CLI.md, rule 34).
+// --dry-run, --force and --merge have no environment variable: each is a
+// choice about one run, never one to set once for a shell (docs/CLI.md,
+// rule 34).
 type CLI struct {
 	Template string   `arg:"" help:"The template: anything git clone takes, a path or a URL."`
 	Ref      string   `required:"" help:"The template's release the project matches, by its version (v1.2.0), a pre-release too: adopt never guesses one, nor takes the newest." placeholder:"VERSION"`
@@ -55,26 +59,39 @@ type CLI struct {
 	Defaults bool     `help:"Take a missing answer's default instead of asking or refusing." negatable:"" env:"ITOS_TEMPLATE_DEFAULTS"`
 	DryRun   bool     `name:"dry-run" help:"Preview the baseline and the differences, and write nothing." negatable:""`
 	Force    bool     `help:"Accept the differences from the baseline and write the record: no file of the project is copied, deleted or merged." negatable:""`
+	Merge    bool     `help:"Merge the baseline into the project with git's merge, over an empty base, and stage it with the record: a file the project lacks is added, one both hold otherwise is a conflict both added." negatable:""`
 	Diff     bool     `help:"Show each text file's changes from the baseline to the project, as git diff shows them." negatable:"" env:"ITOS_TEMPLATE_DIFF"`
 	JSON     bool     `name:"json" help:"Print the result as one JSON object on stdout." negatable:"" env:"ITOS_TEMPLATE_JSON"`
+}
+
+// Validate refuses --merge with --force, as kong refuses a usage error:
+// --force writes the record and nothing else, which --merge contradicts.
+func (c *CLI) Validate() error {
+	if c.Merge && c.Force {
+		return errors.New("--merge and --force contradict each other: --merge merges the baseline in, --force writes the record and nothing else; give one")
+	}
+	return nil
 }
 
 // Help is adopt's detail in its --help: its JSON and its exit codes
 // (docs/CLI.md, rules 10 and 14).
 func (c *CLI) Help() string {
-	return `Links the existing project adopt runs in, at its git repository's top, to the template's release --ref names, so itos-template update can take it to a newer one: it writes .itos-template.yaml, the record new writes, and nothing else. The project keeps its files, its history and its index; the record is left unstaged and uncommitted, for you to commit through the project's own gates before you update.
+	return `Links the existing project adopt runs in, at its git repository's top, to the template's release --ref names, so itos-template update can take it to a newer one: it writes .itos-template.yaml, the record new writes, and nothing else. The project keeps its files, its history and its index; the record is left unstaged and uncommitted, for you to commit through the project's own gates before you update. With --merge it takes the release in too.
 
 The baseline is that release rendered as new renders it, with the stack, the features and the answers given (asked on a terminal, refused without one unless --defaults), in a temporary folder: no check and no setup step of the template's runs. adopt compares it with the project's working tree, the files git tracks and those it neither tracks nor ignores, and the baseline's files even where the project ignores them: each path is project-only, modified or missing from the project, a binary file and a mode git records otherwise told apart. The preview names the template, the release, the stack, the features, the answers and each branch's commit, then each difference, sorted by path, with no file's contents; --diff adds git's diff of each text change, a/ the baseline and b/ the project, never a binary file's.
 
-A project that differs from the baseline is refused unless --force accepts the differences: a file missing from the project is a deletion of the project's, which a later update keeps, never a file adopt installs. To take the template's changes since the project was made, adopt the release it was made from, commit the record, then update; adopting the newest release takes none of them. --dry-run previews, differences and a dirty project included, and writes nothing. Writing asks for a git repository with a working tree, a commit, a clean index and working tree (no untracked file git does not ignore) and no record, --force or not.
+A project that differs from the baseline is refused unless --force or --merge accepts the differences. --force writes the record alone: a file missing from the project is a deletion of the project's, never a file adopt installs, and a later update keeps it only while the template leaves the file unchanged, a release that changes it leaving a modify/delete conflict. --merge merges the baseline into the project with git's own merge, as update merges, over an empty base: a file the project lacks is added, a file both hold the same and a file only the project holds are left as they are, and a file both hold differently is left as git merge leaves a conflict both sides added, marked in the file and unmerged in the index (the project's side and the release's, no base). The merge and the record are staged, HEAD never moves and nothing is committed: commit it through the project's own gates once it is as you want it, or undo it with git reset --hard. --merge needs git 2.45 or later, as update does; --merge and --force together are refused.
 
---json prints {"schema":1,"ok","written","dirty","baseline":{"template","release","stack","features":[…],"answers":{…},"commits":{"<branch>":"<sha>"}},"differences":[{"path","kind":"project-only|modified|missing","binary","mode_changed","diff" (with --diff, for a text change)}],"problems":[{"rule","message","fix"}]}; baseline is null when adopt stopped before rendering it. A script reads it and the exit code, never the preview, nor a problem's message or fix.
+To take the template's changes since the project was made, adopt the release it was made from, commit the record, then update; adopting the newest release takes none of them. --dry-run previews, differences and a dirty project included, and writes nothing, --merge or not. Writing asks for a git repository with a working tree, a commit, a clean index and working tree (no untracked file git does not ignore) and no record, --force, --merge or not.
 
-Exit codes: 0 the record written, or with --dry-run the preview shown; 1 refused: the project differs from the baseline without --force, its index or working tree is not clean, it has no commit, it holds a record already, the release --ref names is incomplete, a feature of another stack, a feature whose needed feature is not chosen, a combination the manifest lists as unsupported, branches that do not merge cleanly; 2 a usage or manifest error: a template named with a control character or one that prints as nothing, no --ref, a --ref no release has, an unknown stack or feature, an answer missing (without a terminal) or not one its question takes; 3 the folder is in no git repository or has no working tree, git cannot reach the template, or cannot run; 70 an internal error.
+--json prints {"schema":1,"ok","written","dirty","baseline":{"template","release","stack","features":[…],"answers":{…},"commits":{"<branch>":"<sha>"}},"differences":[{"path","kind":"project-only|modified|missing","binary","mode_changed","diff" (with --diff, for a text change)}],"conflicts":[{"path"}],"problems":[{"rule","message","fix"}]}; baseline is null when adopt stopped before rendering it, and conflicts are the paths --merge left conflicted, as update names them. A conflicted merge is ok false, written true, with the problem merge-conflict. A script reads it and the exit code, never the preview, nor a problem's message or fix.
+
+Exit codes: 0 the record written, with --merge the merge staged, or with --dry-run the preview shown; 1 refused: the merge left conflicts, the project differs from the baseline without --force or --merge, its index or working tree is not clean, it has no commit, it holds a record already, the release --ref names is incomplete, a feature of another stack, a feature whose needed feature is not chosen, a combination the manifest lists as unsupported, branches that do not merge cleanly; 2 a usage or manifest error: --merge with --force, a template named with a control character or one that prints as nothing, no --ref, a --ref no release has, an unknown stack or feature, an answer missing (without a terminal) or not one its question takes; 3 the folder is in no git repository or has no working tree, git cannot reach the template, cannot run, or, for --merge, is older than 2.45; 70 an internal error.
 
 Examples:
   itos-template adopt ../acme --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --defaults --dry-run
   itos-template adopt ../acme --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --defaults --force
+  itos-template adopt ../acme --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --defaults --merge
 
 Report issues at https://github.com/donvargax/itos-template/issues.`
 }
@@ -88,7 +105,7 @@ func (c *CLI) Run(ui *cli.UI) int {
 		Answers:  answer.Given(c.Answer),
 		Defaults: c.Defaults,
 		Ref:      c.Ref,
-		How:      adoption.How{DryRun: c.DryRun, Force: c.Force, Diff: c.Diff},
+		How:      adoption.How{DryRun: c.DryRun, Force: c.Force, Merge: c.Merge, Diff: c.Diff},
 	}, ui.Asker(), credentialLeftOut(ui))
 	var problems []cli.Problem
 	code := 0
@@ -97,7 +114,7 @@ func (c *CLI) Run(ui *cli.UI) int {
 	}
 	if c.JSON {
 		if a == nil {
-			a = &adoption.Adoption{Differences: []adoption.Difference{}}
+			a = &adoption.Adoption{Differences: []adoption.Difference{}, Conflicts: []port.Unmerged{}}
 		}
 		if problems == nil {
 			problems = []cli.Problem{}
@@ -109,7 +126,7 @@ func (c *CLI) Run(ui *cli.UI) int {
 			Problems []cli.Problem `json:"problems"`
 		}{1, err == nil, a, problems})
 	} else if a != nil {
-		preview(ui, a, c.Ref, c.DryRun)
+		preview(ui, a, c.Ref, c.DryRun, c.Merge)
 		ui.Line("the preview is for people: a script reads adopt's --json")
 	}
 	for _, p := range problems {
@@ -130,8 +147,8 @@ func credentialLeftOut(ui *cli.UI) func(recorded string) {
 // preview writes a on stdout for people: the baseline, the answers and each
 // branch's commit, a line each; each difference, a line each, its kind, its
 // path and, in brackets, binary and the modes git records; each diff asked
-// for; then what was done.
-func preview(ui *cli.UI, a *adoption.Adoption, ref string, dryRun bool) {
+// for; then what was done, merged when merge.
+func preview(ui *cli.UI, a *adoption.Adoption, ref string, dryRun, merge bool) {
 	out := ui.Stdout
 	b := a.Baseline
 	features := "no features"
@@ -165,6 +182,8 @@ func preview(ui *cli.UI, a *adoption.Adoption, ref string, dryRun bool) {
 		_, _ = fmt.Fprintln(out, "The project's index or working tree is dirty: the preview compares them as they are.")
 	}
 	switch {
+	case a.Written && merge:
+		_, _ = fmt.Fprintf(out, "Merged the baseline into the project with %s, staged and uncommitted: commit it through the project's own gates once it is as you want it, or undo it with git reset --hard.\n", project.RecordFile)
 	case a.Written:
 		_, _ = fmt.Fprintf(out, "Wrote %s, unstaged: commit it through the project's own gates, then itos-template update takes the project to a newer release.\n", project.RecordFile)
 	case dryRun:
@@ -225,9 +244,13 @@ type Command struct {
 // URL, as new tells it.
 //
 // The template's name is judged first (template.CheckName), before the
-// project is looked at or anything cloned. The template, cloned bare into a
+// project is looked at or anything cloned; for a merge, the project is
+// refused, as adoption.Open refuses it, when git is too old to merge. The
+// template, cloned bare into a
 // temporary folder removed when adopt ends, is named in the record as new
-// names it (template.Recorded), from the working folder.
+// names it (template.Recorded), from the working folder. The project is
+// opened as update opens it, so a merge goes through update's own
+// (git.Project), its scratch files in that folder.
 func Handle(c Command, ask port.Asker, leftOut func(recorded string)) (*adoption.Adoption, error) {
 	if err := template.CheckName(c.Template); err != nil {
 		return nil, err
@@ -236,16 +259,16 @@ func Handle(c Command, ask port.Asker, leftOut func(recorded string)) (*adoption
 	if err != nil {
 		return nil, err
 	}
-	co := git.OpenWorktree(dir)
-	state, err := adoption.Open(co, c.How.DryRun)
-	if err != nil {
-		return nil, err
-	}
 	tmp, err := tempdir.Make("itos-template-adopt-")
 	if err != nil {
 		return nil, err
 	}
 	defer tempdir.Discard(tmp)
+	co := git.OpenProject(dir, tmp)
+	state, err := adoption.Open(co, c.How, co)
+	if err != nil {
+		return nil, err
+	}
 	repo, err := git.Clone(c.Template, filepath.Join(tmp, "template.git"))
 	if err != nil {
 		return nil, err
@@ -270,5 +293,5 @@ func Handle(c Command, ask port.Asker, leftOut func(recorded string)) (*adoption
 	if cut {
 		leftOut(name)
 	}
-	return adoption.Adopt(co, state, files, record, c.How, git.Differ{Dir: tmp})
+	return adoption.Adopt(co, state, files, record, c.How, co, git.Differ{Dir: tmp})
 }

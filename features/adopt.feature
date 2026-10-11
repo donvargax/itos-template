@@ -18,27 +18,40 @@ Feature: adopt links an existing project to a template baseline
   --dry-run exits 0 after a successful preview, differences included, and
   writes no project files. It may inspect a dirty working tree, including
   non-ignored untracked files, and identifies that the preview is dirty.
-  Otherwise differences refuse adoption with exit 1 unless --force accepts
-  them. --force does not copy, delete or merge any project file. In particular,
-  missing baseline files are project deletions for a later update, not files
-  adoption installs. Adopting the latest ref imports no changes by itself.
+  Otherwise differences refuse adoption with exit 1 unless --force or --merge
+  accepts them. --force does not copy, delete or merge any project file. In
+  particular, a missing baseline file is a project deletion, not a file
+  adoption installs: a later update keeps it only while the template leaves it
+  unchanged, a release that changes it leaving a modify/delete conflict.
+  --merge adds it instead: it merges the baseline into the project with git's
+  own merge, as update merges, over an empty base, so a file the project lacks
+  is added, a file both hold the same or only the project holds is untouched,
+  and a file both hold differently is an add/add conflict. --merge and --force
+  together are a usage error. Adopting the latest ref imports no changes by
+  itself.
 
   Writing requires a non-bare git repository with a committed HEAD, a clean
   index and working tree including non-ignored untracked files, and no existing
-  .itos-template.yaml. --force bypasses none of these checks. .git and ignored
+  .itos-template.yaml. --force and --merge bypass none of these checks. .git and ignored
   project-only files are not differences. The selected template's files are
   still compared even when the project's ignore rules match their paths.
 
   Success creates only .itos-template.yaml, in the same format new records
   for that ref (decision 10), leaving existing files, HEAD and staged entries
   unchanged. The record is not staged or committed: the user commits it through
-  the project's gates before update. Failure leaves no partial record.
+  the project's gates before update. Failure leaves no partial record. With
+  --merge, the merge and the record are staged, as update leaves its merge, HEAD
+  unchanged and nothing committed; a conflict exits 1 naming the file and git
+  reset --hard, the record staged too.
 
   With --json, stdout is one object with schema: 1 and ok, written, baseline,
-  differences and problems. baseline uses the same render record data as new;
+  differences, conflicts and problems. baseline uses the same render record data as new;
   differences have path, kind (project-only, modified, missing), binary and
   mode_changed. --diff adds a diff string for text changes. Default JSON
   includes no file contents. Refused differences remain in the failure report.
+  conflicts have path, the paths --merge left conflicted, as update's do; a
+  conflicted merge is ok: false, written: true, with the problem
+  "merge-conflict".
   The human message and fix fields are not a machine contract (docs/CLI.md).
   Switches have --no- pairs and flag environment variables follow docs/CLI.md.
 
@@ -293,7 +306,7 @@ Feature: adopt links an existing project to a template baseline
   # unchanged, a release that changes it leaving a modify/delete conflict, and
   # --merge adds it instead. Declined paths (--decline) are the next slice. The
   # fixture's release.txt holds the release's name.
-  @ID-ADOPT-22 @slice-17 @wip
+  @ID-ADOPT-22 @slice-17
   Scenario: merge adds the files the project lacks, keeps its own and the same ones, and stages them with the record
     Given a committed deletion of "made/cli.txt"
     And a committed project-only file "made/own.txt" containing "keep-this-file"
@@ -306,7 +319,7 @@ Feature: adopt links an existing project to a template baseline
     And the HEAD of "made" is unchanged
     And the record in "made" names the release "v1.0.0" and its exact branch commits
 
-  @ID-ADOPT-23 @slice-17 @wip
+  @ID-ADOPT-23 @slice-17
   Scenario: a file both hold differently is left as an add/add conflict, the record staged
     Given a committed deletion of "made/release.txt"
     And a committed project-only file "made/release.txt" containing "project-release"
@@ -320,7 +333,7 @@ Feature: adopt links an existing project to a template baseline
     And the HEAD of "made" is unchanged
     And "made" has the record staged
 
-  @ID-ADOPT-24 @slice-17 @wip
+  @ID-ADOPT-24 @slice-17
   Scenario: merge and force together are a usage error, and nothing is written
     Given a saved adoption snapshot of "made"
     When itos-template runs in "made" with "adopt {template} --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --answer module=example.com/blue/fox --merge --force"
@@ -329,7 +342,7 @@ Feature: adopt links an existing project to a template baseline
     And its error output says "--force"
     And the adoption snapshot of "made" is unchanged
 
-  @ID-ADOPT-25 @slice-17 @wip
+  @ID-ADOPT-25 @slice-17
   Scenario: merge refuses a dirty repository and writes nothing
     Given "made" has an unstaged tracked change
     And a saved adoption snapshot of "made"
@@ -338,7 +351,7 @@ Feature: adopt links an existing project to a template baseline
     And its error output says "clean"
     And the adoption snapshot of "made" is unchanged
 
-  @ID-ADOPT-26 @slice-17 @wip
+  @ID-ADOPT-26 @slice-17
   Scenario: merge with dry-run previews the differences and writes nothing
     Given a committed deletion of "made/cli.txt"
     And a saved adoption snapshot of "made"

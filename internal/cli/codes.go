@@ -155,7 +155,7 @@ func gitProblem(err git.Error) (code int, problems []Problem) {
 		code, problems = CodeEnvironment, one("file-unwritable", "cannot write the project's %s: %v", e.Path, e.Err)
 	case *git.TooOld:
 		code, problems = CodeEnvironment, fixed("git-too-old", "install git "+e.Need+" or a newer one",
-			"update merges with git merge-tree, which takes the two renders as trees from git %s on, and this git is older (%s)", e.Need, e.Version)
+			"update and adopt --merge merge with git merge-tree, which takes a template's renders as trees from git %s on, and this git is older (%s)", e.Need, e.Version)
 	}
 	return code, problems
 }
@@ -196,8 +196,12 @@ func adoptionProblem(err adoption.Error) (code int, problems []Problem) {
 		code, problems = CodeRefused, fixed("record-exists", "itos-template update takes the project from its record; to link it to another baseline, remove the record first",
 			"the project holds %s already: adopt never replaces a record, --force or not", e.File)
 	case *adoption.Differs:
-		code, problems = CodeRefused, fixed("baseline-differs", "rerun with --force to accept them and write the record alone, or with --dry-run --diff to see the text changes",
-			"the project differs from the baseline in %d %s, listed on the standard output: adopt writes the record only when --force accepts them, and never copies, deletes or merges a file", e.Count, paths(e.Count))
+		code, problems = CodeRefused, fixed("baseline-differs", "rerun with --merge to merge the baseline in, with --force to accept them and write the record alone, or with --dry-run --diff to see the text changes",
+			"the project differs from the baseline in %d %s, listed on the standard output: adopt writes the record only when --merge or --force accepts them", e.Count, paths(e.Count))
+	case *adoption.Conflicted:
+		code, problems = CodeRefused, fixed("merge-conflict", "resolve each, stage it with git add and commit; or undo the whole adoption with git reset --hard",
+			"merging the template's release %s into the project left conflicts in %s, each marked in its file and unmerged in the index as git merge leaves one, the rest of the merge and the record staged",
+			e.Release, strings.Join(e.Paths, ", "))
 	}
 	return code, problems
 }

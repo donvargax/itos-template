@@ -85,7 +85,7 @@ func TestEachKindNoScenarioReadsHasItsCodeRuleAndSentence(t *testing.T) {
 		{&updating.NoRelease{}, 1, "release-missing", "the template has no complete stable release to update to: a release is one version tagged <branch>/<version> on every branch its manifest lists; release the template (itos-template release), or name a pre-release with --to"},
 		{&template.Unrecorded{Branch: "go/cli"}, 2, "record-invalid", "the project's record names no commit of the template's branch go/cli, which its render needs; adopt the project again, or name the commit in the record"},
 		{&project.BadRecord{File: ".itos-template.yaml", Problems: []string{"it names no stack"}}, 2, "record-invalid", "the project's record, .itos-template.yaml, cannot be read: it names no stack"},
-		{&git.TooOld{Version: "git version 2.44.0", Need: "2.45"}, 3, "git-too-old", "update merges with git merge-tree, which takes the two renders as trees from git 2.45 on, and this git is older (git version 2.44.0); install git 2.45 or a newer one"},
+		{&git.TooOld{Version: "git version 2.44.0", Need: "2.45"}, 3, "git-too-old", "update and adopt --merge merge with git merge-tree, which takes a template's renders as trees from git 2.45 on, and this git is older (git version 2.44.0); install git 2.45 or a newer one"},
 		// release's refusals no scenario makes: git refusing a tag midway, a
 		// release's tags left when they cannot be deleted, and a listed
 		// branch on no origin, which every fixture's clone has.

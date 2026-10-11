@@ -168,14 +168,27 @@ type Project interface {
 	// Committed is the file path's contents, with /, in HEAD's tree, and
 	// false when the tree holds no file there.
 	Committed(path string) ([]byte, bool, error)
+	Merger
+}
+
+// Merger merges a template's render into a project's HEAD, as update merges
+// a newer release in and adopt --merge its baseline: HEAD, every ref and
+// every commit are left as they are; the objects a merge writes are referred
+// to by nothing but the index.
+type Merger interface {
+	// CanMerge is nil when Merge can merge here, else why not: a git too
+	// old to merge trees no commit holds.
+	CanMerge() error
 	// Merge merges into HEAD the change from base to target, each a whole
 	// tree's files with / in their paths, base the merge's base, as git's
 	// merge does: what merges cleanly is written to the working tree and
 	// staged, and a conflict is left as git merge leaves one, marked in
 	// the working tree's file and unmerged in the index (stages 1, 2 and 3:
 	// base, HEAD and target), its markers naming HEAD's side HEAD, as git
-	// merge does, and the renders as labels says. It returns what the
-	// merge changes from HEAD and what it leaves conflicted.
+	// merge does, and the renders as labels says. An empty base merges
+	// target in whole: a path both HEAD and target hold otherwise is a
+	// conflict both added, with no stage 1. It returns what the merge
+	// changes from HEAD and what it leaves conflicted.
 	Merge(base, target []File, labels Labels) (Merged, error)
 }
 

@@ -46,7 +46,7 @@ func TestADifferencesNotesSayBinaryAndItsModes(t *testing.T) {
 func TestThePreviewNamesTheBaselineAndWhatWasDone(t *testing.T) {
 	show := func(a *adoption.Adoption, dryRun bool) string {
 		var out strings.Builder
-		preview(&cli.UI{Stdout: &out}, a, "v1.0.0", dryRun)
+		preview(&cli.UI{Stdout: &out}, a, "v1.0.0", dryRun, false)
 		return out.String()
 	}
 	bare := &adoption.Adoption{Written: true, Baseline: &project.Record{Template: "/t", Release: "v1.0.0", Stack: "go"}}
@@ -86,5 +86,36 @@ func TestAdoptSaysWhenTheRecordLeavesACredentialOut(t *testing.T) {
 	want := "itos-template: the record names the template https://host/acme.git, the credential its URL held left out: itos-template update will reach the template through git's credential helper (git help credentials)\n"
 	if stderr.String() != want {
 		t.Errorf("adopt says %q", stderr.String())
+	}
+}
+
+// A merge's preview says it merged and staged the baseline, never that it
+// wrote the record unstaged, which no scenario reads.
+func TestAMergesPreviewSaysItMergedAndStaged(t *testing.T) {
+	var out strings.Builder
+	a := &adoption.Adoption{Written: true, Baseline: &project.Record{Template: "/t", Release: "v1.0.0", Stack: "go"}}
+	preview(&cli.UI{Stdout: &out}, a, "v1.0.0", false, true)
+	got := out.String()
+	if !strings.Contains(got, "Merged the baseline into the project with "+project.RecordFile+", staged and uncommitted") ||
+		!strings.Contains(got, "git reset --hard") || strings.Contains(got, "unstaged") {
+		t.Errorf("a merge's preview says\n%s", got)
+	}
+	out.Reset()
+	a.Written = false
+	preview(&cli.UI{Stdout: &out}, a, "v1.0.0", true, true)
+	if got := out.String(); strings.Contains(got, "Merged") || !strings.Contains(got, "A dry run: nothing written.") {
+		t.Errorf("a dry run's preview says it merged:\n%s", got)
+	}
+}
+
+// adopt's --json object when it stopped before rendering the baseline,
+// here at a template's name, which no scenario reads: baseline null, and
+// the differences and conflicts empty lists, never null, as when it renders.
+func TestAdoptsJSONBeforeTheBaselineHoldsEmptyLists(t *testing.T) {
+	var stdout, stderr strings.Builder
+	code := (&CLI{Template: "acme\twidget", Merge: true, JSON: true}).Run(&cli.UI{Stdout: &stdout, Stderr: &stderr})
+	want := `{"schema":1,"ok":false,"written":false,"dirty":false,"baseline":null,"differences":[],"conflicts":[],"problems":[{"rule":"template-name",`
+	if code != cli.CodeUsage || !strings.HasPrefix(stdout.String(), want) {
+		t.Errorf("adopt --json exited %d with\n%s", code, stdout.String())
 	}
 }
