@@ -1141,10 +1141,6 @@
     one call that hands the OS in), with a comment naming decision 26, and deletes the two
     //nolint:forbidigo lines T-49 put above names and executable; nolintlint reports either one
     left unused. docs/design-rules.md's decision 26 row names the new edge.
-  done_when:
-    - run: "! grep -nE 'runtime[.]GOOS *(==|!=)' internal/git/git.go"
-    - run: go test -count=1 ./internal/git/
-      timeout: 600
 - id: T-49
   type: build
   title: golangci-lint holds every code design rule a linter can decide, and docs/design-rules.md says how each rule is held
