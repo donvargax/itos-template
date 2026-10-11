@@ -1241,3 +1241,31 @@
     - run: grep -qE '\^panic\$' .golangci.yml
     - run: tools/bin/pinned golangci-lint run ./...
       timeout: 900
+- id: T-53
+  type: refactor
+  title: "Audit the code for secure by design: every input checked at its edge into a checked value, never checked again inside"
+  why: >
+    The person's rule (2026-10-11, the decision recorded with this task): secure by design. Every
+    input from outside is checked where it enters, at the outer layers that meet other systems, and
+    turned into a checked value: a value object with unexported fields whose one constructor checks
+    it, so holding one proves it was checked. Inner layers trust those values and never check them
+    again. Bad input is refused with an error naming it, as the command line already refuses; a
+    lossless normalization (separators, case forms) is fine, a silent repair is not. It holds
+    because everything lives under internal/, which no other module can import: nothing outside
+    reaches an inner layer. The edges: the command line and the terminal (kong flags, typed
+    answers); the template repository (its manifest, its paths and contents: a template is anything
+    git clone takes, decision 9); the project's record, which a person may edit; git's output and
+    exit codes (internal/git's anti-corruption layer, decision 17); the environment (ITOS_GIT, PATH,
+    PATHEXT). Audit the code against it, two halves: (1) no input reaches an inner layer unchecked:
+    for each edge, name the value it becomes and where it is checked, and list each input that
+    travels inward as a raw string or map; (2) no inner layer checks again what an edge checked: a
+    can't-happen error branch, a panic (T-52 removes the one there was), a parse whose result is
+    thrown away. Write the map in docs/design-rules.md (edge, input, checked value, where checked)
+    with the rule's row naming the decision; fix in this task what is small (a refactor commit each,
+    behaviour unchanged, the push's proof once), and add each larger finding as an idea for the
+    person, with its edge and why. Half (1) comes first in the report: a missing check is a security
+    finding, a double one only a smell.
+  done_when:
+    - run: grep -qiF 'secure by design' docs/design-rules.md
+    - run: tools/bin/pinned golangci-lint run ./...
+      timeout: 900
