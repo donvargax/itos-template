@@ -240,3 +240,4 @@ questions:
   - id: q-54
     item: "T-43"
     question: "Which mutation survivors get a test or an exception: those of own tests alone, or those own tests and then the whole suite leave (itos#41)?"
+    answer: "Own tests first, then the whole suite on what they leave: a survivor of both gets a test or an exception. This repository takes itos#41's tiers: locally an item's two runs, --fail-fast while fixing and a sample of one; per push the code proof over changed lines (--fail-uncovered=lines) reading .metrics/mutate/, and a small sample; nightly a larger sample seeded by the day. The person's calls, 2026-10-10."
