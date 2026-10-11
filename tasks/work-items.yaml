@@ -1345,18 +1345,9 @@ items:
     title: itos-cc.yaml names the scenarios' feature files as whole-suite inputs, so a kill a scenario made goes stale when it changes
     phase: 1
     owner: null
-    status: todo
+    status: dropped
     depends_on: []
     kind: idea
-    why: >
-      Found by T-43 (docs/mutation-baseline.md, its section): under itos-cc 0.12.0 a whole-suite
-      outcome goes stale when any _test.go file under the module changes, and on the files
-      mutation.tests.support names, which itos-cc.yaml leaves empty. So a change to a
-      features/*.feature file makes nothing stale, and a kill a scenario made stays fresh after the
-      scenario is reworded or removed; itos-cc's help says such inputs cannot be inferred and must
-      be named there. Name features/**/*.feature and the scenarios' testdata as support, then rerun
-      the whole-suite outcomes once, and check whether anything else the scenarios read belongs
-      there.
     tags: [ci]
   - id: t20-agents-check
     title: T-20's done check finds the mutation run in AGENTS.md again
