@@ -1631,3 +1631,20 @@ items:
       or writes outside the project. What could go wrong: an untrusted template plants a link that a
       later step dereferences. Decide whether to refuse a target leaving the project or keep it as
       git would, and record the reasoning beside render.Path.
+  - id: p1-record-value
+    title: Make the project record a checked value, not a struct of exported fields
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Edge: the project record (.itos-template.yaml), which a person may edit. Input: the whole
+      record. project.ReadRecord validates it (manifest.Decode strict, the version, the named
+      fields, the declined paths), but project.Record has exported fields, so any inner code can
+      build or mutate a Record that no ReadRecord saw, and nothing in the type proves the edge check
+      ran (decision 41). What could go wrong: a Record assembled or changed in code, bypassing the
+      strict read, reaching the render and git. Fix: unexported fields, ReadRecord and the render
+      plan the only constructors, the yaml and json shapes kept through marshalling methods. Larger
+      than this task: the record is read, written, printed as --json and reached across several
+      packages.
