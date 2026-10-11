@@ -820,6 +820,25 @@ Feature: new makes a project from a template
     And its error output says "blue-fox/b.txt"
     And the path "made" does not exist
 
+  # bug-8, found by T-53's secure-by-design audit (decision 41): a made
+  # project is written to whatever disk the person's machine has, and many
+  # (NTFS, HFS+, APFS) file two names that differ only by case or Unicode
+  # accent form as one file. render.Plan checked the rendered names as exact
+  # strings, so two such names passed and new wrote one over the other. Plan
+  # now refuses names that are one file once case and normalization are
+  # ignored, naming both. The refusal is the render's, not the disk's, so it
+  # holds on every platform without a case-folding disk to run on: here
+  # "acme-widget" is the answer blue-fox and "Blue-Fox" its own name, one file
+  # where case does not count.
+  @wip @ID-NEW-66 @bug-8
+  Scenario: new refuses answers that name two files one file where case does not count, naming both
+    Given the template "acme" whose branch "stack/go" holds the files "acme-widget" and "Blue-Fox"
+    When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"
+    Then it exits with code 2
+    And its error output says "acme-widget"
+    And its error output says "Blue-Fox"
+    And the path "made" does not exist
+
   # slice-5 (strict-yaml; docs/CONFIG.md rule 1, decision 22): a manifest is
   # JSON data written as YAML, and comes from any template git can clone, so
   # it is read strictly. What JSON cannot say is refused as a manifest
