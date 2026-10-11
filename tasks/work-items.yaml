@@ -1302,3 +1302,28 @@ items:
       render its combinations wrong. A detached checkout already reads origin's HEAD. Try it first;
       if it holds, the fix is a bug as bug-7 was, and check without an origin keeps the checked-out
       branch.
+  - id: T-42
+    title: Whole-suite mutation outcomes repeat from one run to the next, or the cause is named and fixed or reported
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: task
+    why: >
+      Was the idea mutation-suite-repeats. T-39 (docs/mutation-baseline.md, Repeatability) reran
+      every mutant of 18 files under the scope its outcome was recorded with: all 412 own-tests
+      outcomes repeated, 20 of 168 decided with --all-tests did not (18 survivors killed, 2 kills
+      survived), none a timeout. Until that holds, a whole-suite survivor or kill is not a fact,
+      mutation sample can fail an honest push, and the person's answer on donvargax/itos#41's
+      testing tiers waits on it. A lead: T-41 (2026-10-10) found git's detached auto-maintenance
+      racing the scenarios under load and turned it off for every git they start; itos-cc runs four
+      workers, the same load. So first rerun T-39's check on main as it is now (tools/bin/pinned
+      itos-cc mutation sample --count 1000 --json over T-39's 18 files, the whole suite as
+      recorded): if every outcome repeats, say so with the numbers and name T-41 as the likely
+      cause. If flips remain, find the shared state (temporary folders, the built binary, git
+      config, the environment, ports, the clock) by rerunning a flipping mutant alone and four at a
+      time; fix it in our tests if it is ours, or, tried in a scratch worktree first, report it to
+      donvargax/itos-cc through an issue with the reproduction, and name it. Either way rewrite the
+      Repeatability section of docs/mutation-baseline.md with the run, the numbers and the cause,
+      and correct the baseline's ranges if the cause moves them. Kill or except nothing here; the
+      person decides what follows from itos#41.
