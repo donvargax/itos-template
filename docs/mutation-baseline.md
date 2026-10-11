@@ -173,10 +173,80 @@ at least once:
 | internal/template/port/porttest | 1 | 0 |
 | **Total** | **18** | **3** |
 
-On these numbers, the 74 kills only the whole suite makes are between 71 and 92, and the 41
-survivors between 23 and 41. None of the changed outcomes was a timeout. Without any mutant, the
-whole suite (`go test -count=1 ./...`) passed 8 times out of 8, run four at a time as the four
-workers run it. The cause was not found; it is the idea `mutation-suite-repeats`.
+None of the changed outcomes was a timeout. Without any mutant, the whole suite
+(`go test -count=1 ./...`) passed 8 times out of 8, run four at a time as the four workers run it.
+
+### The cause (T-42)
+
+T-42 found two causes, both since removed from main, and reran the check there: every outcome now
+repeats. Each cause makes the whole suite fail without the mutant having anything to do with it, so
+it can only add false kills: a recorded survivor killed on rerun, or a recorded kill that was
+false and survives on rerun.
+
+**What flipped T-39's outcomes was a flaky property and the failfile it left.**
+`TestARecordWrittenAndReadBackIsTheSameRecord` (internal/project) failed at random at d1db20e, on
+the answer `"\t\n"` above (`record-answer-tab`): 8 runs in 200 at rapid's default 100 checks. rapid
+v1.3.0 saves a failing case under the package's `testdata/rapid/`, which git ignores, and replays
+every saved case on the next run. itos-cc runs each worker's mutants in one copy of the project kept
+for the whole run, so after one such failure every later whole-suite run of that worker fails at the
+property (`[rapid] failed after 0 tests`), whatever its mutant. Measured in a scratch worktree at
+d1db20e, over six files of the packages that held 13 of T-39's 21 flips (internal/git/git.go and
+commit.go, internal/tempdir/tempdir.go, internal/release/build.go and release.go,
+internal/prompt/prompt.go): an own-tests run and then an `--all-tests` run, as runs 1 and 2 above,
+took 19 s and 282 s and left 23 whole-suite outcomes, 22 survivors and a kill. Three samples of
+every mutant (`mutation sample --count 1000`, 280 s, 153 s and 162 s) killed 0, 5 and 0 of the 22
+survivors, and three more with T-41's global config put in killed none, which a 4% rate allows: no
+fresh failure in their 69 whole-suite runs is about 1 chance in 16. One more sample, with
+`--test-command` set to a script that runs `go test -count=1 -failfast ./...` and keeps each run's
+output, killed 8 of the 22 in 772 s. Its 124 logs name the cause: in three of the four workers the
+property failed afresh once, and the 38 later runs of those workers failed replaying it; no log
+names `maintenance.lock` or any other cause. Sixteen whole suites without a mutant, run four at a
+time in one checkout over four rounds, show the same: one fresh failure in round 1, then a replay in
+each of the 12 runs of rounds 2 to 4. bug-6's fix (a2836b1) made the property draw only answers the
+commands take, and at main it failed 0 times in 200. The way one failure becomes many false kills is
+itos-cc's, reported as donvargax/itos-cc#35 with a reproduction.
+
+**On main, git's detached auto-maintenance did the same until T-41.** adopt's scenarios, live since
+slice-12 and still `@wip` at d1db20e, snapshot all of the made project's `.git`, and a Given step's
+commit starts git's maintenance, whose `.git/objects/maintenance.lock` the snapshot meets. T-41
+turned it off for every git the scenarios start (cb14822). With that one line undone in the working
+tree (`GIT_CONFIG_GLOBAL` back to `os.DevNull`), a sample of the records below killed 10 of 47
+recorded whole-suite survivors, and 2 of 12 whole suites run four at a time failed, both at adopt's
+snapshot (`removed .git/objects/maintenance.lock`).
+
+**The rerun on main.** At `bccf4e9` (`docs: take T-42`), on the same machine with the same
+itos-cc, four workers and nothing else running in the checkout, the 18 files of run 2 were run as
+T-39 ran them, then every mutant was run again:
+
+```
+tools/bin/pinned itos-cc mutation run --fail-uncovered --no-annotate --json <the 18 files>
+tools/bin/pinned itos-cc mutation run --fail-uncovered --all-tests --no-annotate --json \
+  <the 18 files>
+tools/bin/pinned itos-cc mutation sample --count 1000 --json <the 18 files>
+```
+
+The two runs took 150 s (535 mutants run) and 1257 s (149 run, 489 reused). Fresh records were
+used, not those committed: the committed ones held whole-suite outcomes for only 8 of the 18 files,
+almost all kills, while a flip is mostly a survivor killed. The sample took 1434 s, seed
+`bccf4e91364052c54c3a1c26ef065d3a8455df31`, and drew 638 mutants. Every outcome came out the same:
+the 477 decided by the files' own tests (471 kills, 2 survivors, 4 timeouts) and the 161 decided
+with `--all-tests` (112 kills, 49 survivors). At T-39's rate, 20 in 168, the chance of no flip in
+161 is about 1 in 700 million, and the sample with T-41 undone shows the same records do flip when
+a cause is put back. The sample with T-41 undone left out porttest.go and took 588 s.
+
+The whole suite has grown since d1db20e: a whole-suite mutant took 30 s to 50 s here, against about
+23 s in T-39's runs.
+
+**What changes in the baseline.** Both causes only add kills, so T-39's 41 survivors are
+survivors, and its three recorded kills that survived on rerun (the table above) were false kills.
+A survivor falsely killed in both run 2 and the resample stays hidden: the resample killed 18 of the
+41 survivors, so run 2's false kills were about 5, of which 3 showed, leaving about 2 hidden. So at
+d1db20e the kills only the whole suite makes were between 68 and 71, not between 71 and 92, and the
+survivors between 44 and 47, not between 23 and 41. The tables above keep what the runs recorded.
+
+The records T-42's runs wrote were not committed: with them, `mutation check` reports the 49
+whole-suite survivors, so it cannot stay green (a bare `mutation check` already exits 1 at HEAD, on
+284 functions stale or missing elsewhere), and `.metrics/mutate/` was restored to HEAD.
 
 ## The records
 
