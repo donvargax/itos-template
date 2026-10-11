@@ -1407,3 +1407,28 @@ items:
       code stays listed in docs/mutation-baseline.md's T-43 section, for items of its own. Update
       itos.yaml's proof comment and decision 27's consequences with a line saying the gap it named
       is closed by itos-cc#23 and judged by changed lines since this task.
+  - id: T-46
+    title: Re-record the mutants of cmd and internal in two tiers, so own-test outcomes stay fresh when another package's tests change
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: task
+    why: >
+      T-43 recorded every outcome of cmd and internal with --all-tests (1504 mutants, scope
+      all-tests, none own), and under itos-cc 0.12.0 any change to a test file makes every all-tests
+      outcome stale (docs/mutation-baseline.md, T-43). mutation sample draws only from fresh
+      outcomes, so after the next item edits a test, CI's sample and T-45's nightly would draw from
+      almost nothing and still pass. Re-record in decision 39's two tiers, as AGENTS.md's Finishing
+      now says: first remove the records of cmd and internal from .metrics/mutate/ (an own run may
+      reuse a fresh all-tests outcome rather than re-scope it, so check that and say which), then
+      tools/bin/pinned itos-cc mutation run --fail-uncovered --no-annotate cmd internal, then the
+      same with --all-tests, which reuses the own kills and runs the whole suite only on what they
+      leave (T-43 measured about 345 such mutants), and commit the records once both runs end, on a
+      checkout with no untracked .go file (itos-cc#37). The outcomes should match T-43's: 1159
+      killed by own tests, 272 only with the whole suite, 50 survived, 3 excepted, 20 uncovered;
+      report any that differ instead of committing them. Run tools/bin/pinned itos-cc mutation
+      sample --count 1 before committing. Then, in a scratch worktree, edit one _test.go file (a
+      comment) and count what a check reads fresh: say in docs/mutation-baseline.md's T-43 section,
+      under a (T-46) note, how many outcomes stay fresh, which is the pool CI's sample and the
+      nightly draw from between refreshes. Kill, cover or except nothing; change no code or test.
