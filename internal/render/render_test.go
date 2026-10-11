@@ -258,7 +258,7 @@ func TestPathRefusesEveryDotGitSpellingAndKeepsTheRest(t *testing.T) {
 	refused := []string{
 		".git", ".GIT", ".Git", ".git ", ".git.", ".git. .", "git~1", "GIT~1",
 		".git::$INDEX_ALLOCATION", ".git:x",
-		".gi" + zwnj + "t", bom + ".git", ".g" + zwj + "i" + lrm + "t",
+		".gi" + zwnj + "t", bom + ".git", ".g" + zwj + "i" + lrm + "t", ".GI" + zwnj + "T",
 	}
 	for _, e := range refused {
 		_, err := none.Path("a/" + e + "/b")
@@ -267,7 +267,7 @@ func TestPathRefusesEveryDotGitSpellingAndKeepsTheRest(t *testing.T) {
 			t.Errorf("Path kept %q, a spelling of .git: %v", e, err)
 		}
 	}
-	for _, e := range []string{"git", ".gitignore", ".gitmodules", ".github", "digit", "mygit~1", "git~", "git~1x"} {
+	for _, e := range []string{"git", ".gitignore", ".gitmodules", ".github", "digit", "give", "mygit~1", "git~", "git~1x"} {
 		if _, err := none.Path("a/" + e + "/b"); err != nil {
 			t.Errorf("Path refused %q, a name a file can have: %v", e, err)
 		}

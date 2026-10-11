@@ -79,11 +79,11 @@ func TestWriteRefusesToWriteThroughASymbolicLinkParent(t *testing.T) {
 		}
 	}
 	err := Disk{}.Write(dir, []port.File{
-		{Path: "link", Mode: fs.ModeSymlink | 0o777, Data: []byte(outside)},
-		{Path: "link/escaped.txt", Mode: 0o644, Data: []byte("x")},
+		{Path: "sub/link", Mode: fs.ModeSymlink | 0o777, Data: []byte(outside)},
+		{Path: "sub/link/escaped.txt", Mode: 0o644, Data: []byte("x")},
 	})
 	var through *Through
-	if !errors.As(err, &through) || through.Link != "link" || through.Path != "link/escaped.txt" {
+	if !errors.As(err, &through) || through.Link != "sub/link" || through.Path != "sub/link/escaped.txt" {
 		t.Fatalf("Write = %v, not a Through naming the link and the file", err)
 	}
 	if _, err := os.Stat(filepath.Join(outside, "escaped.txt")); !errors.Is(err, fs.ErrNotExist) {
