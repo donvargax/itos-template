@@ -359,3 +359,41 @@ Feature: adopt links an existing project to a template baseline
     Then it exits with code 0
     And its standard output identifies "cli.txt" as "missing"
     And the adoption snapshot of "made" is unchanged
+
+  # slice-18 (declined paths): GitHub issue #3, part 2, the person's calls
+  # 2026-10-11. --decline <path>, repeatable, names a template path the project
+  # turns down: a file, or a folder covering everything under it, written as the
+  # manifest's template_only paths are (relative, with /), no globs. It goes with
+  # --merge, which leaves a declined path out of the merge, or with --force,
+  # which writes only the record. The record keeps the list (decline order kept,
+  # duplicates once), and every later update leaves those paths out of the old
+  # and the new render alike (update.feature). A declined path the baseline
+  # holds neither as a file nor as a folder is a usage error naming it, so a typo
+  # is caught; a path a later release may add is declined by editing the record.
+  @ID-ADOPT-27 @slice-18 @wip
+  Scenario: merge leaves a declined file out and the record keeps it
+    Given a committed deletion of "made/cli.txt"
+    And a saved snapshot of the HEAD of "made"
+    When itos-template runs in "made" with "adopt {template} --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --answer module=example.com/blue/fox --merge --decline cli.txt"
+    Then it exits with code 0
+    And the path "made/cli.txt" does not exist
+    And "made" has staged changes to ".itos-template.yaml" only, and nothing unstaged
+    And the record in "made" declines "cli.txt"
+    And the HEAD of "made" is unchanged
+
+  @ID-ADOPT-28 @slice-18 @wip
+  Scenario: force with a declined path writes only the record, which keeps it
+    Given a committed deletion of "made/cli.txt"
+    And a saved adoption snapshot of "made"
+    When itos-template runs in "made" with "adopt {template} --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --answer module=example.com/blue/fox --force --decline cli.txt"
+    Then it exits with code 0
+    And the record in "made" declines "cli.txt"
+    And the adoption snapshot of "made" is unchanged except for the new unstaged record
+
+  @ID-ADOPT-29 @slice-18 @wip
+  Scenario: a declined path the baseline does not hold is a usage error, and nothing is written
+    Given a saved adoption snapshot of "made"
+    When itos-template runs in "made" with "adopt {template} --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --answer module=example.com/blue/fox --merge --decline no-such.txt"
+    Then it exits with code 2
+    And its error output says "no-such.txt"
+    And the adoption snapshot of "made" is unchanged

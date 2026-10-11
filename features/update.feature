@@ -287,3 +287,38 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     And the file "made/release.txt" has the line "||||||| template v1.0.0"
     And the file "made/release.txt" has the line ">>>>>>> template v1.1.0"
     And the file "made/release.txt" names no git object id
+
+  # slice-18 (declined paths): GitHub issue #3, part 2. update leaves each path
+  # the record declines out of the old and the new render alike, so the release
+  # never changes, adds or removes it, and the project's file there, or its
+  # absence, stays as the project has it. The record keeps the list. The record
+  # is edited by a step here as a person would edit it, then committed.
+  @ID-UPDATE-23 @slice-18 @wip
+  Scenario: a declined file the release changes stays as the project has it, with no conflict
+    Given a committed project change to "made/release.txt" containing "project-release"
+    And "made" records "release.txt" as declined, committed
+    When itos-template runs in "made" with "update"
+    Then it exits with code 0
+    And the file "made/release.txt" contains "project-release"
+    And "made" has staged changes to ".itos-template.yaml" only, and nothing unstaged
+    And the record in "made" names the release "v1.1.0" and its exact branch commits
+    And the record in "made" declines "release.txt"
+
+  @ID-UPDATE-24 @slice-18 @wip
+  Scenario: a declined file the project deleted never comes back, and no modify/delete conflict is left
+    Given a committed project deletion of "made/release.txt"
+    And "made" records "release.txt" as declined, committed
+    When itos-template runs in "made" with "update"
+    Then it exits with code 0
+    And the path "made/release.txt" does not exist
+    And "made" has staged changes to ".itos-template.yaml" only, and nothing unstaged
+
+  @ID-UPDATE-25 @slice-18 @wip
+  Scenario: a declined folder keeps out a file the release adds under it
+    Given the template "acme" released as "v1.0.0", "v1.1.0" and "v1.2.0-rc.1", whose v1.1.0 adds "docs/acme-widget.md" containing "acme-widget AcmeWidget"
+    And a project in "fresh" made by new from the release "v1.0.0" with stack "go", features "cli" and name "blue-fox"
+    And "fresh" records "docs" as declined, committed
+    When itos-template runs in "fresh" with "update --to v1.1.0"
+    Then it exits with code 0
+    And the path "fresh/docs/blue-fox.md" does not exist
+    And "fresh" has staged changes to ".itos-template.yaml" only, and nothing unstaged
