@@ -243,7 +243,7 @@ func TestAdoptNeverReplacesARecordAndPassesOnAFailedWrite(t *testing.T) {
 }
 
 func TestEachErrorSaysWhatItIs(t *testing.T) {
-	for _, e := range []Error{&NotRepository{Why: "w"}, &NoWorkTree{}, &NoCommit{Top: "/p"}, &Dirty{}, &HasRecord{File: "f"}, &Differs{Count: 2}, &Conflicted{Paths: []string{"a"}}} {
+	for _, e := range []Error{&NotRepository{Why: "w"}, &NoWorkTree{}, &NoCommit{Top: "/p"}, &Dirty{}, &HasRecord{File: "f"}, &Differs{Count: 2}, &Conflicted{Paths: []string{"a"}}, &Undeclinable{Paths: []string{"a"}}} {
 		if e.Error() == "" {
 			t.Errorf("%T says nothing", e)
 		}
@@ -343,5 +343,80 @@ func TestOpenRefusesAMergeTheMergerCannotMake(t *testing.T) {
 	}
 	if _, err := Open(co, How{Merge: true}, &porttest.Project{}); err != nil {
 		t.Errorf("a merge git can make gave %v", err)
+	}
+}
+
+// A declined path is left out of the baseline before anything is compared
+// or merged: a file the project lacks there is no difference and is never
+// added, a file of its own there is its own, and the record lists each
+// declined path once, in the order given.
+func TestAMergeLeavesTheDeclinedPathsOutAndTheRecordListsThem(t *testing.T) {
+	co, p := merging(file("README.md", "r"), file("docs/own.md", "o"))
+	baseline := []port.File{file("README.md", "r"), file("cli.txt", "c"), file("docs/a.md", "a"), file("docs/b/c.md", "c"), file("docsx", "x")}
+	a, err := Adopt(co, clean, baseline, record, How{Merge: true, Decline: []string{"docs", "cli.txt", "docs"}}, p, porttest.Differ{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !slices.Equal(a.Baseline.Declined, []string{"docs", "cli.txt"}) {
+		t.Errorf("the record declines %q", a.Baseline.Declined)
+	}
+	want := []Difference{{Path: "docs/own.md", Kind: ProjectOnly, To: 0o644}, {Path: "docsx", Kind: Missing, From: 0o644}}
+	if !slices.Equal(a.Differences, want) {
+		t.Errorf("the differences are %v, not %v", a.Differences, want)
+	}
+	for _, declined := range []string{"cli.txt", "docs/a.md", "docs/b/c.md"} {
+		if _, ok := p.Tree[declined]; ok {
+			t.Errorf("the merge added the declined %s", declined)
+		}
+	}
+	r := record
+	r.Declined = []string{"docs", "cli.txt"}
+	recorded, _ := r.File()
+	if string(p.Tree["docsx"].Data) != "x" || string(p.Tree["docs/own.md"].Data) != "o" || string(p.Tree[project.RecordFile].Data) != string(recorded.Data) {
+		t.Errorf("the merge left %v", p.Tree)
+	}
+	if record.Declined != nil {
+		t.Errorf("Adopt changed the caller's record: %q", record.Declined)
+	}
+}
+
+// With force, a declined path the project lacks is no difference, and the
+// record alone is written, listing it.
+func TestForceWritesARecordListingTheDeclinedPaths(t *testing.T) {
+	co := checkout(file("README.md", "r"))
+	baseline := []port.File{file("README.md", "r"), file("cli.txt", "c")}
+	a, err := Adopt(co, clean, baseline, record, How{Force: true, Decline: []string{"cli.txt"}}, nil, porttest.Differ{})
+	if err != nil || !a.Written || len(a.Differences) != 0 {
+		t.Fatalf("Adopt gave %+v, %v", a, err)
+	}
+	if got := string(co.Tree[project.RecordFile].Data); !strings.Contains(got, "declined:\n  - cli.txt\n") {
+		t.Errorf("the record written is\n%s", got)
+	}
+	if _, ok := co.Tree["cli.txt"]; ok {
+		t.Error("force installed a declined file")
+	}
+}
+
+// A declined path is judged before anything else, a dry run's too: one
+// written as no path in the project is, then one the baseline holds
+// neither as a file nor as a folder, every one named, nothing written.
+func TestADeclinedPathMustBeOneOfTheBaselines(t *testing.T) {
+	co, p := merging(file("README.md", "r"))
+	baseline := []port.File{file("README.md", "r"), file("docs/a.md", "a")}
+	_, err := Adopt(co, clean, baseline, record, How{Merge: true, DryRun: true, Decline: []string{"docs/", "/abs"}}, p, porttest.Differ{})
+	var bad *project.BadDeclined
+	if !errors.As(err, &bad) || !slices.Equal(bad.Paths, []string{"docs/", "/abs"}) {
+		t.Errorf("a malformed declined path gave %v", err)
+	}
+	a, err := Adopt(co, clean, baseline, record, How{Merge: true, Decline: []string{"docs", "no-such.txt", "doc", "docs/a.md/x"}}, p, porttest.Differ{})
+	var unheld *Undeclinable
+	if !errors.As(err, &unheld) || a != nil || !slices.Equal(unheld.Paths, []string{"no-such.txt", "doc", "docs/a.md/x"}) {
+		t.Errorf("an unheld declined path gave %+v, %v", a, err)
+	}
+	if p.Merges != 0 || len(co.Tree) != 1 {
+		t.Errorf("a refused decline wrote: %d merges, %v", p.Merges, co.Tree)
+	}
+	if err.Error() != "declined paths not in the baseline: no-such.txt, doc, docs/a.md/x" {
+		t.Errorf("Undeclinable says %q", err.Error())
 	}
 }

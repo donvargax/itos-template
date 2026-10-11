@@ -316,7 +316,7 @@ func (m *Manifest) check() []string {
 		}
 	}
 	for _, p := range m.TemplateOnly {
-		if p == "" || path.IsAbs(p) || strings.Contains(p, `\`) || path.Clean(p) != p || p == "." || strings.HasPrefix(p, "../") || p == ".." {
+		if !IsTreePath(p) {
 			add("the template_only path %q is not a path in the template: write it relative to its top, with /", p)
 		}
 	}
@@ -628,11 +628,26 @@ func (m *Manifest) IsTemplateOnly(p string) bool {
 		return true
 	}
 	for _, only := range m.TemplateOnly {
-		if p == only || strings.HasPrefix(p, only+"/") {
+		if Covers(only, p) {
 			return true
 		}
 	}
 	return false
+}
+
+// IsTreePath is whether p is a path in a tree, as a template_only path is
+// written and a made project's declined path too: relative to the tree's
+// top, with /, as path.Clean writes it (no trailing /, no . or ..
+// element), naming something under the top rather than the top itself.
+func IsTreePath(p string) bool {
+	return p != "" && !path.IsAbs(p) && !strings.Contains(p, `\`) && path.Clean(p) == p && p != "." && p != ".." && !strings.HasPrefix(p, "../")
+}
+
+// Covers is whether the tree path covered, a file or a folder, covers the
+// path p, both with /: p is covered itself or under it. No glob is read:
+// a template_only path, and a declined one, names a file or a folder.
+func Covers(covered, p string) bool {
+	return p == covered || strings.HasPrefix(p, covered+"/")
 }
 
 // Choice is a combination as a command line names it: a stack by its name,

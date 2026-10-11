@@ -577,3 +577,33 @@ func TestParseRefusesATemplateOnlyPathNotInTheTemplate(t *testing.T) {
 		t.Errorf("paths in the template refused: %v", err)
 	}
 }
+
+// A tree path is relative to a tree's top, with /, as path.Clean writes it
+// and naming something under the top: the rule a template_only path and a
+// made project's declined path are held to.
+func TestIsTreePathTakesARelativeCleanPathWithSlashesOnly(t *testing.T) {
+	for p, want := range map[string]bool{
+		"docs": true, "docs/a.md": true, ".github/ci.yml": true, "..x": true,
+		"": false, "/docs": false, `docs\a`: false, "docs/": false, "./docs": false, "a//b": false, "a/../b": false, ".": false, "..": false, "../x": false,
+	} {
+		if got := IsTreePath(p); got != want {
+			t.Errorf("IsTreePath(%q) = %v, not %v", p, got, want)
+		}
+	}
+}
+
+// A path covers itself and everything under it, read as a path, never a
+// glob or a prefix of a name.
+func TestCoversAPathAndWhatIsUnderIt(t *testing.T) {
+	for _, c := range []struct {
+		covered, p string
+		want       bool
+	}{
+		{"docs", "docs", true}, {"docs", "docs/a.md", true}, {"docs", "docs/a/b", true},
+		{"docs", "docsx", false}, {"docs", "doc", false}, {"docs", "a/docs", false}, {"docs/a.md", "docs", false}, {"*.md", "a.md", false},
+	} {
+		if got := Covers(c.covered, c.p); got != c.want {
+			t.Errorf("Covers(%q, %q) = %v, not %v", c.covered, c.p, got, c.want)
+		}
+	}
+}

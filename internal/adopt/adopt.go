@@ -19,7 +19,8 @@
 // manifest's runs, and no setup step. Nothing of the project is written
 // but its record, unless --merge merges the baseline in with git's merge,
 // as update merges a release (GitHub issue #3), the merge and the record
-// left staged.
+// left staged. The paths --decline names are left out of the baseline and
+// listed in the record, so no later update brings them.
 package adopt
 
 import (
@@ -60,6 +61,7 @@ type CLI struct {
 	DryRun   bool     `name:"dry-run" help:"Preview the baseline and the differences, and write nothing." negatable:""`
 	Force    bool     `help:"Accept the differences from the baseline and write the record: no file of the project is copied, deleted or merged." negatable:""`
 	Merge    bool     `help:"Merge the baseline into the project with git's merge, over an empty base, and stage it with the record: a file the project lacks is added, one both hold otherwise is a conflict both added." negatable:""`
+	Decline  []string `help:"A file or a folder of the baseline the project turns down, by its path from the project's top, with /; once for each. It is left out of the comparison and the merge, and the record lists it, so no later update brings it." placeholder:"PATH" sep:"none"`
 	Diff     bool     `help:"Show each text file's changes from the baseline to the project, as git diff shows them." negatable:"" env:"ITOS_TEMPLATE_DIFF"`
 	JSON     bool     `name:"json" help:"Print the result as one JSON object on stdout." negatable:"" env:"ITOS_TEMPLATE_JSON"`
 }
@@ -82,16 +84,18 @@ The baseline is that release rendered as new renders it, with the stack, the fea
 
 A project that differs from the baseline is refused unless --force or --merge accepts the differences. --force writes the record alone: a file missing from the project is a deletion of the project's, never a file adopt installs, and a later update keeps it only while the template leaves the file unchanged, a release that changes it leaving a modify/delete conflict. --merge merges the baseline into the project with git's own merge, as update merges, over an empty base: a file the project lacks is added, a file both hold the same and a file only the project holds are left as they are, and a file both hold differently is left as git merge leaves a conflict both sides added, marked in the file and unmerged in the index (the project's side and the release's, no base). The merge and the record are staged, HEAD never moves and nothing is committed: commit it through the project's own gates once it is as you want it, or undo it with git reset --hard. --merge needs git 2.45 or later, as update does; --merge and --force together are refused.
 
+--decline turns down a file or a folder of the baseline (a folder covering everything under it), named by its path from the project's top, with /, as a template's template_only paths are, never a glob; give it once for each, beside --merge, which leaves it out of the merge, or --force, which writes the record alone. A declined path is left out of the baseline, so the project's file there, or its absence, is no difference and is never merged; the record lists it, and every later update leaves it out of both its renders, so no release changes, adds or removes it. A path the baseline holds neither as a file nor as a folder is refused, so a misspelt one is caught; one a later release adds is declined by listing it under declined in the record.
+
 To take the template's changes since the project was made, adopt the release it was made from, commit the record, then update; adopting the newest release takes none of them. --dry-run previews, differences and a dirty project included, and writes nothing, --merge or not. Writing asks for a git repository with a working tree, a commit, a clean index and working tree (no untracked file git does not ignore) and no record, --force, --merge or not.
 
---json prints {"schema":1,"ok","written","dirty","baseline":{"template","release","stack","features":[…],"answers":{…},"commits":{"<branch>":"<sha>"}},"differences":[{"path","kind":"project-only|modified|missing","binary","mode_changed","diff" (with --diff, for a text change)}],"conflicts":[{"path"}],"problems":[{"rule","message","fix"}]}; baseline is null when adopt stopped before rendering it, and conflicts are the paths --merge left conflicted, as update names them. A conflicted merge is ok false, written true, with the problem merge-conflict. A script reads it and the exit code, never the preview, nor a problem's message or fix.
+--json prints {"schema":1,"ok","written","dirty","baseline":{"template","release","stack","features":[…],"answers":{…},"commits":{"<branch>":"<sha>"},"declined":[…] (when it declines paths)},"differences":[{"path","kind":"project-only|modified|missing","binary","mode_changed","diff" (with --diff, for a text change)}],"conflicts":[{"path"}],"problems":[{"rule","message","fix"}]}; baseline is null when adopt stopped before rendering it, and conflicts are the paths --merge left conflicted, as update names them. A conflicted merge is ok false, written true, with the problem merge-conflict. A script reads it and the exit code, never the preview, nor a problem's message or fix.
 
-Exit codes: 0 the record written, with --merge the merge staged, or with --dry-run the preview shown; 1 refused: the merge left conflicts, the project differs from the baseline without --force or --merge, its index or working tree is not clean, it has no commit, it holds a record already, the release --ref names is incomplete, a feature of another stack, a feature whose needed feature is not chosen, a combination the manifest lists as unsupported, branches that do not merge cleanly; 2 a usage or manifest error: --merge with --force, a template named with a control character or one that prints as nothing, no --ref, a --ref no release has, an unknown stack or feature, an answer missing (without a terminal) or not one its question takes; 3 the folder is in no git repository or has no working tree, git cannot reach the template, cannot run, or, for --merge, is older than 2.45; 70 an internal error.
+Exit codes: 0 the record written, with --merge the merge staged, or with --dry-run the preview shown; 1 refused: the merge left conflicts, the project differs from the baseline without --force or --merge, its index or working tree is not clean, it has no commit, it holds a record already, the release --ref names is incomplete, a feature of another stack, a feature whose needed feature is not chosen, a combination the manifest lists as unsupported, branches that do not merge cleanly; 2 a usage or manifest error: --merge with --force, a --decline that is not a path in the project or one the baseline holds neither as a file nor as a folder, a template named with a control character or one that prints as nothing, no --ref, a --ref no release has, an unknown stack or feature, an answer missing (without a terminal) or not one its question takes; 3 the folder is in no git repository or has no working tree, git cannot reach the template, cannot run, or, for --merge, is older than 2.45; 70 an internal error.
 
 Examples:
   itos-template adopt ../acme --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --defaults --dry-run
   itos-template adopt ../acme --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --defaults --force
-  itos-template adopt ../acme --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --defaults --merge
+  itos-template adopt ../acme --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --defaults --merge --decline docs/sample
 
 Report issues at https://github.com/donvargax/itos-template/issues.`
 }
@@ -105,7 +109,7 @@ func (c *CLI) Run(ui *cli.UI) int {
 		Answers:  answer.Given(c.Answer),
 		Defaults: c.Defaults,
 		Ref:      c.Ref,
-		How:      adoption.How{DryRun: c.DryRun, Force: c.Force, Merge: c.Merge, Diff: c.Diff},
+		How:      adoption.How{DryRun: c.DryRun, Force: c.Force, Merge: c.Merge, Diff: c.Diff, Decline: c.Decline},
 	}, ui.Asker(), credentialLeftOut(ui))
 	var problems []cli.Problem
 	code := 0
@@ -165,6 +169,9 @@ func preview(ui *cli.UI, a *adoption.Adoption, ref string, dryRun, merge bool) {
 		answers = strings.Join(given, ", ")
 	}
 	_, _ = fmt.Fprintf(out, "Its answers: %s.\n", answers)
+	if len(b.Declined) > 0 {
+		_, _ = fmt.Fprintf(out, "Its declined paths, left out of the comparison and the merge: %s.\n", strings.Join(b.Declined, ", "))
+	}
 	_, _ = fmt.Fprintln(out, "Its commits:")
 	for _, branch := range slices.Sorted(maps.Keys(b.Commits)) {
 		_, _ = fmt.Fprintf(out, "  %s %s\n", branch, b.Commits[branch])

@@ -31,11 +31,15 @@ only the record `new` writes, `.itos-template.yaml`, for you to commit; `--dry-r
 project differs from that release's render, and `--force` accepts the differences. `--merge` takes
 that render in instead, for a project that grew on its own: git's own merge, over an empty base,
 adds each file the project lacks and leaves a file both hold differently as a conflict, staged with
-the record for you to commit, and `git reset --hard` undoes it. It needs git 2.45 or later:
+the record for you to commit, and `git reset --hard` undoes it. It needs git 2.45 or later.
+`--decline <path>`, once for each, turns down a file or a folder of the release the project does not
+want, such as a sample app: it is left out of the merge, and the record lists it, so no later update
+brings it back:
 
 ```sh
 itos-template adopt ../acme --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --defaults --dry-run
 itos-template adopt ../acme --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --defaults --merge
+itos-template adopt ../acme --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --defaults --merge --decline docs/sample
 ```
 
 `itos-template update`, in a made or adopted project, merges the template's newest release, or the

@@ -1,8 +1,10 @@
 package project
 
 import (
+	"encoding/json"
 	"errors"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 
@@ -267,5 +269,86 @@ func TestReadRecordReadsWhatNewWritesAndRefusesTheRest(t *testing.T) {
 		if !strings.HasPrefix(bad.Error(), RecordFile+": "+bad.Problems[0]) {
 			t.Errorf("BadRecord says %q", bad.Error())
 		}
+	}
+}
+
+// A record declining paths lists them last, in their order, in the file
+// and in new's and adopt's --json; one declining none has no such key.
+func TestARecordListsItsDeclinedPathsOrNone(t *testing.T) {
+	r := Record{Template: "/t", Stack: "go", Commits: map[string]string{"main": "1"}, Declined: []string{"docs", "cli.txt"}}
+	f, err := r.File()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !strings.HasSuffix(string(f.Data), "commits:\n  main: \"1\"\ndeclined:\n  - docs\n  - cli.txt\n") {
+		t.Errorf("the record is\n%s", f.Data)
+	}
+	read, err := ReadRecord(f.Data)
+	if err != nil || !slices.Equal(read.Declined, r.Declined) {
+		t.Errorf("ReadRecord = %+v, %v", read, err)
+	}
+	if data, _ := json.Marshal(r); !strings.Contains(string(data), `"declined":["docs","cli.txt"]`) {
+		t.Errorf("--json gives %s", data)
+	}
+	r.Declined = nil
+	f, _ = r.File()
+	if data, _ := json.Marshal(r); strings.Contains(string(f.Data), "declined:") || strings.Contains(string(data), "declined") {
+		t.Errorf("a record declining nothing is\n%s\n%s", f.Data, data)
+	}
+}
+
+// A record's declined path is judged as a template_only path is, and
+// listed once: ReadRecord names every one otherwise.
+func TestReadRecordRefusesADeclinedPathNotInTheProject(t *testing.T) {
+	text := "version: 1\ntemplate: a\nstack: go\ncommits: {main: x}\ndeclined: [docs, docs/, ../x, docs, a.txt]\n"
+	_, err := ReadRecord([]byte(text))
+	var bad *BadRecord
+	want := []string{
+		`the declined path "../x" is not a path in the project: write it relative to its top, with /`,
+		`the declined path "docs" is listed twice: list it once`,
+		`the declined path "docs/" is not a path in the project: write it relative to its top, with /`,
+	}
+	if !errors.As(err, &bad) || !slices.Equal(bad.Problems, want) {
+		t.Errorf("ReadRecord = %v", err)
+	}
+}
+
+// Decline lists the paths a command line gives as a record does: in their
+// order, each once, nil for none; a path no path in a project is written
+// as is refused, every one named.
+func TestDeclineListsEachPathOnceInItsOrder(t *testing.T) {
+	got, err := Decline([]string{"docs", "cli.txt", "docs", "a/b"})
+	if err != nil || !slices.Equal(got, []string{"docs", "cli.txt", "a/b"}) {
+		t.Errorf("Decline = %q, %v", got, err)
+	}
+	if got, err := Decline(nil); got != nil || err != nil {
+		t.Errorf("Decline(nil) = %q, %v", got, err)
+	}
+	_, err = Decline([]string{"docs", "", "/abs", "a/./b", `a\b`})
+	var bad *BadDeclined
+	if !errors.As(err, &bad) || !slices.Equal(bad.Paths, []string{"", "/abs", "a/./b", `a\b`}) {
+		t.Errorf("Decline of paths in no project = %v", err)
+	}
+	if err.Error() != `declined paths not in the project: , /abs, a/./b, a\b` {
+		t.Errorf("BadDeclined says %q", err.Error())
+	}
+}
+
+// A record declines a declined path and everything under it, nothing else;
+// Keep is a render less what it declines, in its order.
+func TestARecordDeclinesAPathAndWhatIsUnderIt(t *testing.T) {
+	r := Record{Declined: []string{"docs", "cli.txt"}}
+	for p, want := range map[string]bool{"docs": true, "docs/a.md": true, "docs/b/c": true, "cli.txt": true, "docsx": false, "doc": false, "cli.txt.bak": false, "a/docs": false} {
+		if got := r.Declines(p); got != want {
+			t.Errorf("Declines(%q) = %v, not %v", p, got, want)
+		}
+	}
+	files := []port.File{{Path: "z"}, {Path: "docs/a.md"}, {Path: "a"}, {Path: "cli.txt"}}
+	kept := r.Keep(files)
+	if len(kept) != 2 || kept[0].Path != "z" || kept[1].Path != "a" {
+		t.Errorf("Keep = %v", kept)
+	}
+	if kept := (&Record{}).Keep(files); len(kept) != len(files) {
+		t.Errorf("a record declining nothing kept %v", kept)
 	}
 }

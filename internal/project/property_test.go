@@ -19,8 +19,9 @@ var branch = rapid.StringMatching(`[a-z0-9][a-z0-9._-]{0,6}(/[a-z0-9][a-z0-9._-]
 // records are what a render records, as the commands let it be: the
 // template as it was named (a path, a URL or any text a command line gave)
 // and the answers, each through the check the commands judge it by, a
-// stack, its features (none given as nil or as empty), and each branch's
-// commit. An answer is any text a question with no pattern takes
+// stack, its features (none given as nil or as empty), each branch's
+// commit, and the paths it declines, nil for none. An answer is any text
+// a question with no pattern takes
 // (manifest.Question.Check); the template, any text template.CheckName
 // takes, which is manifest.Refused: package template imports this one, so
 // its test cannot call CheckName by its name. Each is drawn as any text,
@@ -49,6 +50,9 @@ var records = rapid.Custom(func(t *rapid.T) Record {
 	if len(r.Features) == 0 && rapid.Bool().Draw(t, "features nil") {
 		r.Features = nil
 	}
+	if declined := rapid.SliceOfNDistinct(branch, 0, 3, rapid.ID[string]).Draw(t, "declined"); len(declined) > 0 {
+		r.Declined = declined
+	}
 	return r
 })
 
@@ -72,7 +76,7 @@ func free(text string) string {
 // A Record written and read back is the same Record: what Write puts in the
 // project's folder reads, as update will read it, as the Record new made,
 // in the record's version. No features written as nil or as empty read
-// back as none.
+// back as none; the declined paths read back in their order.
 func TestARecordWrittenAndReadBackIsTheSameRecord(t *testing.T) {
 	rapid.Check(t, func(t *rapid.T) {
 		r := records.Draw(t, "record")
@@ -85,7 +89,8 @@ func TestARecordWrittenAndReadBackIsTheSameRecord(t *testing.T) {
 			t.Fatalf("the record written does not read: %v", err)
 		}
 		if read.Version != RecordVersion || read.Template != r.Template || read.Stack != r.Stack ||
-			!slices.Equal(read.Features, r.Features) || !maps.Equal(read.Answers, r.Answers) || !maps.Equal(read.Commits, r.Commits) {
+			!slices.Equal(read.Features, r.Features) || !maps.Equal(read.Answers, r.Answers) || !maps.Equal(read.Commits, r.Commits) ||
+			!slices.Equal(read.Declined, r.Declined) {
 			t.Fatalf("read %#v, wrote %#v", read, r)
 		}
 	})

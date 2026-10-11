@@ -302,6 +302,51 @@ func TestMergeTakesTheReleasesChangeKeepsTheProjectsAndStagesTheNewRecord(t *tes
 	}
 }
 
+// A declined path is left out of both renders: the release's change to a
+// file the project keeps its own way, the file it removes and the files it
+// adds under a declined folder never reach the project, a file the project
+// deleted stays deleted, and the new record keeps the list.
+func TestMergeLeavesTheDeclinedPathsOutOfBothRenders(t *testing.T) {
+	r := recorded()
+	r.Declined = []string{"release.txt", "docs", "gone.txt"}
+	p := clean(t, r)
+	p.Head["release.txt"] = port.File{Path: "release.txt", Mode: 0o644, Data: []byte("project-release\n")}
+	p.Head["gone.txt"] = port.File{Path: "gone.txt", Mode: 0o644, Data: []byte("ours\n")}
+	p.Head["docsx"] = port.File{Path: "docsx", Mode: 0o644, Data: []byte("x\n")}
+	s, err := Open(p, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	u, err := s.Merge(p,
+		files("README.md", "# acme\n", "release.txt", "v1.0.0\n", "gone.txt", "theirs\n", "deleted.txt", "d\n", "docsx", "x\n"),
+		files("README.md", "# acme\n", "release.txt", "v1.1.0\n", "docs/blue-fox.md", "new\n", "deleted.txt", "d2\n", "docsx", "y\n"),
+		next(), "main")
+	if err == nil {
+		t.Fatalf("the project's deletion of deleted.txt, which is not declined, merged cleanly: %+v", u)
+	}
+	want := []port.Unmerged{{Path: "deleted.txt"}}
+	if !slices.Equal(u.Conflicts, want) {
+		t.Errorf("the update conflicts in %v, not %v", u.Conflicts, want)
+	}
+	if got := string(p.Tree["release.txt"].Data); got != "project-release\n" {
+		t.Errorf("release.txt is %q", got)
+	}
+	if got := string(p.Tree["gone.txt"].Data); got != "ours\n" {
+		t.Errorf("gone.txt, which the release removes, is %q", got)
+	}
+	if _, ok := p.Tree["docs/blue-fox.md"]; ok {
+		t.Error("the release added a file under the declined docs")
+	}
+	if got := string(p.Tree["docsx"].Data); got != "y\n" {
+		t.Errorf("docsx, beside the declined docs, is %q", got)
+	}
+	n := next()
+	n.Declined = r.Declined
+	if got := p.Tree[project.RecordFile].Data; string(got) != string(recordFile(t, n)) {
+		t.Errorf("the record is\n%s", got)
+	}
+}
+
 func TestMergeKeepsAProjectsChangeToItsRecord(t *testing.T) {
 	r := recorded()
 	r.Template = "/home/you/elsewhere/acme"

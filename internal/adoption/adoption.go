@@ -23,6 +23,10 @@
 // merge and the record are staged, as update leaves its own (decision 37),
 // HEAD unmoved and nothing committed.
 //
+// A path the project declines (How.Decline), a file or a folder of the
+// baseline, is left out of the baseline before anything is compared or
+// merged, and the record lists it, so every later update leaves it out too.
+//
 // It is domain (decision 17): it reaches the project's repository only
 // through a port.Checkout, git's merge only through a port.Merger and git's
 // diff only through a port.Differ, so its tests run it against fakes of
@@ -38,6 +42,7 @@ import (
 	"slices"
 	"strings"
 
+	"github.com/donvargax/itos-template/internal/manifest"
 	"github.com/donvargax/itos-template/internal/project"
 	"github.com/donvargax/itos-template/internal/template/port"
 )
@@ -83,9 +88,12 @@ type Adoption struct {
 // How is how adopting goes: DryRun previews and writes nothing; Force
 // accepts the differences, writing the record over them; Merge accepts them
 // by merging the baseline in, the record staged with it; Diff asks for each
-// text difference's diff. The UI never gives Force and Merge together.
+// text difference's diff. Decline are the baseline's paths the project
+// turns down, as a command line gives them. The UI never gives Force and
+// Merge together.
 type How struct {
 	DryRun, Force, Merge, Diff bool
+	Decline                    []string
 }
 
 // Unrelated is how a merge's conflict markers name its base, which a
@@ -144,7 +152,22 @@ func Open(co port.Checkout, how How, merger port.Merger) (port.CheckoutState, er
 // conflicts. With how.Diff, each text difference has differ's diff. The
 // Adoption comes back with a refusal too, so its differences and conflicts
 // are reported with it.
+//
+// The paths how.Decline names are judged first (project.Decline), then
+// each must be a file or a folder of the baseline, else a *Undeclinable
+// naming every one that is neither, so a misspelt path is caught; the
+// record lists them, and the baseline is compared, merged and written
+// without them, as every later update renders it.
 func Adopt(co port.Checkout, state port.CheckoutState, baseline []port.File, record project.Record, how How, merger port.Merger, differ port.Differ) (*Adoption, error) {
+	declined, err := project.Decline(how.Decline)
+	if err != nil {
+		return nil, err
+	}
+	if unheld := unheld(declined, baseline); len(unheld) > 0 {
+		return nil, &Undeclinable{Paths: unheld}
+	}
+	record.Declined = declined
+	baseline = record.Keep(baseline)
 	paths := make([]string, len(baseline))
 	for i, f := range baseline {
 		paths[i] = f.Path
@@ -180,6 +203,18 @@ func Adopt(co port.Checkout, state port.CheckoutState, baseline []port.File, rec
 	}
 	a.Written = true
 	return a, nil
+}
+
+// unheld is each path of declined that covers no file of baseline: one
+// the baseline holds neither as a file nor as a folder.
+func unheld(declined []string, baseline []port.File) []string {
+	var paths []string
+	for _, d := range declined {
+		if !slices.ContainsFunc(baseline, func(f port.File) bool { return manifest.Covers(d, f.Path) }) {
+			paths = append(paths, d)
+		}
+	}
+	return paths
 }
 
 // merge has merger merge target, the baseline and its record, into the
@@ -314,6 +349,10 @@ type Conflicted struct {
 	Paths   []string
 }
 
+// Undeclinable is Paths, paths to decline that the baseline holds neither
+// as a file nor as a folder.
+type Undeclinable struct{ Paths []string }
+
 func (*NotRepository) adoptionError() {}
 func (*NoWorkTree) adoptionError()    {}
 func (*NoCommit) adoptionError()      {}
@@ -321,6 +360,7 @@ func (*Dirty) adoptionError()         {}
 func (*HasRecord) adoptionError()     {}
 func (*Differs) adoptionError()       {}
 func (*Conflicted) adoptionError()    {}
+func (*Undeclinable) adoptionError()  {}
 
 func (e *NotRepository) Error() string { return "in no git repository: " + e.Why }
 func (*NoWorkTree) Error() string      { return "a git repository with no working tree" }
@@ -329,3 +369,6 @@ func (e *Dirty) Error() string         { return "changes from HEAD" }
 func (e *HasRecord) Error() string     { return "a record " + e.File + " already" }
 func (e *Differs) Error() string       { return "differences from the baseline" }
 func (e *Conflicted) Error() string    { return "conflicts in " + strings.Join(e.Paths, ", ") }
+func (e *Undeclinable) Error() string {
+	return "declined paths not in the baseline: " + strings.Join(e.Paths, ", ")
+}

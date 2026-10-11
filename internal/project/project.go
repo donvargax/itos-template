@@ -33,8 +33,11 @@ const RecordFile = ".itos-template.yaml"
 // the name template.Recorded gives new (record-name), the release rendered,
 // when it was one (decision 36), the stack, the features, the answers, and
 // the commit each of the template's branches was at, which reproduces the
-// render, a release's or the heads'. Release is absent for the branch heads.
-// Its version is the file's format, which new's --json leaves out.
+// render, a release's or the heads', and the paths the project declines
+// (GitHub issue #3), which every update leaves out of both its renders.
+// Release is absent for the branch heads, Declined when the project
+// declines nothing. Its version is the file's format, which new's --json
+// leaves out.
 type Record struct {
 	Version  int               `yaml:"version" json:"-"`
 	Template string            `yaml:"template" json:"template"`
@@ -43,11 +46,16 @@ type Record struct {
 	Features []string          `yaml:"features" json:"features"`
 	Answers  answer.Set        `yaml:"answers" json:"answers"`
 	Commits  map[string]string `yaml:"commits" json:"commits"`
+	Declined []string          `yaml:"declined,omitempty" json:"declined,omitempty"`
 }
 
 // RecordVersion is the record's format, the version a Record is written in.
 // The release key joined version 1 (docs/manifest.md, "The record a made
-// project keeps"): nothing read a record before it.
+// project keeps"): nothing read a record before it. The declined key joined
+// it unbumped too: the reader refuses a key it does not know, so an older
+// itos-template refuses a record that declines paths, naming the key,
+// rather than misreading it as one declining none, and a record declining
+// none, which has no such key, reads the same in every version.
 const RecordVersion = 1
 
 const recordHeader = `# The template render this project is kept up to date with, as
@@ -55,7 +63,8 @@ const recordHeader = `# The template render this project is kept up to date with
 # update can reach (an absolute path, a URL with no credential), the
 # release, when it was one, the stack, the features, the answers, and the
 # commit each of the template's branches was at. itos-template update reads
-# it; edit it only to change what an update renders.
+# it; edit it only to change what an update renders: a path listed under
+# declined, a file or a folder and what is under it, no update brings.
 `
 
 // Marshal is r as .itos-template.yaml holds it, under a comment saying what
@@ -102,12 +111,69 @@ func ReadRecord(data []byte) (Record, error) {
 				problems = append(problems, "it names no "+key)
 			}
 		}
+		problems = append(problems, declinedProblems(r.Declined)...)
 	}
 	if len(problems) > 0 {
 		slices.Sort(problems)
 		return Record{}, &BadRecord{File: RecordFile, Problems: problems}
 	}
 	return r, nil
+}
+
+// declinedProblems is a sentence for each path of declined that is not a
+// path in the project, written as a template_only path is
+// (manifest.IsTreePath), and for each given twice.
+func declinedProblems(declined []string) []string {
+	var problems []string
+	seen := map[string]bool{}
+	for _, p := range declined {
+		switch {
+		case !manifest.IsTreePath(p):
+			problems = append(problems, fmt.Sprintf("the declined path %q is not a path in the project: write it relative to its top, with /", p))
+		case seen[p]:
+			problems = append(problems, fmt.Sprintf("the declined path %q is listed twice: list it once", p))
+		}
+		seen[p] = true
+	}
+	return problems
+}
+
+// Decline is paths, the paths a project declines as a command line gives
+// them, as a record lists them: in the order given, each once, nil for
+// none. A path that is not one in the project, written as a template_only
+// path is (manifest.IsTreePath), is a *BadDeclined naming every such path.
+func Decline(paths []string) ([]string, error) {
+	var declined, bad []string
+	for _, p := range paths {
+		switch {
+		case !manifest.IsTreePath(p):
+			bad = append(bad, p)
+		case !slices.Contains(declined, p):
+			declined = append(declined, p)
+		}
+	}
+	if len(bad) > 0 {
+		return nil, &BadDeclined{Paths: bad}
+	}
+	return declined, nil
+}
+
+// Declines is whether the record declines the path p of a render, with /:
+// p is a declined path or under one (manifest.Covers).
+func (r *Record) Declines(p string) bool {
+	return slices.ContainsFunc(r.Declined, func(declined string) bool { return manifest.Covers(declined, p) })
+}
+
+// Keep is files less those the record declines, in their order: a render
+// as an update merges it.
+func (r *Record) Keep(files []port.File) []port.File {
+	kept := make([]port.File, 0, len(files))
+	for _, f := range files {
+		if !r.Declines(f.Path) {
+			kept = append(kept, f)
+		}
+	}
+	return kept
 }
 
 // Project is a made project: its folder, its record, and its first commit.
@@ -238,10 +304,15 @@ type BadRecord struct {
 	Problems []string
 }
 
+// BadDeclined is Paths, paths a project is to decline that are not paths
+// in it.
+type BadDeclined struct{ Paths []string }
+
 func (*NotEmpty) projectError()      {}
 func (*NotFolder) projectError()     {}
 func (*CommitRefused) projectError() {}
 func (*BadRecord) projectError()     {}
+func (*BadDeclined) projectError()   {}
 
 func (e *NotEmpty) Error() string      { return e.Folder + " has files in it" }
 func (e *NotFolder) Error() string     { return e.Folder + " is a file" }
@@ -249,4 +320,7 @@ func (e *CommitRefused) Error() string { return fmt.Sprintf("the first commit re
 func (e *CommitRefused) Unwrap() error { return e.Err }
 func (e *BadRecord) Error() string {
 	return e.File + ": " + strings.Join(e.Problems, "; ")
+}
+func (e *BadDeclined) Error() string {
+	return "declined paths not in the project: " + strings.Join(e.Paths, ", ")
 }

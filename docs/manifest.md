@@ -481,7 +481,23 @@ render the record names, from its branch commits, never from a tag, and the targ
 record's stack, features and answers, merges the difference into the project with git's own merge
 (decision 38), and leaves the new record staged with the merge, uncommitted (decision 37). It reads
 the record as strictly as the manifest (decision 22): an unknown key, or a version other than 1, is
-refused.
+refused, and so is a declined path written as no path in the project is, or listed twice.
+
+`declined` lists the paths the project turns down (GitHub issue #3), in the order given, each once,
+and is left out when it declines none. Each is written as a `template_only` path is, and judged by
+the same rule: relative to the project's top, with `/`, a file or a folder covering everything under
+it, never a glob. `adopt --decline` lists them, beside `--merge`, which leaves them out of the merge,
+or `--force`, which writes the record alone; a path a later release adds is declined by adding it to
+the list by hand and committing the record. `update` leaves each out of the old render and the new
+alike, so no release changes, adds or removes it, the project's own file there, or its absence,
+stays, and the new record keeps the list.
+
+`declined` joined the record's version 1, unbumped. The reader refuses a key it does not know
+(decision 22), so an older itos-template refuses a record that declines paths, exit 2, naming the
+key, rather than misreading it as one declining none and bringing those paths back; a record
+declining none has no such key and reads the same in every version. A bump would refuse every
+record this itos-template writes, declining or not, and give an older one nothing the refusal of
+the key does not already give it.
 
 `release` names the version of the release rendered (decision 36), beside the branch commits, which
 stay what reproduces the render; a render of the branch heads has no `release` key. The key joined
@@ -533,5 +549,8 @@ commits:
   go/cli: 3f1c…
   main: 9a2e…
   stack/go: 7b44…
+declined:
+  - docs/sample
+  - README.md
 ```
 

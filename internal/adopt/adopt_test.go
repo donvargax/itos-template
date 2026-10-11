@@ -119,3 +119,20 @@ func TestAdoptsJSONBeforeTheBaselineHoldsEmptyLists(t *testing.T) {
 		t.Errorf("adopt --json exited %d with\n%s", code, stdout.String())
 	}
 }
+
+// The preview names the paths the baseline declines, which no scenario
+// reads, and says nothing of them when it declines none.
+func TestThePreviewNamesTheDeclinedPaths(t *testing.T) {
+	var out strings.Builder
+	a := &adoption.Adoption{Baseline: &project.Record{Template: "/t", Stack: "go", Declined: []string{"docs", "cli.txt"}}}
+	preview(&cli.UI{Stdout: &out}, a, "v1.0.0", true, true)
+	if got := out.String(); !strings.Contains(got, "Its declined paths, left out of the comparison and the merge: docs, cli.txt.\n") {
+		t.Errorf("the preview says\n%s", got)
+	}
+	out.Reset()
+	a.Baseline.Declined = nil
+	preview(&cli.UI{Stdout: &out}, a, "v1.0.0", true, true)
+	if got := out.String(); strings.Contains(got, "declined") {
+		t.Errorf("a preview declining nothing says\n%s", got)
+	}
+}

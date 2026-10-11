@@ -7,8 +7,8 @@ Feature: update brings a made project to a newer template release by a 3-way mer
   stack, features and answers; and merges the difference into the project
   with git's own merge, the old render the base (decision 3, q-49). Renames
   follow as git's merge follows them. Both renders take new's substitutions
-  and leave out the template-only paths, as new's does; update runs no check
-  and no setup step.
+  and leave out the template-only paths, as new's does, and the paths the
+  record declines; update runs no check and no setup step.
 
   The target is the newest release (decision 36: the highest stable complete
   one), or the version --to names, a pre-release included. A target equal to
@@ -293,7 +293,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
   # never changes, adds or removes it, and the project's file there, or its
   # absence, stays as the project has it. The record keeps the list. The record
   # is edited by a step here as a person would edit it, then committed.
-  @ID-UPDATE-23 @slice-18 @wip
+  @ID-UPDATE-23 @slice-18
   Scenario: a declined file the release changes stays as the project has it, with no conflict
     Given a committed project change to "made/release.txt" containing "project-release"
     And "made" records "release.txt" as declined, committed
@@ -304,7 +304,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     And the record in "made" names the release "v1.1.0" and its exact branch commits
     And the record in "made" declines "release.txt"
 
-  @ID-UPDATE-24 @slice-18 @wip
+  @ID-UPDATE-24 @slice-18
   Scenario: a declined file the project deleted never comes back, and no modify/delete conflict is left
     Given a committed project deletion of "made/release.txt"
     And "made" records "release.txt" as declined, committed

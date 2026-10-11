@@ -28,7 +28,10 @@ Feature: adopt links an existing project to a template baseline
   is added, a file both hold the same or only the project holds is untouched,
   and a file both hold differently is an add/add conflict. --merge and --force
   together are a usage error. Adopting the latest ref imports no changes by
-  itself.
+  itself. --decline, repeatable, names a file or a folder of the baseline the
+  project turns down: it is left out of the baseline, so neither compared nor
+  merged, and the record lists it, so no later update brings it. A declined
+  path the baseline holds neither as a file nor as a folder is a usage error.
 
   Writing requires a non-bare git repository with a committed HEAD, a clean
   index and working tree including non-ignored untracked files, and no existing
@@ -45,7 +48,8 @@ Feature: adopt links an existing project to a template baseline
   reset --hard, the record staged too.
 
   With --json, stdout is one object with schema: 1 and ok, written, baseline,
-  differences, conflicts and problems. baseline uses the same render record data as new;
+  differences, conflicts and problems. baseline uses the same render record data as new,
+  its declined paths included;
   differences have path, kind (project-only, modified, missing), binary and
   mode_changed. --diff adds a diff string for text changes. Default JSON
   includes no file contents. Refused differences remain in the failure report.
@@ -370,7 +374,7 @@ Feature: adopt links an existing project to a template baseline
   # and the new render alike (update.feature). A declined path the baseline
   # holds neither as a file nor as a folder is a usage error naming it, so a typo
   # is caught; a path a later release may add is declined by editing the record.
-  @ID-ADOPT-27 @slice-18 @wip
+  @ID-ADOPT-27 @slice-18
   Scenario: merge leaves a declined file out and the record keeps it
     Given a committed deletion of "made/cli.txt"
     And a saved snapshot of the HEAD of "made"
@@ -381,7 +385,7 @@ Feature: adopt links an existing project to a template baseline
     And the record in "made" declines "cli.txt"
     And the HEAD of "made" is unchanged
 
-  @ID-ADOPT-28 @slice-18 @wip
+  @ID-ADOPT-28 @slice-18
   Scenario: force with a declined path writes only the record, which keeps it
     Given a committed deletion of "made/cli.txt"
     And a saved adoption snapshot of "made"
@@ -390,7 +394,7 @@ Feature: adopt links an existing project to a template baseline
     And the record in "made" declines "cli.txt"
     And the adoption snapshot of "made" is unchanged except for the new unstaged record
 
-  @ID-ADOPT-29 @slice-18 @wip
+  @ID-ADOPT-29 @slice-18
   Scenario: a declined path the baseline does not hold is a usage error, and nothing is written
     Given a saved adoption snapshot of "made"
     When itos-template runs in "made" with "adopt {template} --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --answer module=example.com/blue/fox --merge --decline no-such.txt"

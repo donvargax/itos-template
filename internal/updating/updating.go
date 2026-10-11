@@ -4,7 +4,8 @@
 // target release with the record's stack, features and answers, and git's
 // merge takes the difference into the project, the old render the base
 // (decision 38). The renders are package template's, made as new makes
-// one.
+// one; the paths the record declines are left out of both, so no update
+// brings them (GitHub issue #3).
 //
 // It reaches the project only through a port.Project: HEAD's record read,
 // the merge written to the index and the working tree, never committed and
@@ -161,11 +162,15 @@ func (s *Start) Current() *Update {
 // Merge merges into the project p, as Open found it in s, the change from
 // base, the render its record names, to target, the target release's
 // render, whose record is next: the record is merged too, HEAD's the base,
-// so the project ends with next as its record, staged with the rest. A
-// conflict's markers name each render as label does, root the template's
-// root branch. A merge that leaves conflicts is a *Conflicted, the Update
-// returned with it.
+// so the project ends with next as its record, staged with the rest. Each
+// path the record declines is left out of both renders, so the release
+// never changes, adds or removes it and the project keeps its own there,
+// or its absence; next keeps the record's list. A conflict's markers name
+// each render as label does, root the template's root branch. A merge that
+// leaves conflicts is a *Conflicted, the Update returned with it.
 func (s *Start) Merge(p port.Project, base, target []port.File, next project.Record, root string) (*Update, error) {
+	base, target = s.Record.Keep(base), s.Record.Keep(target)
+	next.Declined = s.Record.Declined
 	file, err := next.File()
 	if err != nil {
 		return nil, err

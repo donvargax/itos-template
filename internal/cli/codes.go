@@ -133,6 +133,12 @@ func projectProblem(err project.Error) (code int, problems []Problem) {
 		for _, p := range e.Problems {
 			problems = append(problems, one("record-invalid", "the project's record, %s, cannot be read: %s", e.File, p)...)
 		}
+	case *project.BadDeclined:
+		code, problems = CodeUsage, nil
+		for _, p := range e.Paths {
+			problems = append(problems, fixed("decline-invalid", "write it relative to the project's top, with /, a file or a folder, no trailing /",
+				"the path %+q to decline is not a path in the project", p)...)
+		}
 	}
 	return code, problems
 }
@@ -202,6 +208,12 @@ func adoptionProblem(err adoption.Error) (code int, problems []Problem) {
 		code, problems = CodeRefused, fixed("merge-conflict", "resolve each, stage it with git add and commit; or undo the whole adoption with git reset --hard",
 			"merging the template's release %s into the project left conflicts in %s, each marked in its file and unmerged in the index as git merge leaves one, the rest of the merge and the record staged",
 			e.Release, strings.Join(e.Paths, ", "))
+	case *adoption.Undeclinable:
+		code, problems = CodeUsage, nil
+		for _, p := range e.Paths {
+			problems = append(problems, fixed("decline-unknown", "name a file or a folder the release renders, by its path from the project's top, with /",
+				"the baseline holds no file or folder %s to decline", p)...)
+		}
 	}
 	return code, problems
 }
