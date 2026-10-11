@@ -1327,7 +1327,7 @@ items:
     deferred: >
       Waits on donvargax/itos-cc#35 being fixed in a release
   - id: T-43
-    title: Pin itos-cc 0.11.0 and refresh every record of cmd and internal, so no function is stale or missing
+    title: Pin itos-cc 0.12.0 and refresh every record of cmd and internal, so no function is stale or missing
     phase: 1
     owner: donvargax
     status: done
