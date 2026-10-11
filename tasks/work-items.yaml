@@ -1518,8 +1518,8 @@ items:
   - id: T-51
     title: Kill or except the last 21 survivors, in cli, prompt, release, render, tempdir, template and porttest
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: task
     why: >
