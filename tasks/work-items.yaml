@@ -1261,14 +1261,15 @@ items:
       cannot update its made projects. Whether update should take the heads, and how a project
       records them, is open. Found building slice-13.
     tags: [update]
-  - id: update-conflict-labels
+  - id: slice-15
     title: update's conflict markers name the release, not a tree's object
     phase: 1
     owner: null
     status: todo
     depends_on: [slice-13]
-    kind: idea
+    kind: slice
     why: >
+      Was update-conflict-labels.
       git merge-tree labels a conflict's markers with the arguments it was given: HEAD, and the new
       render's tree, an object id no person recognises, where git merge would show a branch name.
       merge-tree takes no label option; giving the release's name means another way to name the
