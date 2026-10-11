@@ -1526,3 +1526,16 @@ items:
       covering what is under it, no globs and no library; adopt takes them as --decline with --merge
       or --force; the record keeps them; update leaves them out of the old and the new render alike.
     tags: [update]
+  - id: decline-command
+    title: A command that declines a template path in a made or adopted project, after adopt
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      slice-18 declines paths through adopt --decline only; a path a later release adds, or one a
+      made project decides it does not want, is declined by editing .itos-template.yaml by hand and
+      committing it. A command (itos-template decline <path>, or update --decline) would judge the
+      path as adopt does, against the recorded render, and write the record, so a typo is caught
+      there too.
