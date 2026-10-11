@@ -1,14 +1,64 @@
 # golangci-lint's configuration, version 2. The binary is the release
 # tools/bin/pinned pins; the pre-commit hook (tools/hooks/pre-commit) runs it.
+# It holds every code design rule a linter can decide, each linter's comment
+# naming the decision it holds; docs/design-rules.md lists every rule and how
+# it is held, those left to judgement with why (T-49).
 version: "2"
 linters:
   default: standard # errcheck, govet, ineffassign, staticcheck, unused
   enable:
     - depguard
+    - forbidigo
     - gochecksumtype
     - gosec
+    - nolintlint
     - revive
   settings:
+    # forbidigo refuses identifiers, each pattern naming the decision it
+    # holds. analyze-types matches an identifier by its package, not by the
+    # name a file imports it as, so an alias does not slip past. A pattern
+    # holding only some files has its exclusions below, each saying why.
+    forbidigo:
+      analyze-types: true
+      forbid:
+        # Decision 26: code that differs by OS takes the OS as a value, and
+        # only a thin caller reads runtime.GOOS. Every read is refused, a
+        # comparison and a copy compared later alike, and the one read
+        # allowed is the edge handing the OS in as a value (its exclusion
+        # below). forbidigo rather than gocritic's ruleguard: a ruleguard
+        # rule matches shapes, a comparison or a switch, and misses the OS
+        # copied into a variable and compared later, while refusing every
+        # read but the edge decides the rule whole.
+        - pattern: ^runtime\.GOOS$
+          pkg: ^runtime$
+          msg: "code that differs by OS takes the OS as a value (decision 26): read the OS only at the edge, as template.SystemOf(runtime.GOOS)"
+        # Decision 17: the domain knows no UI, and output goes through the
+        # writers the UI hands down (cli.UI's), so it is tested and --json
+        # keeps stdout to itself: nothing prints to the process's stdout
+        # behind them.
+        - pattern: ^(fmt\.Print(f|ln)?|print|println)$
+          msg: "output goes through the writers the UI hands down (decision 17): write to the io.Writer given"
+        # Decision 17: the domain knows no UI, exit codes included; a slice
+        # returns its code and main alone exits with it (cmd's exclusion
+        # below). log.Fatal exits too.
+        - pattern: ^(os|syscall)\.Exit$
+          msg: "main alone exits (decision 17): return the exit code to it"
+        - pattern: ^log\.Fatal(f|ln)?$
+          msg: "main alone exits (decision 17): return the exit code to it"
+        # Decision 22: configuration is read strictly, refusing what JSON
+        # cannot say; manifest.Decode is that reader (its exclusion below),
+        # so no other code reads YAML loosely.
+        - pattern: ^yaml\.(Unmarshal|NewDecoder)$
+          pkg: ^go\.yaml\.in/yaml/v3$
+          msg: "configuration is read strictly (decision 22): read it with manifest.Decode"
+    # An exception is one finding, excepted on its line with the linter it
+    # silences named and why, the rule gosec's comment below sets (T-22),
+    # here for every linter; one that silences nothing is reported, so an
+    # exception goes when its finding does (T-48's two runtime.GOOS lines).
+    nolintlint:
+      require-explanation: true
+      require-specific: true
+      allow-unused: false
     # gosec, the SAST baseline (T-22). A rule whose finding is this tool's
     # job is turned off here with its reason; any other finding is fixed, or
     # excepted on its line with a //nolint:gosec saying why, never by
@@ -131,6 +181,20 @@ linters:
               desc: "the domain does no I/O (decision 17): reach the outside through a port of internal/template/port"
             - pkg: net
               desc: "the domain does no I/O (decision 17): reach the outside through a port of internal/template/port"
+            - pkg: syscall
+              desc: "the domain does no I/O (decision 17): reach the outside through a port of internal/template/port"
+            - pkg: log
+              desc: "the domain does no I/O (decision 17): its errors say what happened, and the UI and infra log"
+            # path/filepath writes a path as the OS it was built for does,
+            # so a domain using it differs by OS with no value saying which
+            # (decision 26): the domain writes paths with path, / alone, or
+            # takes a template.System. runtime is refused so that the edge
+            # forbidigo allows, template.SystemOf(runtime.GOOS), is never in
+            # the domain.
+            - pkg: path/filepath
+              desc: "code that differs by OS takes the OS as a value (decision 26): use path, or take a template.System"
+            - pkg: runtime$
+              desc: "code that differs by OS takes the OS as a value (decision 26): take a template.System, which the slices make at the edge"
         # Infra implements the ports and imports nothing of ours but them:
         # turning the outside's terms into the ports' is its anti-corruption
         # layer, kept there.
@@ -164,6 +228,32 @@ linters:
               desc: "never mocks (decision 19): a fake or a stub of the port, in its porttest"
             - pkg: github.com/maxbrunsfeld/counterfeiter
               desc: "never mocks (decision 19): a fake or a stub of the port, in its porttest"
+        # Libraries the decisions weighed and set aside: none comes in, in
+        # any package or test, until its decision is revisited.
+        set-aside:
+          files:
+            - $all
+          deny:
+            - pkg: github.com/spf13/cobra
+              desc: "kong declares the command line (decision 4)"
+            - pkg: github.com/urfave/cli
+              desc: "kong declares the command line (decision 4)"
+            - pkg: github.com/go-git/go-git
+              desc: "go-git merges only by fast-forward (decisions 19, 38): git's own command line, through a port"
+            - pkg: github.com/leanovate/gopter
+              desc: "properties are rapid's (decision 20)"
+            - pkg: testing/quick
+              desc: "properties are rapid's (decision 20): testing/quick is frozen and does not shrink"
+            - pkg: github.com/zricethezav/gitleaks
+              desc: "a template's own checks run gitleaks, pinned, never a library inside check (decision 21)"
+            - pkg: github.com/gitleaks/gitleaks
+              desc: "a template's own checks run gitleaks, pinned, never a library inside check (decision 21)"
+            - pkg: github.com/posener/complete
+              desc: "shell completion is our own __complete (decision 25)"
+            - pkg: github.com/willabides/kongplete
+              desc: "shell completion is our own __complete (decision 25)"
+            - pkg: github.com/jotaen/kong-completion
+              desc: "shell completion is our own __complete (decision 25)"
         # Properties are unit tests of the domain (decision 20): rapid comes
         # in only in the domain packages' own tests, never in their code, in
         # porttest, or anywhere else. Each domain package is listed, as under
@@ -211,6 +301,34 @@ linters:
         linters: [gosec]
       - path: ^internal/template/port/porttest/
         linters: [gosec]
+      # Decision 26's edge: the slices hand the OS in as a value,
+      # template.SystemOf(runtime.GOOS), the one read of it allowed. A new
+      # edge is added here by name, so each is a reviewed change.
+      - linters: [forbidigo]
+        text: runtime\.GOOS
+        source: \bSystemOf\(runtime\.GOOS\)
+      # Tests ask which OS they run on: a test of the real OS, an adapter's
+      # or a scenario's step, skips or expects what that OS does, and the
+      # code proof decision 26 serves mutates no test. They read what the
+      # binary wrote with yaml.v3 as it is, the strict reader being for the
+      # input a template brings (decision 22).
+      - path: _test\.go$
+        linters: [forbidigo]
+        text: runtime\.GOOS|yaml\.(Unmarshal|NewDecoder)
+      # main exits with the code the slice returned (decision 17).
+      - path: ^cmd/itos-template/main\.go$
+        linters: [forbidigo]
+        text: os\.Exit
+      # tools/bin's programs are the repository's own scripts, each a main
+      # writing to its stdout and exiting with its code, outside the layers
+      # decision 17 draws for itos-template.
+      - path: ^tools/bin/
+        linters: [forbidigo]
+        text: os\.Exit|fmt\.Print
+      # The strict reader itself (decision 22).
+      - path: ^internal/manifest/decode\.go$
+        linters: [forbidigo]
+        text: yaml\.NewDecoder
 formatters:
   enable:
     - gofmt

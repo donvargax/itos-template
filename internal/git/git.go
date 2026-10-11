@@ -94,6 +94,8 @@ func builtAsItos(p string) bool {
 
 // names are the file names git may have in a PATH folder: git, or on windows
 // git with each of PATHEXT's extensions.
+//
+//nolint:forbidigo // T-48 passes the OS in as a value (decision 26) and deletes this
 func names() []string {
 	if runtime.GOOS != "windows" {
 		return []string{"git"}
@@ -111,6 +113,7 @@ func names() []string {
 	return found
 }
 
+//nolint:forbidigo // T-48 passes the OS in as a value (decision 26) and deletes this
 func executable(info os.FileInfo) bool {
 	return info.Mode().IsRegular() && (runtime.GOOS == "windows" || info.Mode().Perm()&0o111 != 0)
 }
