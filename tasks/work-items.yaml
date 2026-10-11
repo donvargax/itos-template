@@ -1691,8 +1691,8 @@ items:
   - id: bug-9
     title: "bug-8's second layer stops at the parent folders: disk.Write follows a symbolic link at the file's own path"
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: bug
     why: >
