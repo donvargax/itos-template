@@ -29,7 +29,7 @@ jobs:
     steps:
       # Set up as ci.yml's ci job sets itos, Go and the pinned tools up, every action pinned to the
       # same commit: actions/checkout v7.0.1, actions/setup-go v7.0.0, and itos's own action at
-      # v7.0.0, the release itos.yaml pins. tools/bin/pinned fetches itos-cc itself. No Node: no
+      # v7.5.0, the release itos.yaml pins. tools/bin/pinned fetches itos-cc itself. No Node: no
       # step of the nightly plan runs it (T-14's checks do, in a push's plan). No full history:
       # only a push's range reads it, and the scenarios e2e-coverage runs need what ci.yml's
       # platform jobs give them, which run every scenario with neither.
@@ -42,5 +42,5 @@ jobs:
           cache-dependency-path: go.sum
       # The global itos, the launcher, on the PATH: itos.yaml's pin chooses the itos that runs. The
       # whole suite each mutant runs holds ID-NEW-42, which runs the real itos.
-      - uses: donvargax/itos@4618aeb201c8c15b2ffb947cc355b85747929a17 # v7.0.0
+      - uses: donvargax/itos@e7d7cc0da6f39758f26e1dfa693243629f5c8f7f # v7.5.0
       - run: itos ci run --nightly
