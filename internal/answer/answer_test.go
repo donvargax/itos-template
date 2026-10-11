@@ -99,6 +99,11 @@ func TestReadTakesADefaultOnlyWhenAskedTo(t *testing.T) {
 	if len(problems) != 1 || !errors.As(problems[0], &missingOwner) || *missingOwner.Question.Default != "Nobody" {
 		t.Errorf("problems %v", problems)
 	}
+	answers, _, problems = Read(m, nil, true, false)
+	var missingName *Missing
+	if len(problems) != 1 || !errors.As(problems[0], &missingName) || missingName.Question.Name != "name" || answers.Texts()["owner"] != "Nobody" {
+		t.Errorf("with defaults, a question with none: %v, %v", answers.Texts(), problems)
+	}
 }
 
 // PRECIS only judges an answer: one it would normalize, an accent written

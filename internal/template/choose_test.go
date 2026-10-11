@@ -95,6 +95,10 @@ func TestChooseNamesEveryUnknownNameAndAnswerTogether(t *testing.T) {
 	if stack.Name != "rust" || feature.Name != "nosuch" || len(feature.Known) != 0 || missing.Question.Name != "owner" {
 		t.Errorf("the problems are %+v, %+v, %+v", stack, feature, missing)
 	}
+	_, _, err = choose(t, manifest.Choice{Stack: "rust", Features: []string{"extra"}}, answer.Given{"name=blue-fox"}, true, nil)
+	if got := problems(err); len(got) != 1 || !errors.As(got[0], &stack) {
+		t.Errorf("a stack the template lacks, with a feature of another: %v", err)
+	}
 	_, _, err = choose(t, manifest.Choice{Features: []string{"extra"}}, answer.Given{"name=blue-fox"}, true, nil)
 	var noStack *NoStack
 	if got := problems(err); len(got) != 1 || !errors.As(got[0], &noStack) {
@@ -142,6 +146,31 @@ func TestChooseRefusesACombinationTheManifestListsAsUnsupported(t *testing.T) {
 	}
 	if _, _, err := Choose(m, manifest.Choice{Stack: "sh"}, answer.Given{"name=blue-fox"}, true, nil); err != nil {
 		t.Errorf("the stack alone, which is supported: %v", err)
+	}
+	_, _, err = Choose(m, manifest.Choice{Stack: "sh", Features: []string{"extra", "tool"}}, answer.Given{"name=blue-fox"}, true, nil)
+	var other *OtherStack
+	if got := problems(err); len(got) != 1 || !errors.As(got[0], &other) {
+		t.Errorf("an unsupported combination with a feature of another stack is refused for that alone: %v", err)
+	}
+}
+
+// The stack is asked whenever the manifest lists one or more, one too;
+// with none, which no manifest Parse takes, nothing is asked.
+func TestChooseAsksTheStackOfAManifestListingOne(t *testing.T) {
+	m, err := manifest.Parse([]byte("version: 2\nstacks: [{name: go}]\n"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	terminal := &porttest.Terminal{Lines: []string{"go"}}
+	c, _, err := Choose(m, manifest.Choice{}, nil, false, terminal)
+	if err != nil || c.Name() != "go" || len(terminal.Asked) != 1 {
+		t.Errorf("Choose = %s, %v, asked %+v", c.Name(), err, terminal.Asked)
+	}
+	terminal = &porttest.Terminal{Lines: []string{"go"}}
+	_, _, err = Choose(&manifest.Manifest{}, manifest.Choice{}, nil, false, terminal)
+	var none *NoStack
+	if !errors.As(err, &none) || len(terminal.Asked) != 0 {
+		t.Errorf("no stack listed: %v, asked %+v", err, terminal.Asked)
 	}
 }
 

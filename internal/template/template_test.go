@@ -348,3 +348,20 @@ func TestRenderRefusesBeforeWritingWhenGitKnowsNoOne(t *testing.T) {
 		t.Errorf("something was written: %v", d.Folders)
 	}
 }
+
+// A render whose files cannot be made, a submodule among them, is refused
+// before the project's folder is touched.
+func TestRenderRefusesASubmoduleWritingNothing(t *testing.T) {
+	repo := acme()
+	repo.Branches["stack/sh"]["vendor/lib"] = &fstest.MapFile{Mode: porttest.Submodule}
+	tpl := open(t, repo)
+	w, d, _ := writer()
+	_, err := tpl.Render(combination(t, tpl, "sh"), taken(t, tpl.Manifest, answers), project.Folder{Path: "made", New: true}, nil, w)
+	var submodule *render.Submodule
+	if !errors.As(err, &submodule) || submodule.Path != "vendor/lib" {
+		t.Errorf("Render = %v", err)
+	}
+	if _, ok := d.Folders["made"]; ok {
+		t.Error("the project's folder was written")
+	}
+}

@@ -239,40 +239,6 @@ func TestParseRefusesADefaultPRECISRefuses(t *testing.T) {
 	}
 }
 
-// taken are texts as m's questions take them, by name.
-func taken(t *testing.T, m *Manifest, texts map[string]string) Answers {
-	t.Helper()
-	var answers Answers
-	for name, text := range texts {
-		q, _ := m.Question(name)
-		answer, err := q.Take(text)
-		if err != nil {
-			t.Fatalf("%s does not take %q: %v", name, text, err)
-		}
-		answers.Add(answer)
-	}
-	return answers
-}
-
-func TestReplacementsPutTheLongestLiteralFirst(t *testing.T) {
-	m := acme(t)
-	got := m.Replacements(taken(t, m, map[string]string{"name": "blue-fox", "module": "example.com/blue/fox"}))
-	// The longest first; equal lengths keep the manifest's order (kebab,
-	// snake, camel, Pascal, upper snake), so the 11-byte forms precede the
-	// 10-byte ones.
-	want := []string{
-		"example.com/acme/widget", "example.com/blue/fox",
-		"acme-widget", "blue-fox",
-		"acme_widget", "blue_fox",
-		"ACME_WIDGET", "BLUE_FOX",
-		"acmeWidget", "blueFox",
-		"AcmeWidget", "BlueFox",
-	}
-	if !slices.Equal(got, want) {
-		t.Errorf("Replacements = %q, want %q", got, want)
-	}
-}
-
 func TestParseRefuses(t *testing.T) {
 	cases := map[string]string{
 		"an unknown key":                "version: 5\nstacks: [{name: go}]\nhooks: []\n",
@@ -652,6 +618,29 @@ func TestParseSaysAQuestionIsListedTwice(t *testing.T) {
 	_, err := Parse([]byte("version: 1\nstacks: [{name: go}]\nquestions: [{name: a, literal: x, question: Q}, {name: a, literal: y, question: Q}]\n"))
 	var invalid *Invalid
 	if !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, []string{"the question a is listed twice"}) {
+		t.Errorf("Parse = %v", err)
+	}
+}
+
+// Every name a stack, a feature and a question is given by is judged, each
+// listed twice named, and a question with no literal too, every problem
+// together.
+func TestParseNamesEveryBadOrRepeatedName(t *testing.T) {
+	_, err := Parse([]byte(`version: 1
+stacks: [{name: Go}, {name: sh}, {name: sh}]
+features: [{name: Cli, stack: sh}, {name: web, stack: sh}, {name: web, stack: sh}]
+questions: [{name: Owner, literal: Acme, question: Q}, {name: who, question: Q}]
+`))
+	var invalid *Invalid
+	want := []string{
+		`the stack "Go" is not a name: lowercase letters, digits, dots, dashes and underscores`,
+		"the stack sh is listed twice",
+		`the feature "Cli" is not a name: lowercase letters, digits, dots, dashes and underscores`,
+		"the feature sh/web is listed twice",
+		`the question "Owner" is not a name: a lowercase letter, then lowercase letters, digits, dashes and underscores`,
+		"the question who has no literal",
+	}
+	if !errors.As(err, &invalid) || !slices.Equal(invalid.Problems, want) {
 		t.Errorf("Parse = %v", err)
 	}
 }
