@@ -54,7 +54,7 @@ linters:
     # An exception is one finding, excepted on its line with the linter it
     # silences named and why, the rule gosec's comment below sets (T-22),
     # here for every linter; one that silences nothing is reported, so an
-    # exception goes when its finding does (T-48's two runtime.GOOS lines).
+    # exception goes when its finding does.
     nolintlint:
       require-explanation: true
       require-specific: true
@@ -307,14 +307,24 @@ linters:
       - linters: [forbidigo]
         text: runtime\.GOOS
         source: \bSystemOf\(runtime\.GOOS\)
+      # Decision 26's edge in internal/git, infra, which cannot import
+      # template: Bin hands the OS to bin as a value, bin(runtime.GOOS), the
+      # one read of it there, which names and executable take (T-48).
+      - path: ^internal/git/git\.go$
+        linters: [forbidigo]
+        text: runtime\.GOOS
+        source: \bbin\(runtime\.GOOS\)
       # Tests ask which OS they run on: a test of the real OS, an adapter's
       # or a scenario's step, skips or expects what that OS does, and the
       # code proof decision 26 serves mutates no test. They read what the
       # binary wrote with yaml.v3 as it is, the strict reader being for the
-      # input a template brings (decision 22).
+      # input a template brings (decision 22). They exit: TestMain's
+      # os.Exit(m.Run()) and a helper process exiting with a code, as
+      # internal/git's stub git does, are standard Go, and decision 17's
+      # main-alone rule holds production code, still held (T-48).
       - path: _test\.go$
         linters: [forbidigo]
-        text: runtime\.GOOS|yaml\.(Unmarshal|NewDecoder)
+        text: runtime\.GOOS|yaml\.(Unmarshal|NewDecoder)|(os|syscall)\.Exit
       # main exits with the code the slice returned (decision 17).
       - path: ^cmd/itos-template/main\.go$
         linters: [forbidigo]

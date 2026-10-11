@@ -38,7 +38,11 @@ import (
 // Bin is the git itos-template runs: the one ITOS_GIT names, unless it names
 // an itos, else the first git on the PATH that is not an itos, else "git",
 // which then fails as a missing git does. Found once a run.
-var Bin = sync.OnceValue(func() string {
+var Bin = sync.OnceValue(func() string { return bin(runtime.GOOS) })
+
+// bin finds Bin's git for the OS goos, which Bin hands in as a value, the
+// one read of runtime.GOOS here (decision 26).
+func bin(goos string) string {
 	if p := os.Getenv("ITOS_GIT"); p != "" && !IsItos(p) {
 		return p
 	}
@@ -46,17 +50,17 @@ var Bin = sync.OnceValue(func() string {
 		if dir == "" || !filepath.IsAbs(dir) {
 			continue
 		}
-		for _, name := range names() {
+		for _, name := range names(goos, os.Getenv("PATHEXT")) {
 			p := filepath.Join(dir, name)
-			info, err := os.Stat(p)
-			if err != nil || !executable(info) || IsItos(p) {
+			info, err := os.Stat(p) //nolint:gosec // G703: PATH's folders are where git is looked for; checking what each holds is the point
+			if err != nil || !executable(goos, info) || IsItos(p) {
 				continue
 			}
 			return p
 		}
 	}
 	return "git"
-})
+}
 
 // IsItos is whether the program at p is an itos, so never the real git: a
 // symbolic link whose target, at any link of the chain, is a file named itos
@@ -92,20 +96,18 @@ func builtAsItos(p string) bool {
 	return err == nil && itosMain.MatchString(info.Path)
 }
 
-// names are the file names git may have in a PATH folder: git, or on windows
-// git with each of PATHEXT's extensions.
-//
-//nolint:forbidigo // T-48 passes the OS in as a value (decision 26) and deletes this
-func names() []string {
-	if runtime.GOOS != "windows" {
+// names are the file names git may have in a PATH folder on the OS goos:
+// git, or on windows git with each extension of pathext, PATHEXT's value,
+// else of windows' default.
+func names(goos, pathext string) []string {
+	if goos != "windows" {
 		return []string{"git"}
 	}
-	exts := os.Getenv("PATHEXT")
-	if exts == "" {
-		exts = ".com;.exe;.bat;.cmd"
+	if pathext == "" {
+		pathext = ".com;.exe;.bat;.cmd"
 	}
 	var found []string
-	for _, ext := range strings.Split(strings.ToLower(exts), ";") {
+	for _, ext := range strings.Split(strings.ToLower(pathext), ";") {
 		if ext != "" {
 			found = append(found, "git"+ext)
 		}
@@ -113,9 +115,10 @@ func names() []string {
 	return found
 }
 
-//nolint:forbidigo // T-48 passes the OS in as a value (decision 26) and deletes this
-func executable(info os.FileInfo) bool {
-	return info.Mode().IsRegular() && (runtime.GOOS == "windows" || info.Mode().Perm()&0o111 != 0)
+// executable is whether info is a file the OS goos runs: any regular file
+// on windows, which keeps no execute bit, else one with an execute bit.
+func executable(goos string, info os.FileInfo) bool {
+	return info.Mode().IsRegular() && (goos == "windows" || info.Mode().Perm()&0o111 != 0)
 }
 
 // ownRepository are the variables that point git at a repository other than

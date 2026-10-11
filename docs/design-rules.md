@@ -16,7 +16,7 @@ how it is built, is the scenarios' to hold (`features/`), and is not listed here
 | kong stays in the UI: `cmd`, `internal/cli` and the slices | 4, 17 | depguard, rules `kong` and `domain` |
 | Every error kind is given its exit code, in one switch per sealed set, a default not counting | 17, `docs/CLI.md` rule 31 | gochecksumtype; whether a new error joins a sealed set is judgement, an unclassified one exiting 70 |
 | Output goes through the writers the UI hands down, never to the process's stdout behind them | 17 | forbidigo: `fmt.Print`, `fmt.Printf`, `fmt.Println`, `print`, `println` |
-| main alone exits, with the code the slice returned | 17 | forbidigo: `os.Exit`, `syscall.Exit`, `log.Fatal*`, `cmd/itos-template/main.go` excepted |
+| main alone exits, with the code the slice returned | 17 | forbidigo: `os.Exit`, `syscall.Exit`, `log.Fatal*`, `cmd/itos-template/main.go` excepted, and tests' `os.Exit` and `syscall.Exit`: TestMain's `os.Exit(m.Run())` and a helper process exiting with a code (`internal/git`'s stub git) are standard Go, and the rule is about production code (T-48) |
 | A bug exits 70, as an error nobody classified, never as a panic | 17, `docs/CLI.md` rule 31 | Not held yet: forbidigo could refuse `panic`, but `manifest.Replacements` panics on an answer `Check` did not take, and changing it is the person's call (the idea `no-panic`) |
 | A slice stays in one file until it grows large: 600 lines of code | 17 | revive, `file-length-limit` |
 | Commands carry domain objects: no DTO or options struct copying a type | 17 | Judgement: whether a struct copies a type is what its fields stand for, which no linter reads; Run assembling a command from kong's flags is the one copy allowed |
@@ -27,7 +27,7 @@ how it is built, is the scenarios' to hold (`features/`), and is not listed here
 | The domain is unit-tested in full | 19 | `tools/bin/domain-coverage`, a floor of 80% per domain package, in CI |
 | A test outside the domain exists only for what a scenario cannot reach, saying so | 19 | Judgement: whether a scenario can reach something is not in the code |
 | rapid only in the domain packages' own tests | 20 | depguard, rule `rapid` |
-| Code that differs by OS takes the OS as a value: `runtime.GOOS` is read only at the edge, handed in as a value | 26 | forbidigo: every read of `runtime.GOOS` refused, the edge `template.SystemOf(runtime.GOOS)` excepted by its source; tests left out (below) |
+| Code that differs by OS takes the OS as a value: `runtime.GOOS` is read only at the edge, handed in as a value | 26 | forbidigo: every read of `runtime.GOOS` refused, the edges excepted by their source, the slices' `template.SystemOf(runtime.GOOS)` and `internal/git`'s `bin(runtime.GOOS)` (T-48), which infra hands in having no `template` to import; tests left out (below) |
 | The domain differs by OS through no package: no `path/filepath`, no `runtime` | 26 | depguard, rule `domain-io` |
 | A build-tagged file only for a call one OS lacks, holding no mutation site | 26 | Judgement: the decision allows such files, and whether a call is one an OS lacks is not a shape; none exists today |
 | Configuration is read strictly, refusing what JSON cannot say | 22 | forbidigo: `yaml.Unmarshal` and `yaml.NewDecoder` refused outside `manifest.Decode`, tests left out (below); what the reader refuses, its unit tests and scenarios |
@@ -40,10 +40,10 @@ how it is built, is the scenarios' to hold (`features/`), and is not listed here
 ## What the linters leave to judgement
 
 - **The edge line is allowed whole.** forbidigo excepts the line that hands the OS in, by its source,
-  `SystemOf(runtime.GOOS)`, so a comparison written on that same line,
-  `template.SystemOf(runtime.GOOS) == template.Windows`, passes. A slice that branches on the
-  System it made is the review's to catch. A new edge, T-48's for `internal/git` say, is added to
-  the exception by name, so each is a reviewed change.
+  `SystemOf(runtime.GOOS)`, or `bin(runtime.GOOS)` in `internal/git/git.go`, so a comparison
+  written on that same line, `template.SystemOf(runtime.GOOS) == template.Windows`, passes. A slice
+  that branches on the System it made is the review's to catch. A new edge is added to the
+  exception by name, as T-48 added `internal/git`'s, so each is a reviewed change.
 - **Tests may ask which OS they run on.** A test of the real OS, an adapter's or a scenario's step,
   skips or expects what that OS does, and the code proof decision 26 serves mutates no test, so the
   `runtime.GOOS` rule holds production code only. A test copying production logic that branches
@@ -58,12 +58,10 @@ how it is built, is the scenarios' to hold (`features/`), and is not listed here
 
 When T-49 turned the rules on, they found:
 
-- `internal/git/git.go`: `names` and `executable` compare `runtime.GOOS` inside their logic,
-  which decision 26 recorded as moving when an item next touched them. They are T-48's: each
-  function carries a `//nolint:forbidigo` naming T-48, which T-48 deletes once the functions take
-  the OS as a value. The nolint sits above each function, which holds that one read, and not on
-  the read's line: a comment there would make the function changed, and the push's code proof
-  would draw a mutation site in it, where T-43 left six survivors that are T-48's to kill.
+- `internal/git/git.go`: `names` and `executable` compared `runtime.GOOS` inside their logic,
+  which decision 26 recorded as moving when an item next touched them. T-49 left each a
+  `//nolint:forbidigo` above it; T-48 had them take the OS as a value, handed in by `Bin` as
+  `bin(runtime.GOOS)`, the edge `.golangci.yml` excepts, and deleted both.
 - `internal/manifest/manifest.go`, `Replacements`: a `panic` when an answer `Check` did not take
   reaches it. A panic exits 2 with a trace, where rule 31 has a bug exit 70. Returning an error
   instead changes `Replacements` and its three callers in `internal/template` (a render's plan,
