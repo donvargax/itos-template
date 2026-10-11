@@ -72,3 +72,49 @@ When T-49 turned the rules on, they found:
   forbidigo refuses `panic`.
 - `tools/bin/release-notes` and `tools/bin/release-version` print and exit in their main, which is
   theirs to do (above).
+
+## Secure by design: where each input is checked
+
+The rule, decision 41 (T-53): secure by design. Every input from outside is checked where it
+enters, at the outer layers that meet other systems, and turned into a checked value, one whose
+type proves it was checked; inner layers trust it and never check it again. Bad input is refused
+with an error naming it; a lossless normalization is fine, a silent repair is not. It holds because
+everything lives under `internal/`, which no other module imports, so nothing outside reaches an
+inner layer. The map below is the audit: for each edge, the input, the value it becomes, and where
+it is checked. The ideal T-52 set is a value object with unexported fields and one constructor
+(`manifest.Answer`, taken only by `Question.Take`); an input still carried inward as a raw string or
+map is noted, with the idea that would wrap it.
+
+| Edge | Input | Checked value | Where checked |
+| --- | --- | --- | --- |
+| Command line / terminal | the template name (`new`/`adopt`/`check` arg, the record's in `update`) | a raw string (idea `p1-template-name-value`) | `template.CheckName` (`manifest.Refused`), in each slice's `Handle` before anything is cloned |
+| Command line / terminal | the project's folder | `project.Folder` | `project.Writer.Look` (missing or empty, else `*NotFolder`/`*NotEmpty`) |
+| Command line / terminal | the stack and the features (`--stack`, `--feature`, the record's) | `manifest.Combination` | `template.Choose` against the manifest (unknown stack or feature, another stack's, needs not chosen, unsupported) |
+| Command line / terminal | an answer (`--answer name=answer`, typed on the terminal, the record's) | `manifest.Answers` of `manifest.Answer` | `manifest.Question.Take`, via `answer.Read` and `template.Choose` (decision 41, T-52) |
+| Command line / terminal | the release version (`--ref`, `--to`) | a raw string, used only after `semver.IsValid` (idea `p1-version-value`) | `template.find` / `Cuttable` (`golang.org/x/mod/semver`) |
+| Command line / terminal | the declined paths (`adopt --decline`) | `[]string`, each a tree path (idea `p1-tree-path-value`) | `project.Decline` (`manifest.IsTreePath`, else `*BadDeclined`) |
+| Command line / terminal | a flag given twice, a switch given a value, a flag given none | kong's parsed value | `internal/cli/flags.go` (kong mappers and the before-reset hook) |
+| Command line / terminal | the completion shell (`__complete`, `completion <shell>`) | a key of `Scripts()` | kong's `enum`, and `Scripts()` lookup refusing an unknown shell |
+| Template repository | the manifest (`itos-template.yaml`) | `*manifest.Manifest` | `manifest.Parse`: `manifest.Decode` strict (decision 22), then `(*Manifest).check` |
+| Template repository | a tree path | `port.File.Path`, each element a name a file can have | `render.Path`, in `render.Plan`, before anything is written (empty, `.`, `..`, a separator, NUL or `.git` is a `*render.BadName`) |
+| Template repository | a file's contents | the replaced bytes; a binary file copied as it is | `render.Replacer.Contents` (text by `isText`, git's NUL rule); a symlink's target is replaced and written as given (idea `p1-symlink-target`) |
+| Template repository | a check's or a setup step's words | `manifest.Check` / `manifest.Step` | `(*Manifest).checkChecks` / `checkSetup` (no program, a bad scan, a control or drawn-as-nothing character) |
+| Project record | `.itos-template.yaml` | `project.Record` with exported fields (idea `p1-record-value`) | `project.ReadRecord`: `manifest.Decode` strict, then the version, the named fields and `declinedProblems` |
+| Project record | the record's branch commits (`commits`) | a `map[string]string` reaching git unchecked (idea `p1-record-commits-checked`) | not checked by us; git refuses a bad object name (`rev-parse`, `merge-tree`, `cat-file`) |
+| git output and exit codes | git's stdout (`ls-tree`, `cat-file`, `for-each-ref`, `merge-tree`, `status`) | `port.File`, `port.Conflict`, `port.Tag`, `port.CheckoutState` | `internal/git`'s parsers, its anti-corruption layer (decision 17); output it cannot parse is a `*git.Failed`, an internal error |
+| git output and exit codes | git's exit codes | the sealed `git.Error` set | `internal/git` (`exitCode`, `*Failed`/`*Missing`); `internal/cli` gives each a code |
+| Environment | `ITOS_GIT`, `PATH`, `PATHEXT` | the git binary path (`git.Bin`) | `git.bin`/`names`/`executable`/`IsItos`: `ITOS_GIT` ignored when it names an itos, a `PATH` entry only when absolute |
+| Environment | the repository-pointing `GIT_*` vars | the environment git runs in (`git.Environ`) | `git.Environ` drops `ownRepository` (a hook's `GIT_DIR`, etc.) |
+| Environment | `runtime.GOOS` | `template.System` / the git binary | `template.SystemOf` / `git.bin`, the one edge read of it (decision 26) |
+
+### Half (2): a check an inner layer makes again
+
+A double check is a smell, not a security finding. Two stand:
+
+- `internal/cli`'s `asker.Ask` has a `default` returning an error for a `port.Question` that is
+  neither a `StackChoice` nor an `Answer`: a can't-happen branch on a sealed set Go cannot exhaust
+  in a value switch returning a value. It cannot become a `panic` (rule 31 forbids one), so the
+  error stays; the smell is inherent to the shape.
+- A question's default is taken once when the manifest is read (`Question.DefaultAnswer`), and taken
+  again by the asker's own check when a person accepts it on the terminal (`template.Choose` through
+  `prompt`). Interactive only; the idea `p1-default-taken-once` would pass the taken default through.
