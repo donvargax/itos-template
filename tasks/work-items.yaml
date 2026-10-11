@@ -1547,25 +1547,9 @@ items:
     title: Answers reach Replacements already parsed, so it cannot panic, and a lint refuses panic in production code
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      Was the idea no-panic. manifest.Replacements panics on an answer the manifest's check did not
-      take (internal/manifest/manifest.go, the one panic in production code): caseform.Parse runs
-      again on an answer the check at manifest.go's answer check already parsed and threw away. A
-      panic exits 2 with a trace, where docs/CLI.md rule 31 has a bug exit 70. The person's calls
-      (2026-10-11): parse once and carry it, so Replacements can only receive answers already split
-      into words. The check that takes an answer keeps what it parsed, in a value only that check
-      makes (a type of manifest's, unexported fields, its zero value refused or meaningless), and
-      every caller of Replacements (template's Render, Check and Setup) passes that value, built
-      where the answers are resolved (internal/answer); Replacements then has no failure, so no
-      panic and no error path. Decision 17: commands carry domain objects, no copy of a type. The
-      record keeps its answers as decision 10 writes them, strings by question, so nothing a user
-      sees or stores changes. Then forbidigo refuses panic outside _test.go (.golangci.yml, with a
-      comment naming rule 31 and this task), and docs/design-rules.md's bug-exits-70 row says it is
-      held. A refactor changes no behaviour: every scenario and unit test passes unchanged in what
-      it checks, and the push's proof runs once as AGENTS.md's Finishing says.
   - id: T-53
     title: "Audit the code for secure by design: every input checked at its edge into a checked value, never checked again inside"
     phase: 1

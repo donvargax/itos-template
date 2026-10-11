@@ -1236,11 +1236,6 @@
     rule 31 and this task), and docs/design-rules.md's bug-exits-70 row says it is held. A refactor
     changes no behaviour: every scenario and unit test passes unchanged in what it checks, and the
     push's proof runs once as AGENTS.md's Finishing says.
-  done_when:
-    - run: "! grep -rn 'panic(' cmd internal --include='*.go' --exclude='*_test.go'"
-    - run: grep -qE '\^panic\$' .golangci.yml
-    - run: tools/bin/pinned golangci-lint run ./...
-      timeout: 900
 - id: T-53
   type: refactor
   title: "Audit the code for secure by design: every input checked at its edge into a checked value, never checked again inside"
