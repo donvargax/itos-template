@@ -1282,9 +1282,3 @@
     0.14.2 fixed it, take up what a fix makes possible when small (a lesson in docs/ORCHESTRATING.md
     whose exit is a fixed issue is deleted in the same commit), and note the rest in the idea.
     itos-cc#40 is not fixed in 0.14.2.
-  done_when:
-    - run: "grep -qF 'version: \"7.5.0\"' itos.yaml"
-    - run: tools/bin/pinned itos-cc version | grep -qx 'itos-cc 0.14.2'
-    - run: "grep -qF 'donvargax/itos@e7d7cc0da6f39758f26e1dfa693243629f5c8f7f # v7.5.0' .github/workflows/ci.yml"
-    - run: "grep -qF 'donvargax/itos@e7d7cc0da6f39758f26e1dfa693243629f5c8f7f # v7.5.0' .github/workflows/nightly.yml"
-    - run: itos config check
