@@ -19,6 +19,11 @@ teaches, in the guide's lesson format.
   the person works it with itos there. Work on the template goes into that registry, on the
   branch whose code it touches; this registry holds the generator's work only, and an item here
   that waits on the template names the template's item in its why.
+- A practice proven here that holds for any Go CLI (a lint rule, a CI tier, a design rule) goes
+  to go-template-itos, so every CLI made from it gains it. Nothing here edits that repository:
+  the practice lands here first, green, then an issue there names the branch it belongs on and
+  links our commits as references to port (go-template-itos#4 was the first). A spec here that
+  makes such a practice says so, so the hand-off is not forgotten when it lands.
 
 ## What a brief adds here
 
