@@ -1472,33 +1472,9 @@ items:
     title: golangci-lint holds every code design rule a linter can decide, and docs/design-rules.md says how each rule is held
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      The person asked (2026-10-11) that code design deviations be stopped by a tool where one can
-      decide them, after T-43's survivors showed internal/git's names() and executable() branching
-      on runtime.GOOS, which decision 26 forbids and nothing caught. Today golangci-lint holds three
-      rules: the layer arrows (depguard, decision 17), every error kind given its exit code
-      (gochecksumtype, decision 17), and no mocking library (depguard, decision 19). Go through
-      AGENTS.md and every live decision in docs/decisions/, and for each code design rule say
-      whether a linter can hold it; enable, among the linters golangci-lint already ships (pinned by
-      tools/bin/pinned, so no new dependency), those that hold the ones it can, configured in
-      .golangci.yml with a comment naming the decision each holds. At least decision 26: no
-      comparison with runtime.GOOS in logic; a read of it is allowed only where a value is handed in
-      at the edge (for example forbidigo refusing runtime.GOOS everywhere but the files that pass it
-      in, or gocritic's ruleguard refusing a comparison), and the two in internal/git/git.go are
-      T-48's to remove, so exclude exactly those lines with a nolint naming T-48, which T-48 then
-      deletes. Weigh also, and enable where they decide a rule without false alarms: a domain
-      package printing or reading the environment (forbidigo on fmt.Print*, os.Getenv, os.Exit in
-      the domain packages), os.Exit outside cmd, panics in production code, and test files using a
-      mocking style. A rule no linter can decide (no DTO copying a type, unit tests asserting
-      outcomes not calls, a test outside the domain saying why, library first) is listed as
-      judgement. Write the table, rule, decision, how it is held, in docs/design-rules.md, and point
-      AGENTS.md's code paragraph at it in one line, AGENTS.md kept under its size cap. Fix nothing
-      the new linters find beyond T-48's two lines by weakening them: a finding is fixed in the code
-      if small, or listed for the person if not. A linter that is not in golangci-lint is a library
-      question: stop and propose it.
   - id: update-asks-can-merge
     title: update asks the merger whether it can merge, as adopt --merge does
     phase: 1

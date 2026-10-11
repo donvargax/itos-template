@@ -1165,9 +1165,3 @@
     one line, AGENTS.md kept under its size cap. Fix nothing the new linters find beyond T-48's two
     lines by weakening them: a finding is fixed in the code if small, or listed for the person if
     not. A linter that is not in golangci-lint is a library question: stop and propose it.
-  done_when:
-    - run: test -f docs/design-rules.md
-    - run: grep -qF 'docs/design-rules.md' AGENTS.md
-    - run: grep -qE 'forbidigo|ruleguard' .golangci.yml
-    - run: tools/bin/pinned golangci-lint run ./...
-      timeout: 900
