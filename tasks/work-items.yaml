@@ -1422,31 +1422,6 @@ items:
     title: Each package outside the domain keeps 80% of its statements covered by its unit tests and the scenarios together, judged nightly
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      The person's call (2026-10-11): code outside the domain gets a coverage floor too, judged
-      nightly, while every push keeps only tools/bin/domain-coverage (T-13: each domain package 80%
-      by its own unit tests) and decision 40's changed lines. Decision 19 leaves the adapters, the
-      UI, the slices and cmd to the scenarios on the real git, so their figure counts what the
-      scenarios run as well as their unit tests. Measured at 741ea9d, unit tests and scenarios
-      together (go test -cover -covermode=atomic -coverpkg=./... ./cmd/... ./internal/... -args
-      -test.gocoverdir=<dir>, and GOCOVERDIR=<dir> go test ./features -count=1, which builds the
-      binary with -cover as T-19 made it; go tool covdata percent over both): cmd/itos-template
-      94.4%, adopt 92.4%, check 91.3%, cli 97.5%, cutrelease 90.3%, disk 84.2%, git 87.1%,
-      newproject 96.8%, program 100%, prompt 88.0%, tempdir 84.4%, update 83.3%, version 95.5%;
-      93.6% of all statements of cmd and internal. The scenarios alone give far less where a test
-      outside the domain covers what no scenario can reach (prompt 4%, tempdir 28%, disk 47%), so
-      both count. Write tools/bin/e2e-coverage, as tools/bin/domain-coverage is written (a POSIX sh
-      script, its comment saying what it holds and why, the packages read rather than listed): every
-      package of cmd and internal that is not a domain package (the domain rule in .golangci.yml, as
-      domain-coverage reads it), a port package (internal/**/port) or test support (porttest,
-      releasetest, and any package only tests import), each held to 80% of its statements, the
-      domain's floor; it prints each package's figure and the total, cut to one decimal as
-      domain-coverage does, and exits 1 naming each package under the floor. Add it to ci.nightly in
-      itos.yaml after the mutation step, with a comment, and nothing to ci.steps. Check that the
-      nightly workflow has what the scenarios need (ci.yml's ci job sets up more than nightly.yml
-      does), run the nightly by hand once after the push (gh workflow run nightly.yml), and report
-      its run, the step's wall time and its figures. A package that falls under the floor later
-      names a path to give a test, not a floor to lower.

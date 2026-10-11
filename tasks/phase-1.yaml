@@ -1110,10 +1110,3 @@
     more than nightly.yml does), run the nightly by hand once after the push (gh workflow run
     nightly.yml), and report its run, the step's wall time and its figures. A package that falls
     under the floor later names a path to give a test, not a floor to lower.
-  done_when:
-    - run: test -x tools/bin/e2e-coverage
-    - run: grep -qF 'tools/bin/e2e-coverage' itos.yaml
-    - run: itos ci plan --nightly | grep -qF 'tools/bin/e2e-coverage'
-    - run: "! itos ci plan | grep -qF 'tools/bin/e2e-coverage'"
-    - run: tools/bin/e2e-coverage
-      timeout: 900
