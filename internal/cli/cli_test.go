@@ -52,6 +52,8 @@ func TestEachKindNoScenarioReadsHasItsCodeRuleAndSentence(t *testing.T) {
 		{&render.BadName{Path: "acme/x", Would: "..", Element: ".."}, 2, "answer-name", `the template's acme/x would be named "..", which no file can be: the answers make it ".."`},
 		// ID-NEW-33 reads this refusal's code, not its rule.
 		{&render.FileIsFolder{File: "a", Folder: "b", Of: "c"}, 2, "answer-name", "the template's file a would be b, a folder of c: give answers that tell them apart"},
+		// ID-NEW-66 reads this refusal's code, not its rule.
+		{&render.CaseClash{First: "a", Second: "b", As: "x", AndAs: "X"}, 2, "answer-name", "the template's a and b would be x and X, one file on a disk that ignores case or accents (NTFS, HFS+, APFS): give answers that tell them apart"},
 		// Asking happens only on a terminal, which no scenario has.
 		{&answer.NotAnswered{Question: name, Err: cause}, 2, "answer-missing", "no answer to name (Name?): cause"},
 		// git refuses a first commit only where a hook or a config of the
@@ -72,6 +74,9 @@ func TestEachKindNoScenarioReadsHasItsCodeRuleAndSentence(t *testing.T) {
 		{&disk.Unwritable{Folder: "made", Err: cause}, 3, "folder-unwritable", "cannot write the project in made: cause"},
 		// windows refusing a symbolic link waits for template-special-files.
 		{&disk.Unwritable{Folder: "made", Link: "run", Err: cause}, 3, "folder-unwritable", "cannot write the project in made: cannot make the symbolic link run: cause"},
+		// render.Plan refuses the names that would let this happen, so no
+		// scenario reaches disk's second layer against a symbolic link parent.
+		{&disk.Through{Folder: "made", Link: "run", Path: "run/x"}, 1, "unsafe-symlink", "the template renders run/x into made through a symbolic link at run, which would write outside the project: leave the link out of the template, or decline it"},
 		{&tempdir.Unmakeable{Err: cause}, 3, "temporary-folder", "cannot make a temporary folder: cause"},
 		// A project's working tree fails to read or write where the system
 		// refuses, as the disk does.

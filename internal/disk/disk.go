@@ -17,6 +17,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/donvargax/itos-template/internal/template/port"
 )
@@ -49,12 +50,21 @@ func (Disk) Look(folder string) (port.Contents, error) {
 }
 
 // Write writes files into folder, making it and every folder a file needs.
+// It never writes through a symbolic link: if a parent folder of a file is
+// one, the write would land where the link points, outside folder, so Write
+// refuses it (a *Through). render.Plan already refuses names that clash once
+// case is ignored, so this is a second layer behind it (decision 41, bug-8):
+// a link a render wrote can match a later file's parent by case on a disk
+// that folds it, and the file would escape though its name passed.
 func (Disk) Write(folder string, files []port.File) error {
 	if err := os.MkdirAll(folder, 0o755); err != nil {
 		return &Unmakeable{Folder: folder, Err: err}
 	}
 	for _, f := range files {
 		to := filepath.Join(folder, filepath.FromSlash(f.Path))
+		if link, ok := throughLink(folder, f.Path); ok {
+			return &Through{Folder: folder, Link: link, Path: f.Path}
+		}
 		if err := os.MkdirAll(filepath.Join(folder, filepath.FromSlash(path.Dir(f.Path))), 0o755); err != nil {
 			return &Unwritable{Folder: folder, Err: err}
 		}
@@ -69,6 +79,36 @@ func (Disk) Write(folder string, files []port.File) error {
 		}
 	}
 	return nil
+}
+
+// throughLink is the first parent folder of rel, under folder, that is a
+// symbolic link and so would send a write out of folder, with whether it
+// found one. It walks only the folders rel needs, below folder, never folder
+// itself or above, which are the person's, not the render's; a component not
+// yet there stops the walk, as Write's MkdirAll will make it, not follow a
+// link. The link's path is relative to folder, with /.
+func throughLink(folder, rel string) (string, bool) {
+	at := folder
+	var up string
+	for _, e := range strings.Split(path.Dir(rel), "/") {
+		if e == "." {
+			continue
+		}
+		at = filepath.Join(at, e)
+		if up == "" {
+			up = e
+		} else {
+			up += "/" + e
+		}
+		info, err := os.Lstat(at)
+		if err != nil {
+			return "", false
+		}
+		if info.Mode()&fs.ModeSymlink != 0 {
+			return up, true
+		}
+	}
+	return "", false
 }
 
 // Clear removes what a failed Write left in folder: the folder when Write
@@ -114,13 +154,25 @@ type Unwritable struct {
 	Err    error
 }
 
+// Through is a file Path whose parent folder Link, under Folder, is a
+// symbolic link: writing it would go through the link, out of Folder.
+type Through struct {
+	Folder string
+	Link   string
+	Path   string
+}
+
 func (*Unreadable) diskError() {}
 func (*Unmakeable) diskError() {}
 func (*Unwritable) diskError() {}
+func (*Through) diskError()    {}
 
 func (e *Unreadable) Error() string { return fmt.Sprintf("reading %s: %v", e.Folder, e.Err) }
 func (e *Unmakeable) Error() string { return fmt.Sprintf("making %s: %v", e.Folder, e.Err) }
 func (e *Unwritable) Error() string { return fmt.Sprintf("writing in %s: %v", e.Folder, e.Err) }
+func (e *Through) Error() string {
+	return fmt.Sprintf("writing %s in %s: its parent %s is a symbolic link", e.Path, e.Folder, e.Link)
+}
 
 func (e *Unreadable) Unwrap() error { return e.Err }
 func (e *Unmakeable) Unwrap() error { return e.Err }

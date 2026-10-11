@@ -87,6 +87,8 @@ func renderProblem(err render.Error) (code int, problems []Problem) {
 		code, problems = CodeUsage, one("answer-name", "the template's %s would be named %q, which no file can be: the answers make it %q", e.Path, e.Would, e.Element)
 	case *render.SameName:
 		code, problems = CodeUsage, one("answer-name", "the template's %s and %s would both be %s: give answers that tell them apart", e.First, e.Second, e.To)
+	case *render.CaseClash:
+		code, problems = CodeUsage, one("answer-name", "the template's %s and %s would be %s and %s, one file on a disk that ignores case or accents (NTFS, HFS+, APFS): give answers that tell them apart", e.First, e.Second, e.As, e.AndAs)
 	case *render.FileIsFolder:
 		code, problems = CodeUsage, one("answer-name", "the template's file %s would be %s, a folder of %s: give answers that tell them apart", e.File, e.Folder, e.Of)
 	case *render.Submodule:
@@ -179,6 +181,8 @@ func diskProblem(err disk.Error) (code int, problems []Problem) {
 		} else {
 			code, problems = CodeEnvironment, one("folder-unwritable", "cannot write the project in %s: %v", e.Folder, e.Err)
 		}
+	case *disk.Through:
+		code, problems = CodeRefused, one("unsafe-symlink", "the template renders %s into %s through a symbolic link at %s, which would write outside the project: leave the link out of the template, or decline it", e.Path, e.Folder, e.Link)
 	}
 	return code, problems
 }

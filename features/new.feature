@@ -830,7 +830,7 @@ Feature: new makes a project from a template
   # holds on every platform without a case-folding disk to run on: here
   # "acme-widget" is the answer blue-fox and "Blue-Fox" its own name, one file
   # where case does not count.
-  @wip @ID-NEW-66 @bug-8
+  @ID-NEW-66 @bug-8
   Scenario: new refuses answers that name two files one file where case does not count, naming both
     Given the template "acme" whose branch "stack/go" holds the files "acme-widget" and "Blue-Fox"
     When itos-template runs with "new {template} made --stack go --answer name=blue-fox --defaults"

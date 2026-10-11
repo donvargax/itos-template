@@ -216,3 +216,60 @@ func TestPlanNamesEverySubmoduleInPathOrder(t *testing.T) {
 		port.File{Path: "vendor/a", Mode: porttest.Submodule},
 	), acme, []string{"a submodule at vendor/a", "a submodule at vendor/z"})
 }
+
+// A disk that folds case files acme-widget (the answer, blue-fox) and
+// Blue-Fox as one, though a case-sensitive one tells them apart; Plan refuses
+// them on every disk (bug-8), naming both, in the order of the names.
+func TestPlanRefusesTwoNamesOneFileWhereCaseIsFolded(t *testing.T) {
+	refusesInOrder(t, []port.File{
+		{Path: "acme-widget", Mode: 0o644},
+		{Path: "Blue-Fox", Mode: 0o644},
+	}, acme, []string{"the answers name Blue-Fox Blue-Fox and acme-widget blue-fox, one file where case or accents do not count"})
+}
+
+// cafe precomposed (NFC) and decomposed (NFD) are different byte strings but
+// one file where Unicode normalization is folded (HFS+); Plan refuses them.
+func TestPlanRefusesTwoNamesOneFileWhereNormalizationIsFolded(t *testing.T) {
+	nfd := "cafe" + string(rune(0x0301)) // e then a combining acute accent
+	nfc := "caf" + string(rune(0x00e9))  // the precomposed e-acute
+	_, err := Plan([]port.File{{Path: nfd, Mode: 0o644}, {Path: nfc, Mode: 0o644}}, all, acme)
+	var clash *CaseClash
+	if !errors.As(err, &clash) {
+		t.Fatalf("Plan = %v, not a CaseClash", err)
+	}
+	if fold(clash.As) != fold(clash.AndAs) || clash.As == clash.AndAs {
+		t.Errorf("CaseClash names %q and %q, not two spellings of one folded name", clash.As, clash.AndAs)
+	}
+}
+
+// Two names that fold apart are two files: Plan keeps them both.
+func TestPlanKeepsNamesThatFoldApart(t *testing.T) {
+	if _, err := Plan([]port.File{{Path: "README.md", Mode: 0o644}, {Path: "readme.txt", Mode: 0o644}}, all, acme); err != nil {
+		t.Errorf("Plan refused two names one disk cannot fold into one: %v", err)
+	}
+}
+
+// Path refuses every spelling a file system resolves to the .git folder, as
+// git does (core.protectNTFS and core.protectHFS), and keeps the names that
+// merely look like one (bug-8).
+func TestPathRefusesEveryDotGitSpellingAndKeepsTheRest(t *testing.T) {
+	none := NewReplacer(nil)
+	zwnj, zwj, lrm, bom := string(rune(0x200c)), string(rune(0x200d)), string(rune(0x200e)), string(rune(0xfeff))
+	refused := []string{
+		".git", ".GIT", ".Git", ".git ", ".git.", ".git. .", "git~1", "GIT~1",
+		".git::$INDEX_ALLOCATION", ".git:x",
+		".gi" + zwnj + "t", bom + ".git", ".g" + zwj + "i" + lrm + "t",
+	}
+	for _, e := range refused {
+		_, err := none.Path("a/" + e + "/b")
+		var bad *BadName
+		if !errors.As(err, &bad) || bad.Element != e {
+			t.Errorf("Path kept %q, a spelling of .git: %v", e, err)
+		}
+	}
+	for _, e := range []string{"git", ".gitignore", ".gitmodules", ".github", "digit", "mygit~1", "git~", "git~1x"} {
+		if _, err := none.Path("a/" + e + "/b"); err != nil {
+			t.Errorf("Path refused %q, a name a file can have: %v", e, err)
+		}
+	}
+}

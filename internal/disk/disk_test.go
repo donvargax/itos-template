@@ -61,6 +61,36 @@ func TestWriteMakesASymbolicLinkOrSaysWhichItCouldNot(t *testing.T) {
 	}
 }
 
+// Write refuses to write a file whose parent folder is a symbolic link, so a
+// link a render wrote cannot carry a later file out of the project folder
+// (bug-8). render.Plan refuses the names that would do it, so this second
+// layer runs under no scenario; a direct test holds it. Symbolic links need a
+// privilege on windows, which template-special-files will face.
+func TestWriteRefusesToWriteThroughASymbolicLinkParent(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symbolic links need a privilege on windows")
+	}
+	root := t.TempDir()
+	dir := filepath.Join(root, "made")
+	outside := filepath.Join(root, "outside")
+	for _, d := range []string{dir, outside} {
+		if err := os.MkdirAll(d, 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	err := Disk{}.Write(dir, []port.File{
+		{Path: "link", Mode: fs.ModeSymlink | 0o777, Data: []byte(outside)},
+		{Path: "link/escaped.txt", Mode: 0o644, Data: []byte("x")},
+	})
+	var through *Through
+	if !errors.As(err, &through) || through.Link != "link" || through.Path != "link/escaped.txt" {
+		t.Fatalf("Write = %v, not a Through naming the link and the file", err)
+	}
+	if _, err := os.Stat(filepath.Join(outside, "escaped.txt")); !errors.Is(err, fs.ErrNotExist) {
+		t.Errorf("a file was written outside the folder, through the link: %v", err)
+	}
+}
+
 // Clear runs only after a write fails half way, which no scenario can make
 // happen.
 func TestClearRemovesWhatAFailedWriteLeft(t *testing.T) {

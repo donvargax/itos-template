@@ -21,6 +21,8 @@ import (
 	"slices"
 	"strings"
 
+	"golang.org/x/text/unicode/norm"
+
 	"github.com/donvargax/itos-template/internal/template/port"
 )
 
@@ -53,14 +55,16 @@ func (r *Replacer) Contents(data []byte) []byte {
 func (r *Replacer) Text(s string) string { return r.r.Replace(s) }
 
 // Path is the template's path p (with /) with every literal replaced in each
-// of its elements, never across them. An element no file can be named (empty,
-// . or .., .git, or holding a / or a \) is a *BadName.
+// of its elements, never across them. An element no file can be named is a
+// *BadName: empty, . or .., one holding a /, a \ or a NUL, or a spelling that
+// NTFS, FAT or HFS+ would resolve to the .git folder (isDotGit), so a
+// rendered name cannot smuggle a .git into a checkout.
 func (r *Replacer) Path(p string) (string, error) {
 	elements := strings.Split(p, "/")
 	for i, e := range elements {
 		replaced := r.r.Replace(e)
 		if replaced == "" || replaced == "." || replaced == ".." || strings.ContainsAny(replaced, "/\\\x00") ||
-			strings.EqualFold(replaced, ".git") {
+			isDotGit(replaced) {
 			return "", &BadName{Path: p, Would: strings.Join(append(elements[:i:i], replaced), "/"), Element: replaced}
 		}
 		elements[i] = replaced
@@ -132,6 +136,7 @@ func Plan(tree []port.File, keep func(path string) bool, r *Replacer) ([]port.Fi
 			}
 		}
 	}
+	clashes = append(clashes, foldClashes(from)...)
 	if len(clashes) > 0 {
 		slices.SortFunc(clashes, func(a, b clash) int {
 			return cmp.Or(strings.Compare(a.name, b.name), strings.Compare(a.then, b.then), strings.Compare(a.err.Error(), b.err.Error()))
@@ -151,6 +156,38 @@ type clash struct {
 	name, then string
 	err        Error
 }
+
+// foldClashes are the clashes the exact names miss: two rendered names that
+// are different strings yet one file on a disk that ignores case or Unicode
+// accent form, which NTFS, HFS+ and APFS, the common defaults, all do. Each
+// name is filed under fold, the key such a disk would keep it by, so a clash
+// there is caught on the case-sensitive disk a render runs on too (decision
+// 41, bug-8). A single exact name taken by two files is a *SameName the exact
+// loop already names, so only names that fold together without being equal
+// are named here, as a *CaseClash. They come in the order of the names, as a
+// render's refusal is the same every time (decision 3, bug-2).
+func foldClashes(from map[string][]string) []clash {
+	filed := map[string][]string{}
+	for to := range from {
+		k := fold(to)
+		filed[k] = append(filed[k], to)
+	}
+	var clashes []clash
+	for _, names := range filed {
+		names = slices.Sorted(slices.Values(names))
+		for _, p := range names[1:] {
+			clashes = append(clashes, clash{name: names[0], then: p, err: &CaseClash{
+				First: slices.Min(from[names[0]]), Second: slices.Min(from[p]), As: names[0], AndAs: p,
+			}})
+		}
+	}
+	return clashes
+}
+
+// fold is the key a disk that ignores case and Unicode accent form files p
+// under: its composed form (NFC), lower-cased. Two paths with one fold are
+// one file on such a disk, whatever a case-sensitive one makes of them.
+func fold(p string) string { return strings.ToLower(norm.NFC.String(p)) }
 
 // Executable is whether f is a file to record as executable.
 func Executable(f port.File) bool { return f.Mode.IsRegular() && f.Mode&0o111 != 0 }
@@ -178,6 +215,11 @@ type BadName struct{ Path, Would, Element string }
 // both name To.
 type SameName struct{ First, Second, To string }
 
+// CaseClash is the template's files First and Second that the answers would
+// name As and AndAs: different names a case-sensitive disk tells apart, one
+// file on a disk that ignores case or Unicode accent form.
+type CaseClash struct{ First, Second, As, AndAs string }
+
 // FileIsFolder is the template's file File that the answers would name
 // Folder, a folder of the file Of.
 type FileIsFolder struct{ File, Folder, Of string }
@@ -188,6 +230,7 @@ type Submodule struct{ Path string }
 
 func (*BadName) renderError()      {}
 func (*SameName) renderError()     {}
+func (*CaseClash) renderError()    {}
 func (*FileIsFolder) renderError() {}
 func (*Submodule) renderError()    {}
 
@@ -197,6 +240,10 @@ func (e *BadName) Error() string {
 
 func (e *SameName) Error() string {
 	return fmt.Sprintf("the answers name both %s and %s %s", e.First, e.Second, e.To)
+}
+
+func (e *CaseClash) Error() string {
+	return fmt.Sprintf("the answers name %s %s and %s %s, one file where case or accents do not count", e.First, e.As, e.Second, e.AndAs)
 }
 
 func (e *FileIsFolder) Error() string {
