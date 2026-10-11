@@ -1287,3 +1287,18 @@ items:
       merge-tree takes no label option; giving the release's name means another way to name the
       tree. Found building slice-13.
     tags: [update]
+  - id: release-root-branch
+    title: release reads the root from the branch the checkout is on
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      release copies the repository as check does (git.CloneHere), and its root is the branch the
+      checkout HEAD names. Run with a listed branch checked out (stack/go), that branch is read as
+      the root, so its tag is planned twice and main never: git refuses the second tag and release
+      takes back the first, exit 1 with git saying the tag exists, which names no cause. Checked by
+      hand on 2026-10-10. On an unlisted branch pushed to origin, release would tag it as the root
+      and leave main untagged, an incomplete release. Origin HEAD is likely the root a release
+      means, and check may want the same.
