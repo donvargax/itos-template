@@ -342,6 +342,8 @@ type Project struct {
 	Stages map[string][3]*port.File
 	// Merges counts the merges made.
 	Merges int
+	// Labels are the labels the last Merge was given.
+	Labels port.Labels
 }
 
 var _ port.Project = (*Project)(nil)
@@ -360,12 +362,13 @@ func (p *Project) Committed(path string) ([]byte, bool, error) {
 
 // Merge merges every path of base, Head and target: the side that changed
 // it from base wins, both changing it the same way is one change, and
-// both changing it otherwise is a conflict.
-func (p *Project) Merge(base, target []port.File) (port.Merged, error) {
+// both changing it otherwise is a conflict. labels are kept in Labels.
+func (p *Project) Merge(base, target []port.File, labels port.Labels) (port.Merged, error) {
 	if p.Fail != nil {
 		return port.Merged{}, p.Fail
 	}
 	p.Merges++
+	p.Labels = labels
 	b, t := byPath(base), byPath(target)
 	paths := map[string]struct{}{}
 	for _, m := range []map[string]port.File{b, p.Head, t} {

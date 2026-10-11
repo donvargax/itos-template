@@ -49,9 +49,13 @@ func TestProjectMergesEachPathAsAWholeFile(t *testing.T) {
 	p.Head["mode"] = exec
 	base := files("ours", "base\n", "theirs", "base\n", "both", "base\n", "clash", "base\n", "kept", "base\n", "gone", "base\n", "deleted", "base\n", "mode", "base\n", "dropped", "base\n")
 	target := files("ours", "base\n", "theirs", "theirs\n", "both", "alike\n", "clash", "theirs\n", "kept", "base\n", "new", "theirs\n", "deleted", "theirs\n", "mode", "base\n")
-	m, err := p.Merge(base, target)
+	labels := port.Labels{Base: "template v1.0.0", Target: "template v1.1.0"}
+	m, err := p.Merge(base, target, labels)
 	if err != nil {
 		t.Fatal(err)
+	}
+	if p.Labels != labels {
+		t.Errorf("the labels kept are %+v", p.Labels)
 	}
 	want := map[string]string{"ours": "ours\n", "theirs": "theirs\n", "both": "alike\n", "clash": "ours\n", "kept": "base\n", "added": "ours\n", "new": "theirs\n", "deleted": "theirs\n", "mode": "base\n"}
 	if len(p.Tree) != len(want) {
@@ -100,7 +104,7 @@ func TestProjectReadsHeadAndFailsAsToldTo(t *testing.T) {
 	if _, ok, err := p.Committed("a"); err != p.Fail || ok {
 		t.Errorf("Committed of a broken HEAD = %v", err)
 	}
-	if _, err := p.Merge(nil, nil); err != p.Fail || p.Merges != 0 {
+	if _, err := p.Merge(nil, nil, port.Labels{}); err != p.Fail || p.Merges != 0 {
 		t.Errorf("Merge into a broken HEAD = %v, %d merges", err, p.Merges)
 	}
 }

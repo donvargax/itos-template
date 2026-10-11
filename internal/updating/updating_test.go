@@ -277,9 +277,12 @@ func TestMergeTakesTheReleasesChangeKeepsTheProjectsAndStagesTheNewRecord(t *tes
 	u, err := s.Merge(p,
 		files("README.md", "# acme\n", "release.txt", "v1.0.0\n"),
 		files("README.md", "# acme\n", "release.txt", "v1.1.0\n", "added.txt", "added\n"),
-		next())
+		next(), "main")
 	if err != nil {
 		t.Fatal(err)
+	}
+	if p.Labels != (port.Labels{Base: "template v1.0.0", Target: "template v1.1.0"}) {
+		t.Errorf("the merge's markers are labelled %+v", p.Labels)
 	}
 	if got := string(p.Tree["README.md"].Data); got != "# blue-fox\n" {
 		t.Errorf("the project's README.md is %q", got)
@@ -309,7 +312,7 @@ func TestMergeKeepsAProjectsChangeToItsRecord(t *testing.T) {
 	}
 	n := next()
 	n.Template = r.Template
-	if _, err := s.Merge(p, nil, nil, n); err != nil {
+	if _, err := s.Merge(p, nil, nil, n, "main"); err != nil {
 		t.Fatal(err)
 	}
 	if got := p.Tree[project.RecordFile].Data; string(got) != string(recordFile(t, n)) {
@@ -324,7 +327,7 @@ func TestMergeLeavesAConflictRefusingWithTheUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	u, err := s.Merge(p, files("release.txt", "v1.0.0\n"), files("release.txt", "v1.1.0\n"), next())
+	u, err := s.Merge(p, files("release.txt", "v1.0.0\n"), files("release.txt", "v1.1.0\n"), next(), "main")
 	var conflicted *Conflicted
 	if !errors.As(err, &conflicted) || conflicted.Release != "v1.1.0" || !slices.Equal(conflicted.Paths, []string{"release.txt"}) {
 		t.Fatalf("Merge = %v", err)
@@ -337,6 +340,25 @@ func TestMergeLeavesAConflictRefusingWithTheUpdate(t *testing.T) {
 	}
 }
 
+// A record of the branch heads names no release: its render is labelled
+// by the root's commit it names, abbreviated, which no scenario reaches.
+func TestMergeLabelsARenderOfTheBranchHeadsByItsRootsCommit(t *testing.T) {
+	r := recorded()
+	r.Release = ""
+	r.Commits = map[string]string{"trunk": "0123456789abcdef0123456789abcdef01234567", "main": "fedcba9876543210fedcba9876543210fedcba98"}
+	p := clean(t, r)
+	s, err := Open(p, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.Merge(p, nil, nil, next(), "trunk"); err != nil {
+		t.Fatal(err)
+	}
+	if p.Labels != (port.Labels{Base: "template 0123456", Target: "template v1.1.0"}) {
+		t.Errorf("the merge's markers are labelled %+v", p.Labels)
+	}
+}
+
 func TestMergeOfNoChangeIsEmptyListsAndAFailurePassesOn(t *testing.T) {
 	r := recorded()
 	p := clean(t, r)
@@ -344,12 +366,12 @@ func TestMergeOfNoChangeIsEmptyListsAndAFailurePassesOn(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	u, err := s.Merge(p, files("a", "1\n"), files("a", "1\n"), r)
+	u, err := s.Merge(p, files("a", "1\n"), files("a", "1\n"), r, "main")
 	if err != nil || u.Changed == nil || len(u.Changed) != 0 || u.Conflicts == nil {
 		t.Errorf("an update changing nothing is %+v, %v", u, err)
 	}
 	p.Fail = errors.New("cannot merge")
-	if u, err := s.Merge(p, nil, nil, next()); u != nil || err == nil || err.Error() != "cannot merge" {
+	if u, err := s.Merge(p, nil, nil, next(), "main"); u != nil || err == nil || err.Error() != "cannot merge" {
 		t.Errorf("a merge that fails gives %v, %v", u, err)
 	}
 }

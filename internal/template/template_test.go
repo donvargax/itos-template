@@ -113,7 +113,7 @@ var answers = answer.Set{"name": "blue-fox", "owner": "Blue Corp"}
 
 func TestOpenReadsTheManifestOnTheRootBranch(t *testing.T) {
 	tpl := open(t, acme())
-	if tpl.Name != "../acme" || !slices.Equal(tpl.Manifest.StackNames(), []string{"sh", "py"}) {
+	if tpl.Name != "../acme" || tpl.Root() != "main" || !slices.Equal(tpl.Manifest.StackNames(), []string{"sh", "py"}) {
 		t.Errorf("the template is %+v", tpl)
 	}
 }

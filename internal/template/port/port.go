@@ -173,9 +173,17 @@ type Project interface {
 	// merge does: what merges cleanly is written to the working tree and
 	// staged, and a conflict is left as git merge leaves one, marked in
 	// the working tree's file and unmerged in the index (stages 1, 2 and 3:
-	// base, HEAD and target). It returns what the merge changes from HEAD
-	// and what it leaves conflicted.
-	Merge(base, target []File) (Merged, error)
+	// base, HEAD and target), its markers naming HEAD's side HEAD, as git
+	// merge does, and the renders as labels says. It returns what the
+	// merge changes from HEAD and what it leaves conflicted.
+	Merge(base, target []File, labels Labels) (Merged, error)
+}
+
+// Labels are how a merge's conflict markers name the two renders it
+// merges, as git merge names a branch: Base the base's, which a conflict
+// style showing the base (diff3, zdiff3) marks, and Target the target's.
+type Labels struct {
+	Base, Target string
 }
 
 // Merged is what a Project's Merge did: each path it changed from HEAD,

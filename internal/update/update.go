@@ -197,5 +197,5 @@ func Handle(c Command, ask port.Asker) (*updating.Update, error) {
 	if err != nil {
 		return nil, err
 	}
-	return start.Merge(p, base, target, next)
+	return start.Merge(p, base, target, next, t.Root())
 }

@@ -162,16 +162,17 @@ func (s *Start) Current() *Update {
 // base, the render its record names, to target, the target release's
 // render, whose record is next: the record is merged too, HEAD's the base,
 // so the project ends with next as its record, staged with the rest. A
-// merge that leaves conflicts is a *Conflicted, the Update returned with
-// it.
-func (s *Start) Merge(p port.Project, base, target []port.File, next project.Record) (*Update, error) {
+// conflict's markers name each render as label does, root the template's
+// root branch. A merge that leaves conflicts is a *Conflicted, the Update
+// returned with it.
+func (s *Start) Merge(p port.Project, base, target []port.File, next project.Record, root string) (*Update, error) {
 	file, err := next.File()
 	if err != nil {
 		return nil, err
 	}
 	base = append(base[:len(base):len(base)], port.File{Path: project.RecordFile, Mode: 0o644, Data: s.file})
 	target = append(target[:len(target):len(target)], file)
-	merged, err := p.Merge(base, target)
+	merged, err := p.Merge(base, target, port.Labels{Base: label(s.Record, root), Target: label(next, root)})
 	if err != nil {
 		return nil, err
 	}
@@ -190,6 +191,23 @@ func (s *Start) Merge(p port.Project, base, target []port.File, next project.Rec
 		return u, &Conflicted{Release: next.Release, Paths: paths}
 	}
 	return u, nil
+}
+
+// abbrev is how many hex digits of a commit a label gives, as git
+// abbreviates a commit at the least.
+const abbrev = 7
+
+// label is how a conflict's markers name the render of the record r, as a
+// person reads it rather than by a tree's object id: "template" and the
+// release, template v1.0.0, or, for a record of the branch heads, which
+// names no release, the root's commit it names, abbreviated, root the
+// template's root branch.
+func label(r project.Record, root string) string {
+	if r.Release != "" {
+		return "template " + r.Release
+	}
+	commit := r.Commits[root]
+	return "template " + commit[:min(len(commit), abbrev)]
 }
 
 func release(r project.Record) *Release {

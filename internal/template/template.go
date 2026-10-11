@@ -66,6 +66,10 @@ func Open(name string, repo port.Repository) (*Template, error) {
 	return t, nil
 }
 
+// Root is t's root branch, its repository's default branch, under whose
+// name a record names the root's commit.
+func (t *Template) Root() string { return t.root }
+
 // Render renders the combination c with answers, each one its question
 // takes, into the folder into, missing or empty, as a git repository whose
 // first commit is the render and its record, written by w, its message the

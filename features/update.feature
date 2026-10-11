@@ -269,7 +269,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
   # Tried 2026-10-10 on git 2.56: git merge-file -L over a conflict's three
   # index stages gives the same markers with the names chosen, still git's
   # own merge (decision 38); the stages stay as they were (ID-UPDATE-08).
-  @ID-UPDATE-21 @slice-15 @wip
+  @ID-UPDATE-21 @slice-15
   Scenario: a conflict's markers name HEAD and the release, never a git object id
     Given a committed project change to "made/release.txt" containing "project-release"
     When itos-template runs in "made" with "update"
@@ -279,7 +279,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     And the file "made/release.txt" names no git object id
     And the index of "made" holds "release.txt" unmerged, its base "v1.0.0", the project's "project-release" and the release's "v1.1.0"
 
-  @ID-UPDATE-22 @slice-15 @wip
+  @ID-UPDATE-22 @slice-15
   Scenario: under the person's diff3 conflict style the base's section names the recorded release
     Given a committed project change to "made/release.txt" containing "project-release"
     When itos-template runs in "made" with git's merge.conflictStyle set to diff3 with "update"
