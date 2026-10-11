@@ -1056,6 +1056,12 @@
     error. Old uncovered code stays listed in docs/mutation-baseline.md's T-43 section, for items of
     its own. Update itos.yaml's proof comment and decision 27's consequences with a line saying the
     gap it named is closed by itos-cc#23 and judged by changed lines since this task.
+    A sample draws only fresh outcomes and passes on none, so neither sample may pass quietly on an
+    empty pool: the per-push and nightly steps fail when they draw fewer fresh mutants than their
+    count asks for (a wrapper in tools/bin reading the sample's --json, or itos-cc's own option if
+    0.12.0 has one; a gap there is filed to itos-cc). T-46 re-records in two tiers first, so own-test
+    outcomes, most of them, stay fresh when another package's tests change; report the pool each
+    sample drew from.
   done_when:
     - run: grep -qF 'tools/bin/pinned itos-cc mutation check --since {base} --fail-uncovered=lines --json cmd internal' itos.yaml
     - run: grep -qF -- '--fail-uncovered=lines --no-annotate cmd internal`, then the same with `--all-tests`' AGENTS.md
