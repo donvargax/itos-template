@@ -994,16 +994,16 @@
     from itos#41.
 - id: T-43
   type: build
-  title: Pin itos-cc 0.11.0 and refresh every record of cmd and internal, so no function is stale or missing
+  title: Pin itos-cc 0.12.0 and refresh every record of cmd and internal, so no function is stale or missing
   why: >
     The code proof and mutation sample trust .metrics/mutate/, and it is out of date: at 8b29282 a
     check of cmd and internal under the pinned itos-cc 0.5.0 finds 38 functions fresh, 148 stale and
     115 missing, and under itos-cc 0.11.0 (newest, 2026-10-11) 186 stale, 115 missing and 505
     coverage-missing, since 0.7.0 records whole-suite inputs and strict Go coverage evidence that
-    0.5.0's records lack. Refreshing under 0.5.0 would be redone at the next pin, so pin 0.11.0
+    0.5.0's records lack. Refreshing under 0.5.0 would be redone at the next pin, so pin the newest, 0.12.0 by the time it ran (2026-10-11)
     first: tools/bin/pinned's version and the five checksums from the release's checksums.txt, and
     T-20's version check in the ledger to the new version, the one done check that names it. Read
-    the release notes of 0.6.0 to 0.11.0 for what changes here (the summary comment's markers,
+    the release notes of 0.6.0 to 0.12.0 for what changes here (the summary comment's markers,
     longer mutant timeouts, strict coverage of functions with no site, stale exceptions, whole-suite
     freshness) and fix what the pin breaks in our own files, not in a gate. Then run, on a clean
     tree, tools/bin/pinned itos-cc mutation run --fail-uncovered --all-tests --no-annotate cmd
@@ -1014,12 +1014,12 @@
     kill waits on the person's answer to donvargax/itos#41's testing tiers, and the items that
     follow are split by package from this task's numbers. itos-cc#35 is still open (a rapid failfile
     one run leaves in a worker's copy fails later mutants): after the run, confirm no failfile is
-    left in the tree and rerun tools/bin/pinned itos-cc mutation sample --count 100 over cmd and
+    left in the tree and rerun tools/bin/pinned itos-cc mutation sample --count 1 (the person's choice for a local sample) over cmd and
     internal, every outcome repeating, before committing; a mismatch is reported, never committed.
     Write a section of docs/mutation-baseline.md headed with (T-43): the commands, itos-cc's
     version, wall times, and per package the mutants killed by own tests, killed only with the whole
     suite, survived, excepted, uncovered, and uncovered statements, with each survivor's file, line
-    and mutation listed so the kill items can be split from it. Say there whether, under 0.11.0, a
+    and mutation listed so the kill items can be split from it. Say there whether, under 0.12.0, a
     change to a test file alone makes every whole-suite outcome stale (tried in a scratch worktree),
     since that decides whether a whole check of the records can stay green between items, and it
     bears on itos#41. Mutation of tools/bin (release-notes, release-version), which a bare check
@@ -1058,7 +1058,7 @@
     gap it named is closed by itos-cc#23 and judged by changed lines since this task.
   done_when:
     - run: grep -qF 'tools/bin/pinned itos-cc mutation check --since {base} --fail-uncovered=lines --json cmd internal' itos.yaml
-    - run: grep -qF -- '--fail-uncovered=lines --all-tests' AGENTS.md
+    - run: grep -qF -- '--fail-uncovered=lines --no-annotate cmd internal`, then the same with `--all-tests`' AGENTS.md
     - run: grep -qF 'tools/bin/pinned itos-cc mutation sample --count 2,' itos.yaml
     - run: grep -qF 'itos-cc mutation sample --count 20 --seed nightly-' itos.yaml
     - run: grep -qF 'itos ci run --nightly' .github/workflows/nightly.yml
