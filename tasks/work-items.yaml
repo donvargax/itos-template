@@ -1460,8 +1460,8 @@ items:
   - id: slice-17
     title: "adopt --merge brings a grown project onto a release: the render merged in over an empty base, staged with the record, nothing committed"
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: slice
     why: >
