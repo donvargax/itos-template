@@ -823,6 +823,11 @@ items:
       does not name the proof step and itos init --agent-rules leaves it out of AGENTS.md's gate
       list; T-34's first check was written from that output and could never pass. When fixed and
       pinned, AGENTS.md's rules block names the proof itself.
+
+      itos-cc#36 (2026-10-11, found by T-43): strict Go coverage evidence fingerprints the raw
+      GOTOOLCHAIN, which actions/setup-go sets to local and a shell leaves unset, so records made
+      here read coverage-stale in CI. tools/bin/pinned exports GOTOOLCHAIN=local for itos-cc
+      meanwhile (6e0d92d); when fixed and pinned, drop that line and rerun the strict coverage once.
     tags: [ci]
   - id: T-24
     title: Upgrade the Go toolchain to clear the standard-library security failures
