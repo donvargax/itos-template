@@ -1494,3 +1494,15 @@ items:
       the new linters find beyond T-48's two lines by weakening them: a finding is fixed in the code
       if small, or listed for the person if not. A linter that is not in golangci-lint is a library
       question: stop and propose it.
+  - id: update-asks-can-merge
+    title: update asks the merger whether it can merge, as adopt --merge does
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      slice-17 added port.Merger.CanMerge so adoption.Open refuses a git too old to merge, and its
+      fakes test that; update still calls git.Supports in its Handle, outside the domain, where no
+      test reaches its refusal. Asking p.CanMerge from updating.Open would put both commands' check
+      in one place.
