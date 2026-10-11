@@ -96,3 +96,30 @@ mutation:
       replacement: '>='
       reason: 'Equivalent: the switch tests len(names) == 2 first, so its case len(names) > 2 is reached only when len(names) is not 2, where >= 2 and > 2 are the same.'
       line_text: 'case len(names) > 2:'
+    - file: internal/release/release.go
+      function: github.com/donvargax/itos-template/internal/release#Newest
+      hash: 169323ab8c351ad2
+      line_in_function: 4
+      column: 58
+      original: '>'
+      replacement: '>='
+      reason: 'Equivalent: Newest takes t over newest only when compareTags(t, newest) > 0, and compareTags gives 0 only for two tags that are one string: equal numbers, equal lengths, then strings.Compare, which is 0 only there. With >= 0 such a tie sets newest to the very string it holds, so the pick is the same.'
+      line_text: if IsTag(t) && (newest == "" || compareTags(t, newest) > 0) {
+    - file: internal/template/port/porttest/porttest.go
+      function: github.com/donvargax/itos-template/internal/template/port/porttest#file
+      hash: 4d8cc72dbb975ee6
+      line_in_function: 3
+      column: 13
+      original: "0"
+      replacement: "1"
+      reason: 'Test support, the fake Repository (itos-cc#16, leave test support out of mutation). file gives a tree''s file of mode 0 the mode 0o644, as git gives no mode 0; with mode == 1 such a file keeps mode 0. No domain test relies on that default: a test that reads a file''s mode gives the file one, and a file left at 0 is, as at 0o644, neither executable, a link nor a submodule, the only bits a render''s file is read for.'
+      line_text: if mode == 0 {
+    - file: internal/template/port/porttest/porttest.go
+      function: github.com/donvargax/itos-template/internal/template/port/porttest.Terminal#Ask
+      hash: b1bf88e127284548
+      line_in_function: 17
+      column: 19
+      original: '&&'
+      replacement: '||'
+      reason: 'Test support, the fake Terminal (itos-cc#16, leave test support out of mutation). With || a line typed to a question with a default would be taken as the default, and an empty line to one without would read a nil default; no domain test types either: each line its tests give a question with a default is empty, and each to a question without is an answer. The UI''s own asker, prompt.Lines, is what a person types to, and its tests hold both cases.'
+      line_text: if answer == "" && def != nil {
