@@ -1556,3 +1556,28 @@ items:
       (a refactor commit each, behaviour unchanged, the push's proof once), and add each larger
       finding as an idea for the person, with its edge and why. Half (1) comes first in the report:
       a missing check is a security finding, a double one only a smell.
+  - id: T-54
+    title: Pin itos 7.5.0, the newest of its v7 line, and itos-cc 0.14.2
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: task
+    why: >
+      Decision 28 pins the owner's own tools when they are out, and both lag: itos is pinned at
+      7.0.0 with 7.5.0 out, itos-cc at 0.12.0 with 0.14.2 out. The person's call (2026-10-11): take
+      both, but keep itos on its v7 line, 7.5.0, not 8.x: v8 carries a rough breaking change being
+      fixed now, so no 8.0.0 release candidate either until the person says. itos: itos pin 7.5.0
+      (itos.yaml's pin), the donvargax/itos action in .github/workflows/ci.yml and nightly.yml moved
+      to v7.5.0's commit (e7d7cc0da6f39758f26e1dfa693243629f5c8f7f, checked against the tag) with
+      their comments, and itos init --agent-rules if the rules block changes. Read the release notes
+      of 7.1.0 to 7.5.0 (gh release view v7.x.y -R donvargax/itos) for what changes here, such as
+      the smoke rule judged at commit (7.3.0), and fix what the pin breaks in our files, never a
+      gate. itos-cc: tools/bin/pinned to 0.14.2 with the five checksums from its checksums.txt,
+      T-20's version check to 0.14.2; read the notes of 0.13.0 to 0.14.2 (gh release view -R
+      donvargax/itos-cc) for behaviour changes that touch the proof, the nightly or e2e-coverage,
+      and confirm the counted proof and the nightly's mutation step still run as decision 40 has
+      them. Then the upstream-fixes idea: for each itos or itos-cc issue it lists, say whether 7.5.0
+      or 0.14.2 fixed it, take up what a fix makes possible when small (a lesson in
+      docs/ORCHESTRATING.md whose exit is a fixed issue is deleted in the same commit), and note the
+      rest in the idea. itos-cc#40 is not fixed in 0.14.2.
