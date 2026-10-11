@@ -1610,6 +1610,13 @@ items:
       or writes outside the project. What could go wrong: an untrusted template plants a link that a
       later step dereferences. Decide whether to refuse a target leaving the project or keep it as
       git would, and record the reasoning beside render.Path.
+
+      bug-8 closed the vectors this idea lumped together: disk.Write now refuses to write through a
+      symbolic link in a parent folder, and render.Path and render.Plan refuse a .git spelling and
+      names that fold to one file. What is left for this idea is the one case those do not reach: a
+      rendered link whose target points out of the project (../../etc, an absolute path), which a
+      later tool following the made link reads or writes through. Decide whether to refuse such a
+      target or keep it as git would, and record the reasoning beside render.Path.
   - id: p1-record-value
     title: Make the project record a checked value, not a struct of exported fields
     phase: 1
