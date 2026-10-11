@@ -43,6 +43,7 @@ func (w *world) releaseCutSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^in "([^"]*)" the tag "([^"]*)" is annotated and names the commit of origin's "([^"]*)"$`, w.tagNamesOriginsHead)
 	sc.Step(`^the template has no tag "([^"]*)"$`, w.templateHasNoTag)
 	sc.Step(`^"([^"]*)" has no tag ending "([^"]*)"$`, w.noTagEnding)
+	sc.Step(`^"([^"]*)" has no tag "([^"]*)"$`, w.noTag)
 	sc.Step(`^in "([^"]*)" no branch but "([^"]*)" carries a tag ending "([^"]*)"$`, w.onlyBranchCarries)
 	sc.Step(`^its report checks no combination$`, w.reportChecksNone)
 	sc.Step(`^after the tags of "([^"]*)" are pushed to its origin, new renders the release "([^"]*)" by default$`, w.newRendersAfterPush)
@@ -406,6 +407,18 @@ func (w *world) noTagEnding(dir, suffix string) error {
 		if strings.HasSuffix(tag, suffix) {
 			return fmt.Errorf("%s has the tag %s\n%s", dir, tag, w.report())
 		}
+	}
+	return nil
+}
+
+// noTag is whether the repository dir holds no tag tag.
+func (w *world) noTag(dir, tag string) error {
+	tags, err := w.tags(w.path(dir))
+	if err != nil {
+		return err
+	}
+	if slices.Contains(tags, tag) {
+		return fmt.Errorf("%s has the tag %s\n%s", dir, tag, w.report())
 	}
 	return nil
 }
