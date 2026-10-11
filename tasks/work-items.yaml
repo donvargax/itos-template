@@ -1560,8 +1560,8 @@ items:
   - id: T-54
     title: Pin itos 7.5.0, the newest of its v7 line, and itos-cc 0.14.2
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: task
     why: >
