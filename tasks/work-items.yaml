@@ -1685,19 +1685,6 @@ items:
     title: "new can write outside the project folder on a case-insensitive disk: a template's paths are checked as exact strings and disk.Write follows a symlink in a parent folder"
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: bug
-    why: >
-      Found by T-53 (the secure-by-design audit) and confirmed by the coordinator on 2026-10-11 on a
-      case-folding file system, the default on macOS: a template whose paths clash only by case can
-      make new write a file through a symlink it rendered first, outside the project folder. Only
-      new is exposed (disk.Write); update and adopt --merge write through git's index, which applies
-      git's own path protections. Fix at the edge (decision 41): render.Plan refuses paths that
-      clash once case and Unicode normalization are ignored; render.Path refuses the NTFS and HFS
-      spellings of .git, as git's core.protectNTFS and core.protectHFS do; and, as a second layer,
-      disk.Write refuses to write through a symlink in any parent folder. A @bug scenario for the
-      clash refusal runs on every platform (the refusal does not depend on the disk); correct
-      docs/design-rules.md's map and the idea p1-symlink-target, which say less than this. The
-      person: fix and release in the open, no security advisory; the agent model is theirs to
-      choose, so start it only when they say.
