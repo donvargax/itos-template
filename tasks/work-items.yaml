@@ -859,6 +859,21 @@ items:
       itos-cc#40 (2026-10-11, found by T-52): mutation run --since panics (index out of range) on a
       range that changes porttest.go, on 0.12.0 and 0.14.2; counted runs are not affected. Until
       fixed, judge internal/template with full runs (no --since) or counted ones.
+
+      T-54 (2026-10-11) pinned itos 7.5.0 and itos-cc 0.14.2 and checked each issue above. Neither
+      release fixed any that was open. itos, still open under 7.5.0: #21 (tried, check-message still
+      warns on a body line starting with #, so the lesson stays), #22, #24, #25, #27 and #36 (init
+      --agent-rules leaves the rules block as it was, still without the proof step; the text plan of
+      a code range has named it since 7.0.0), #34 (the lesson stays), #35 (ci plan --whole still
+      holds no proof step), #45 (ci run --help unchanged), #46. Fixed before 7.0.0, so in the pins
+      already, nothing left to take up: #23 (T-126; launcher-version is dropped), #26 and #28
+      (slice-106; the proof runs in itos ci run since T-34). Not listed above: itos#47, init
+      --agent-rules run by the PATH's itos rather than the pin, is fixed in 8.0.0-rc.7 only, so on
+      7.x it holds when a session's PATH itos is not 8.0.0-rc.7 or later. itos-cc, still open under
+      0.14.2: #15, #16, #18, #19 (the release archive prints itos-cc 0.14.2, the form T-20's check
+      greps), #21 (moot since T-45 took the sample step out), #22, #24, #36 and #37 (moot since
+      T-45), #40. Fixed before 0.12.0: #20 and #23. #17 is closed: every release since 0.7.0 carries
+      notes, and T-54 read those of 0.13.0 to 0.14.2.
     tags: [ci]
   - id: T-24
     title: Upgrade the Go toolchain to clear the standard-library security failures
