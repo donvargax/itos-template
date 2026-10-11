@@ -24,3 +24,30 @@ mutation:
       original: <
       replacement: <=
       reason: 'slash < colon becoming slash <= colon changes nothing: slash and colon index different bytes of the name, so they are equal only when both are -1, and colon < 0 has already returned true before the comparison is read'
+    - file: internal/git/git.go
+      function: github.com/donvargax/itos-template/internal/git#exitCode
+      hash: b3c7c72449da4db6
+      line_in_function: 6
+      column: 10
+      original: "1"
+      replacement: "0"
+      reason: 'Equivalent: exitCode''s -1, for an error that is no *Failed (nil, or a *Missing), is only ever compared, and every caller compares it with 1 or 128 (== 1 and != 1 in project.go, repo.go, tagger.go and worktree.go, == 128 in repo.go), which -1 and 0 both differ from; a git that ran gives its own code, from the *Failed, never this line.'
+      line_text: return -1
+    - file: internal/git/commit.go
+      function: github.com/donvargax/itos-template/internal/git.Committer#Commit
+      hash: c73dfa9a9dcc4807
+      line_in_function: 17
+      column: 22
+      original: '>'
+      replacement: '>='
+      reason: 'Equivalent: with >= Commit also runs git update-index --chmod=+x -- when executables is empty, an update-index given no path, which changes no entry of the index and exits 0, so the commit made is the same; only one git run more.'
+      line_text: if len(executables) > 0 {
+    - file: internal/git/repo.go
+      function: github.com/donvargax/itos-template/internal/git.Repo#blobs
+      hash: 6b951fbf2770b514
+      line_in_function: 6
+      column: 27
+      original: "1"
+      replacement: "0"
+      reason: 'Equivalent: done takes one send, from the goroutine once git has ended and pw is closed, and one receive, after blobs'' loop, on every path through blobs. Unbuffered, the send waits for that receive, which always comes after the loop has stopped reading, so nothing blocks for good and blobs returns the same; only a return between them would leave the goroutine waiting, and blobs has none.'
+      line_text: done := make(chan error, 1)
