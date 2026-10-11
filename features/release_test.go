@@ -41,7 +41,7 @@ func (w *world) releaseCutSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^the template has no tag "([^"]*)"$`, w.templateHasNoTag)
 	sc.Step(`^"([^"]*)" has no tag ending "([^"]*)"$`, w.noTagEnding)
 	sc.Step(`^in "([^"]*)" no branch but "([^"]*)" carries a tag ending "([^"]*)"$`, w.onlyBranchCarries)
-	sc.Step(`^its report checks no combination$`, w.reportNamesNone)
+	sc.Step(`^its report checks no combination$`, w.reportChecksNone)
 	sc.Step(`^after the tags of "([^"]*)" are pushed to its origin, new renders the release "([^"]*)" by default$`, w.newRendersAfterPush)
 	sc.Step(`^in "([^"]*)" the change to "([^"]*)" and the file "([^"]*)" are still there, uncommitted$`, w.changeStillThere)
 	sc.Step(`^its release JSON is ok, version "([^"]*)", with a tag for each branch the template lists at its head$`, w.releaseJSONOK)
@@ -162,18 +162,24 @@ func (w *world) uncommittedChange(dir, file, untracked string) error {
 }
 
 // changeStillThere is whether the clone dir still holds uncommittedChange's
-// change to file, uncommitted, and the file untracked, untracked, as git
-// status says, each holding what it was given.
+// change to file, unstaged and uncommitted, and the file untracked,
+// untracked, as git says, each holding what it was given.
 func (w *world) changeStillThere(dir, file, untracked string) error {
 	repo := w.path(dir)
-	status, err := w.gitOut(repo, "status", "--porcelain=v1", "--untracked-files=all")
-	if err != nil {
-		return err
-	}
-	lines := strings.Split(strings.ReplaceAll(status, "\r\n", "\n"), "\n")
-	for _, want := range []string{" M " + file, "?? " + untracked} {
-		if !slices.Contains(lines, want) {
-			return fmt.Errorf("git status in %s does not list %q: it lists %q\n%s", dir, want, lines, w.report())
+	for _, c := range []struct {
+		args []string
+		want []string
+	}{
+		{[]string{"diff", "--name-only"}, []string{file}},
+		{[]string{"diff", "--cached", "--name-only"}, nil},
+		{[]string{"ls-files", "--others", "--exclude-standard"}, []string{untracked}},
+	} {
+		out, err := w.gitOut(repo, c.args...)
+		if err != nil {
+			return err
+		}
+		if got := strings.Fields(out); !slices.Equal(got, c.want) {
+			return fmt.Errorf("git %s in %s lists %q, not %q\n%s", strings.Join(c.args, " "), dir, got, c.want, w.report())
 		}
 	}
 	data, err := os.ReadFile(filepath.Join(repo, filepath.FromSlash(file)))
@@ -205,6 +211,15 @@ func (w *world) ranInFolder(dir, args string) error {
 		return err
 	}
 	return w.exitsWith(0)
+}
+
+// reportChecksNone is whether release wrote no report at all: check never
+// ran, so not even the count of the combinations that passed ends it.
+func (w *world) reportChecksNone() error {
+	if w.stdout != "" {
+		return fmt.Errorf("standard output is not empty: check ran\n%s", w.report())
+	}
+	return nil
 }
 
 // The push.

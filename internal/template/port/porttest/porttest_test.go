@@ -104,3 +104,17 @@ func TestProjectReadsHeadAndFailsAsToldTo(t *testing.T) {
 		t.Errorf("Merge into a broken HEAD = %v, %d merges", err, p.Merges)
 	}
 }
+
+// The domain reads no answer IsAncestor gives with an error, so the fake's
+// failure is held here: no ancestry claimed, as git claims none.
+func TestTaggerFailsAsToldTo(t *testing.T) {
+	broken := errors.New("git broke")
+	tg := &Tagger{Parents: map[string]string{"b": "a"}, Fails: map[string]error{"IsAncestor": broken}}
+	if is, err := tg.IsAncestor("a", "b"); is || !errors.Is(err, broken) {
+		t.Errorf("a failing IsAncestor gives %v, %v", is, err)
+	}
+	tg.Fails = nil
+	if is, err := tg.IsAncestor("a", "b"); !is || err != nil {
+		t.Errorf("IsAncestor(a, b) = %v, %v", is, err)
+	}
+}

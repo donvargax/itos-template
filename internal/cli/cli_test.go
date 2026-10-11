@@ -12,6 +12,7 @@ import (
 	"github.com/donvargax/itos-template/internal/git"
 	"github.com/donvargax/itos-template/internal/manifest"
 	"github.com/donvargax/itos-template/internal/project"
+	"github.com/donvargax/itos-template/internal/releasing"
 	"github.com/donvargax/itos-template/internal/render"
 	"github.com/donvargax/itos-template/internal/tempdir"
 	"github.com/donvargax/itos-template/internal/template"
@@ -85,6 +86,12 @@ func TestEachKindNoScenarioReadsHasItsCodeRuleAndSentence(t *testing.T) {
 		{&template.Unrecorded{Branch: "go/cli"}, 2, "record-invalid", "the project's record names no commit of the template's branch go/cli, which its render needs; adopt the project again, or name the commit in the record"},
 		{&project.BadRecord{File: ".itos-template.yaml", Problems: []string{"it names no stack"}}, 2, "record-invalid", "the project's record, .itos-template.yaml, cannot be read: it names no stack"},
 		{&git.TooOld{Version: "git version 2.44.0", Need: "2.45"}, 3, "git-too-old", "update merges with git merge-tree, which takes the two renders as trees from git 2.45 on, and this git is older (git version 2.44.0); install git 2.45 or a newer one"},
+		// release's refusals no scenario makes: git refusing a tag midway, a
+		// release's tags left when they cannot be deleted, and a listed
+		// branch on no origin, which every fixture's clone has.
+		{&releasing.Refused{Tag: "go/cli/v1.0.0", Err: failed}, 1, "tag-refused", "git refused the tag go/cli/v1.0.0 (fatal: no), and release deleted the tags it made before it, so it made none; fix what git says, then release again"},
+		{&releasing.Refused{Tag: "go/cli/v1.0.0", Err: failed, Left: []string{"stack/go/v1.0.0", "main/v1.0.0"}}, 1, "tag-refused", "git refused the tag go/cli/v1.0.0 (fatal: no), and release could not delete stack/go/v1.0.0, main/v1.0.0, which it made before it; delete each with git tag -d, fix what git says, then release again"},
+		{&releasing.Unsynced{Branch: "go/cli", How: releasing.Unpublished}, 1, "branch-unpublished", "the template's branch go/cli is not on origin: a release tags only the heads others can fetch, so every branch the manifest lists must be at origin's head of it; push it to origin, then release"},
 		// An error no switch classifies: a defect.
 		{fmt.Errorf("cannot write the report: %w", cause), 70, "internal", "cannot write the report: cause"},
 	}

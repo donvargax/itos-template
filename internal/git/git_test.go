@@ -259,3 +259,22 @@ func TestMergeNamesTheCommitThatConflicts(t *testing.T) {
 		t.Errorf("Merge = %v", err)
 	}
 }
+
+// ID-RELEASE-14 refuses a repository with no origin with exit 1, naming
+// origin, and a repository whose origin HasOrigin missed would be refused
+// the same way, each listed branch then not on origin: no scenario tells
+// them apart.
+func TestHasOriginReadsTheRemoteOriginsURL(t *testing.T) {
+	dir := template(t)
+	g := OpenTagger(dir)
+	if _, err := g.Top(); err != nil {
+		t.Fatal(err)
+	}
+	if ok, err := g.HasOrigin(); ok || err != nil {
+		t.Errorf("HasOrigin with no remote = %v, %v", ok, err)
+	}
+	git(t, dir, "remote", "add", "origin", "https://example.invalid/acme.git")
+	if ok, err := g.HasOrigin(); !ok || err != nil {
+		t.Errorf("HasOrigin with an origin = %v, %v", ok, err)
+	}
+}

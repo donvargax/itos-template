@@ -54,12 +54,22 @@ func CloneHere(top, dir string) (*Repo, error) {
 // repository's own folder; an *Unreachable naming Here when the working
 // folder is in no repository, or a *Missing when git cannot be run.
 func Top() (string, error) {
-	if out, err := run("", "rev-parse", "--show-toplevel"); err == nil {
-		return strings.TrimSpace(string(out)), nil
-	}
-	out, err := run("", "rev-parse", "--absolute-git-dir")
+	top, err := topIn("")
 	if err != nil {
 		return "", unreachable(Here, err)
+	}
+	return top, nil
+}
+
+// topIn is the top folder of the repository the folder dir is in, as Top
+// gives it, the working folder's for "", or git's failure.
+func topIn(dir string) (string, error) {
+	if out, err := run(dir, "rev-parse", "--show-toplevel"); err == nil {
+		return strings.TrimSpace(string(out)), nil
+	}
+	out, err := run(dir, "rev-parse", "--absolute-git-dir")
+	if err != nil {
+		return "", err
 	}
 	return strings.TrimSpace(string(out)), nil
 }

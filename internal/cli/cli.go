@@ -25,6 +25,7 @@ import (
 	"github.com/donvargax/itos-template/internal/git"
 	"github.com/donvargax/itos-template/internal/project"
 	"github.com/donvargax/itos-template/internal/prompt"
+	"github.com/donvargax/itos-template/internal/releasing"
 	"github.com/donvargax/itos-template/internal/render"
 	"github.com/donvargax/itos-template/internal/tempdir"
 	"github.com/donvargax/itos-template/internal/template"
@@ -209,7 +210,10 @@ func classify(err error) (int, []Problem) {
 	var tu *tempdir.Unmakeable
 	var ad adoption.Error
 	var up updating.Error
+	var rl releasing.Error
 	switch {
+	case errors.As(err, &rl):
+		return releasingProblem(rl)
 	case errors.As(err, &ad):
 		return adoptionProblem(ad)
 	case errors.As(err, &up):

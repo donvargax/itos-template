@@ -3,6 +3,7 @@ package template
 import (
 	"fmt"
 	"maps"
+	"path"
 	"reflect"
 	"slices"
 	"strings"
@@ -196,6 +197,31 @@ func TestTheNewestReleaseIsTheSemverMaximumOfTheCompleteStableOnes(t *testing.T)
 			if semver.Compare(tpl.Release(), v) < 0 {
 				t.Fatalf("the newest release %q is older than %q", tpl.Release(), v)
 			}
+		}
+	})
+}
+
+// A version a release is cut as is semver's whole spelling of itself, three
+// numbers and an optional pre-release, and the tag of it on a branch ends
+// in it after the branch's name.
+func TestACuttableVersionIsSemversWholeSpelling(t *testing.T) {
+	rapid.Check(t, func(t *rapid.T) {
+		numbers := rapid.SliceOfN(rapid.IntRange(0, 30), 3, 3).Draw(t, "numbers")
+		v := fmt.Sprintf("v%d.%d.%d", numbers[0], numbers[1], numbers[2])
+		if rapid.Bool().Draw(t, "pre-release") {
+			v += "-" + rapid.SampledFrom([]string{"rc.1", "alpha", "beta.2", "0"}).Draw(t, "pre")
+		}
+		if !Cuttable(v) {
+			t.Fatalf("Cuttable(%q) = false", v)
+		}
+		for _, other := range []string{strings.TrimPrefix(v, "v"), v + "+build", semver.MajorMinor(v), semver.Major(v)} {
+			if Cuttable(other) {
+				t.Fatalf("Cuttable(%q) = true", other)
+			}
+		}
+		b := rapid.SampledFrom(acmeBranches).Draw(t, "branch")
+		if tag := TagOf(b, v); !strings.HasPrefix(tag, b+"/") || path.Base(tag) != v {
+			t.Fatalf("TagOf(%q, %q) = %q", b, v, tag)
 		}
 	})
 }

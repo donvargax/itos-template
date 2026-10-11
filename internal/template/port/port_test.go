@@ -9,3 +9,12 @@ func TestConflictSaysWhichCommitAndWhere(t *testing.T) {
 		t.Errorf("Error() = %q", got)
 	}
 }
+
+// The domain wraps a folder in no repository in its own error, so no
+// scenario reads this.
+func TestNoRepositorySaysWhyAsGitDoes(t *testing.T) {
+	err := &NoRepository{Why: "fatal: not a git repository"}
+	if got := err.Error(); got != "in no git repository: fatal: not a git repository" {
+		t.Errorf("Error() = %q", got)
+	}
+}

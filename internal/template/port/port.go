@@ -217,6 +217,34 @@ type Differ interface {
 	Diff(from, to *File) (string, error)
 }
 
+// Tagger is a template's own git repository, the checkout or clone release
+// runs in, where a release is tagged (decision 36): its branches read beside
+// origin's remote-tracking ones, and annotated tags made and deleted.
+// Nothing else of it is changed: no branch, no index, no working tree.
+type Tagger interface {
+	// Top is the repository's top folder, or a bare repository's own: a
+	// *NoRepository when the folder it was opened in is in none.
+	Top() (string, error)
+	// HasOrigin is whether the repository has a remote named origin.
+	HasOrigin() (bool, error)
+	// Heads are the commit the branch's local head is at and the one
+	// origin's remote-tracking branch of that name is at, each "" when there
+	// is none.
+	Heads(branch string) (local, origin string, err error)
+	// IsAncestor is whether commit is of or one of of's ancestors.
+	IsAncestor(commit, of string) (bool, error)
+	// Tag makes name an annotated tag of commit, its message message. A tag
+	// there already is refused, as git refuses one.
+	Tag(name, commit, message string) error
+	// Untag deletes the tag name.
+	Untag(name string) error
+}
+
+// NoRepository is a folder in no git repository, and why, as git says.
+type NoRepository struct{ Why string }
+
+func (e *NoRepository) Error() string { return "in no git repository: " + e.Why }
+
 // Runner runs the programs a template's checks name.
 type Runner interface {
 	// Run runs words, the program first, in dir, with no shell, and returns

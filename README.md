@@ -17,7 +17,14 @@ itos-template new ../acme made --stack go --answer name=blue-fox --defaults --re
 ```
 
 A release is one version tagged `<branch>/<version>` on every branch the template's manifest lists
-(decision 36).
+(decision 36). `itos-template release`, run in the template's repository, cuts one: it runs `check`
+over the branch heads, each local one or else origin's, and only once every combination passes tags
+each branch there, annotated. It needs every local branch at origin's head, and pushes nothing: it
+prints the `git push --atomic origin …` that publishes the tags, for you to run:
+
+```sh
+itos-template release v1.2.0 --answer name=blue-fox --defaults
+```
 
 `itos-template adopt` links a project made before the template to the release it matches, writing
 only the record `new` writes, `.itos-template.yaml`, for you to commit; `--dry-run` previews how the

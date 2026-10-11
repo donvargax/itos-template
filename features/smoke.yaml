@@ -44,3 +44,7 @@
   scenarios:
     - id: "@ID-UPDATE-01"
       why: update's whole path in one run, both renders made as new makes them, merged into a project with changes of its own by git's merge, left staged with the new record and HEAD unmoved
+- file: release.feature
+  scenarios:
+    - id: "@ID-RELEASE-01"
+      why: release's whole path in one run, the clone's heads checked as check checks them, every listed branch tagged annotated there and nothing pushed, the push printed

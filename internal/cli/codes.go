@@ -10,6 +10,7 @@ import (
 	"github.com/donvargax/itos-template/internal/git"
 	"github.com/donvargax/itos-template/internal/manifest"
 	"github.com/donvargax/itos-template/internal/project"
+	"github.com/donvargax/itos-template/internal/releasing"
 	"github.com/donvargax/itos-template/internal/render"
 	"github.com/donvargax/itos-template/internal/template"
 	"github.com/donvargax/itos-template/internal/updating"
@@ -248,4 +249,53 @@ func updatingProblem(err updating.Error) (code int, problems []Problem) {
 			e.Release, strings.Join(e.Paths, ", "))
 	}
 	return code, problems
+}
+
+func releasingProblem(err releasing.Error) (code int, problems []Problem) {
+	code, problems = CodeInternal, internal(err)
+	switch e := err.(type) {
+	case *releasing.BadVersion:
+		code, problems = CodeUsage, fixed("release-version", "give vX.Y.Z, three numbers, with an optional pre-release: v1.2.0, v1.3.0-rc.1",
+			"the version %+q is not one a release is cut as", e.Version)
+	case *releasing.NotRepository:
+		code, problems = CodeEnvironment, fixed("git-repository-missing", "run release in the template's checkout or clone",
+			"release tags the branches of the template's git repository it runs in, and git finds none here (%s)", e.Why)
+	case *releasing.NoOrigin:
+		code, problems = CodeRefused, fixed("origin-missing", "add the remote people fetch the template from as origin (git remote add origin <url>), fetch it, then release",
+			"the template's repository has no remote origin: a release is for others to fetch, so release tags only commits origin has and prints the push that publishes the tags there")
+	case *releasing.Used:
+		code, problems = CodeRefused, fixed("release-exists", "cut another version; a tag no one has fetched yet can be deleted with git tag -d",
+			"the template carries %s already: a version is released once, a partial release's tags included", strings.Join(e.Tags, ", "))
+	case *releasing.Unsynced:
+		code, problems = CodeRefused, unsynced(e)
+	case *releasing.Failed:
+		code, problems = CodeRefused, fixed("check-failed", "fix the template, then release again",
+			"%d of %d combinations failed, as the report says, so release made no tag", e.Failed, e.All)
+	case *releasing.Refused:
+		if len(e.Left) == 0 {
+			code, problems = CodeRefused, fixed("tag-refused", "fix what git says, then release again",
+				"git refused the tag %s (%v), and release deleted the tags it made before it, so it made none", e.Tag, e.Err)
+		} else {
+			code, problems = CodeRefused, fixed("tag-refused", "delete each with git tag -d, fix what git says, then release again",
+				"git refused the tag %s (%v), and release could not delete %s, which it made before it", e.Tag, e.Err, strings.Join(e.Left, ", "))
+		}
+	}
+	return code, problems
+}
+
+// unsynced is the problem of a branch whose local head is not origin's:
+// how it differs, and what makes it origin's.
+func unsynced(e *releasing.Unsynced) []Problem {
+	fix := map[releasing.How]string{
+		releasing.Ahead:       "push it, then release",
+		releasing.Behind:      "fast-forward it to origin's, then release",
+		releasing.Diverged:    "merge origin's into it and push it, then release",
+		releasing.Unpublished: "push it to origin, then release",
+	}[e.How]
+	where := string(e.How) + " origin's"
+	if e.How == releasing.Unpublished {
+		where = "not on origin"
+	}
+	return fixed("branch-unpublished", fix,
+		"the template's branch %s is %s: a release tags only the heads others can fetch, so every branch the manifest lists must be at origin's head of it", e.Branch, where)
 }

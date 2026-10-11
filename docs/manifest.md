@@ -450,6 +450,17 @@ deleted since, is a tag the release lacks.
 
 - `check` proves the branch heads by default, what `itos-template release` will tag, and says
   nothing of releases; `check --ref` proves a release, refused as `new` refuses it.
+- `itos-template release v1.2.0`, run in the template's repository, cuts one
+  (`features/release.feature`, q-50 to q-53). It runs `check`'s own work over the heads `check`
+  reads, each listed branch's local head, else origin's, and only once every combination passes tags
+  exactly those commits, each tag annotated, its message naming the version. It needs an origin, and
+  refuses, naming it, a listed branch whose local head is ahead of, behind or diverged from
+  origin's, or not on origin, before `check` runs. The version is `vX.Y.Z` with an optional
+  pre-release, else a usage error, exit 2; one any listed branch carries a tag of already, a partial
+  release's included, is refused with exit 1, naming the tag. A backport and a pre-release are cut,
+  and neither becomes the release `new` renders by default. Nothing is pushed: `release` prints the
+  one command that publishes the tags, `git push --atomic origin` and each tag, for the person to
+  run; a tag git refuses midway takes back the tags made before it.
 
 ## The record a made project keeps
 

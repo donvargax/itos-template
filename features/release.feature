@@ -47,7 +47,7 @@ Feature: release tags every branch of a template with one version once check pas
     Given the template "acme"
     And a clone "tpl" of the template, every branch local
 
-  @ID-RELEASE-01 @slice-14 @wip
+  @ID-RELEASE-01 @slice-14
   Scenario: release tags every listed branch at its proved head with annotated tags, pushing none
     When itos-template runs in the folder "tpl" with "release v1.0.0 --answer name=blue-fox --defaults"
     Then it exits with code 0
@@ -56,7 +56,7 @@ Feature: release tags every branch of a template with one version once check pas
     And its standard output says "git push --atomic origin"
     And its standard output says "stack/go/v1.0.0"
 
-  @ID-RELEASE-02 @slice-14 @wip
+  @ID-RELEASE-02 @slice-14
   Scenario: what release cuts, once pushed, is the release new renders by default
     Given itos-template ran in the folder "tpl" with "release v1.0.0 --answer name=blue-fox --defaults"
     And the tags of "tpl" pushed to its origin
@@ -64,7 +64,7 @@ Feature: release tags every branch of a template with one version once check pas
     Then it exits with code 0
     And the record in "made" names the release "v1.0.0"
 
-  @ID-RELEASE-03 @slice-14 @wip
+  @ID-RELEASE-03 @slice-14
   Scenario: a failing combination makes no tag and exits 1 with check's report
     Given the template "acme" whose feature "web" of the stack "go" has the check "git ls-files --error-unmatch missing.txt"
     And a clone "tpl" of the template, every branch local
@@ -73,7 +73,7 @@ Feature: release tags every branch of a template with one version once check pas
     And its report says "go + cli + web" failed at "git ls-files --error-unmatch missing.txt"
     And "tpl" has no tag ending "/v1.0.0"
 
-  @ID-RELEASE-04 @slice-14 @wip
+  @ID-RELEASE-04 @slice-14
   Scenario Outline: a version a listed branch already carries is refused, naming the tag, and no tag is made
     Given in "tpl" the branch "<branch>" carries the tag "<branch>/v1.0.0"
     When itos-template runs in the folder "tpl" with "release v1.0.0 --answer name=blue-fox --defaults"
@@ -86,7 +86,7 @@ Feature: release tags every branch of a template with one version once check pas
       | main   |
       | go/cli |
 
-  @ID-RELEASE-05 @slice-14 @wip
+  @ID-RELEASE-05 @slice-14
   Scenario Outline: a version that is not vX.Y.Z with an optional pre-release is a usage error
     When itos-template runs in the folder "tpl" with "release <version> --answer name=blue-fox --defaults"
     Then it exits with code 2
@@ -99,7 +99,7 @@ Feature: release tags every branch of a template with one version once check pas
       | v1.0    |
       | latest  |
 
-  @ID-RELEASE-06 @slice-14 @wip
+  @ID-RELEASE-06 @slice-14
   Scenario: a backport below the newest release is cut, and new's default stays the newest
     Given the template "acme" released as "v1.0.0", "v1.1.0" and "v1.2.0-rc.1"
     And a clone "tpl" of the template, every branch local
@@ -108,7 +108,7 @@ Feature: release tags every branch of a template with one version once check pas
     And in "tpl" every branch the template lists carries the annotated tag "<branch>/v1.0.1" at its head, its message naming "v1.0.1"
     And after the tags of "tpl" are pushed to its origin, new renders the release "v1.1.0" by default
 
-  @ID-RELEASE-07 @slice-14 @wip
+  @ID-RELEASE-07 @slice-14
   Scenario: a pre-release is cut, and new's default stays the newest stable release
     Given the template "acme" released as "v1.0.0", "v1.1.0" and "v1.2.0-rc.1"
     And a clone "tpl" of the template, every branch local
@@ -117,7 +117,7 @@ Feature: release tags every branch of a template with one version once check pas
     And in "tpl" every branch the template lists carries the annotated tag "<branch>/v1.3.0-rc.1" at its head, its message naming "v1.3.0-rc.1"
     And after the tags of "tpl" are pushed to its origin, new renders the release "v1.1.0" by default
 
-  @ID-RELEASE-08 @slice-14 @wip
+  @ID-RELEASE-08 @slice-14
   Scenario Outline: a listed branch whose local head is <how> origin's is refused, naming it, before check runs
     Given in "tpl" the branch "stack/go" is <how> origin's
     When itos-template runs in the folder "tpl" with "release v1.0.0 --answer name=blue-fox --defaults"
@@ -132,14 +132,14 @@ Feature: release tags every branch of a template with one version once check pas
       | behind      |
       | diverged from |
 
-  @ID-RELEASE-09 @slice-14 @wip
+  @ID-RELEASE-09 @slice-14
   Scenario: a listed branch with no local head is tagged at origin's head
     Given a clone "ci" of the template, only its default branch local
     When itos-template runs in the folder "ci" with "release v1.0.0 --answer name=blue-fox --defaults"
     Then it exits with code 0
     And in "ci" the tag "stack/go/v1.0.0" is annotated and names the commit of origin's "stack/go"
 
-  @ID-RELEASE-10 @slice-14 @wip
+  @ID-RELEASE-10 @slice-14
   Scenario: missing answers are refused with exit 2, each named, before anything is rendered or tagged
     When itos-template runs in the folder "tpl" with "release v1.0.0"
     Then it exits with code 2
@@ -147,7 +147,7 @@ Feature: release tags every branch of a template with one version once check pas
     And its report checks no combination
     And "tpl" has no tag ending "/v1.0.0"
 
-  @ID-RELEASE-11 @slice-14 @wip
+  @ID-RELEASE-11 @slice-14
   Scenario: release tags commits, never the working tree, whatever the tree holds
     Given in "tpl" an uncommitted change to "README.md" and an untracked file "notes.txt"
     When itos-template runs in the folder "tpl" with "release v1.0.0 --answer name=blue-fox --defaults"
@@ -155,14 +155,14 @@ Feature: release tags every branch of a template with one version once check pas
     And in "tpl" every branch the template lists carries the annotated tag "<branch>/v1.0.0" at its head, its message naming "v1.0.0"
     And in "tpl" the change to "README.md" and the file "notes.txt" are still there, uncommitted
 
-  @ID-RELEASE-12 @slice-14 @wip
+  @ID-RELEASE-12 @slice-14
   Scenario: with --json a release is one object naming each tag, its branch and its commit, and the push
     When itos-template runs in the folder "tpl" with "release v1.0.0 --answer name=blue-fox --defaults --json"
     Then it exits with code 0
     And its release JSON is ok, version "v1.0.0", with a tag for each branch the template lists at its head
     And its release JSON push begins "git", "push", "--atomic", "origin"
 
-  @ID-RELEASE-13 @slice-14 @wip
+  @ID-RELEASE-13 @slice-14
   Scenario: with --json a failing combination is ok false, names no tag, and keeps check's report
     Given the template "acme" whose feature "web" of the stack "go" has the check "git ls-files --error-unmatch missing.txt"
     And a clone "tpl" of the template, every branch local
@@ -170,7 +170,7 @@ Feature: release tags every branch of a template with one version once check pas
     Then it exits with code 1
     And its release JSON is not ok, with no tag, and its report says "go + cli + web" failed
 
-  @ID-RELEASE-14 @slice-14 @wip
+  @ID-RELEASE-14 @slice-14
   Scenario Outline: release refuses <where>, naming <problem>
     Given <where>
     When itos-template runs in the folder "<dir>" with "release v1.0.0 --answer name=blue-fox --defaults"

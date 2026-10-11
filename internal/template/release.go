@@ -30,6 +30,53 @@ import (
 // release; then it renders that release's commits, its manifest the
 // release's, and the record names the release beside them.
 
+// Cuttable is whether version is one a release can be cut as: vX.Y.Z,
+// three numbers, with an optional pre-release (v1.2.0-rc.1), as semver
+// writes it in full (semver.Canonical). semver takes more, v1, v1.2 and a
+// build's +meta, which a release read is found by as it is tagged, but none
+// is cut as one: v1.2 and v1.2.0 are one version and would be two tags.
+func Cuttable(version string) bool {
+	return semver.IsValid(version) && semver.Canonical(version) == version
+}
+
+// TagOf is the tag of the release version on the branch b,
+// <branch>/<version>.
+func TagOf(b, version string) string { return b + "/" + version }
+
+// Branches are the branches t's manifest lists, the root first, then each
+// stack's, then each feature's: those a release of t tags.
+func (t *Template) Branches() []string { return branches(t.root, t.Manifest) }
+
+// Head is the commit t renders the branch b from (commitOf): a *NoBranch
+// when it has none.
+func (t *Template) Head(b string) (string, error) {
+	sha, ok, err := t.commitOf(b)
+	if err != nil {
+		return "", err
+	}
+	if !ok {
+		return "", &NoBranch{Branch: b}
+	}
+	return sha, nil
+}
+
+// Tagged are the tags of the release version the branches t's manifest
+// lists carry already, wherever each points, in Branches' order: a release
+// is cut once, so even one of them, a partial release's, takes the version.
+func (t *Template) Tagged(version string) ([]string, error) {
+	tags, err := t.tags()
+	if err != nil {
+		return nil, err
+	}
+	var tagged []string
+	for _, b := range t.Branches() {
+		if _, ok := tags[TagOf(b, version)]; ok {
+			tagged = append(tagged, TagOf(b, version))
+		}
+	}
+	return tagged, nil
+}
+
 // Release is a complete release of a template: its version, each branch's
 // tagged commit, and the manifest its root's commit holds.
 type Release struct {
@@ -114,7 +161,7 @@ func (t *Template) tags() (map[string]string, error) {
 func (t *Template) versions(tags map[string]string) []string {
 	var versions []string
 	for name := range tags {
-		v, ok := strings.CutPrefix(name, t.root+"/")
+		v, ok := strings.CutPrefix(name, TagOf(t.root, ""))
 		if ok && semver.IsValid(v) {
 			versions = append(versions, v)
 		}
@@ -137,9 +184,9 @@ func (t *Template) find(version string, tags map[string]string) (*Release, error
 		return nil, none
 	}
 	m := t.Manifest
-	if root, ok := tags[t.root+"/"+version]; ok {
+	if root, ok := tags[TagOf(t.root, version)]; ok {
 		var err error
-		if m, err = t.manifestAt(root, t.root+"/"+version); err != nil {
+		if m, err = t.manifestAt(root, TagOf(t.root, version)); err != nil {
 			return nil, err
 		}
 	}
@@ -147,7 +194,7 @@ func (t *Template) find(version string, tags map[string]string) (*Release, error
 	tagged := false
 	var lacking []string
 	for _, b := range branches(t.root, m) {
-		commit, ok := tags[b+"/"+version]
+		commit, ok := tags[TagOf(b, version)]
 		tagged = tagged || ok
 		on, err := t.onBranch(commit, ok, b)
 		if err != nil {

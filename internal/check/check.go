@@ -19,7 +19,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 
 	"github.com/donvargax/itos-template/internal/answer"
 	"github.com/donvargax/itos-template/internal/cli"
@@ -63,27 +62,23 @@ Report issues at https://github.com/donvargax/itos-template/issues.`
 // Run checks the template, its report on stdout, and returns check's exit
 // code: 0 when every combination passed, else 1, or 3 or 70 when the
 // environment or a defect of ours stopped a render. A failure before any
-// combination is checked is reported on stderr.
+// combination is checked is reported on stderr. The report's format is
+// internal/cli's (Block, Summary), which release prints too.
 func (c *CLI) Run(ui *cli.UI) int {
 	worst, passed, all := 0, 0, 0
-	warn := func(m *manifest.Manifest) {
-		if !m.Scans(manifest.Credentials) {
-			ui.Line("warning: no check of the template is marked as scanning its renders for credentials: mark the one that does with scans: [" + manifest.Credentials + "], in a check's long form (docs/manifest.md)")
-		}
-	}
-	err := Handle(Query{Template: c.Template, Answers: answer.Given(c.Answer), Defaults: c.Defaults, Ref: c.Ref}, warn, func(r template.Result) error {
+	err := Handle(Query{Template: c.Template, Answers: answer.Given(c.Answer), Defaults: c.Defaults, Ref: c.Ref}, ui.WarnUnscanned, func(r template.Result) error {
 		all++
 		if r.Passed() {
 			passed++
 		}
-		worst = max(worst, exitCode(r))
-		if _, err := io.WriteString(ui.Stdout, block(r)); err != nil {
+		worst = max(worst, cli.ResultCode(r))
+		if _, err := io.WriteString(ui.Stdout, cli.Block(r)); err != nil {
 			return fmt.Errorf("cannot write the report: %w", err)
 		}
 		return nil
 	})
 	if err == nil {
-		if _, werr := io.WriteString(ui.Stdout, summary(passed, all)); werr != nil {
+		if _, werr := io.WriteString(ui.Stdout, cli.Summary(passed, all)); werr != nil {
 			err = fmt.Errorf("cannot write the report: %w", werr)
 		}
 	}
@@ -91,82 +86,6 @@ func (c *CLI) Run(ui *cli.UI) int {
 		return ui.Fail(err, false)
 	}
 	return worst
-}
-
-// exitCode is the exit code r makes check end with: 0 when it passed, else
-// 1, or 3 or 70 when the environment or a defect of ours stopped its
-// render.
-func exitCode(r template.Result) int {
-	if r.Passed() {
-		return 0
-	}
-	if r.Err != nil {
-		if code := cli.Code(r.Err); code == cli.CodeEnvironment || code == cli.CodeInternal {
-			return code
-		}
-	}
-	return cli.CodeRefused
-}
-
-// summary is the report's end: an empty line and the count of the
-// combinations that passed of all.
-func summary(passed, all int) string {
-	noun := "combinations"
-	if all == 1 {
-		noun = "combination"
-	}
-	return fmt.Sprintf("\n%d of %d %s passed.\n", passed, all, noun)
-}
-
-// block is a combination's block of the report: its name and whether it
-// passed, then either "not rendered" and why, or each literal its render
-// kept and each check, passed, failed or skipped, a failed one followed by
-// its output, each line of it after "    |". A leftover is the text found,
-// in double quotes, then where: " at " and the path, a colon and the line,
-// or " in the path " and the path, written as a check's word is.
-func block(r template.Result) string {
-	var b strings.Builder
-	status := "passed"
-	if !r.Passed() {
-		status = "failed"
-	}
-	fmt.Fprintf(&b, "%s: %s\n", r.Combination.Name(), status)
-	if r.Err != nil {
-		b.WriteString("  not rendered\n")
-		writeLines(&b, template.Lines(cli.Message(r.Err)))
-	}
-	for _, l := range r.Leftovers {
-		path := manifest.Words{l.Path}.String()
-		if l.Line == 0 {
-			fmt.Fprintf(&b, "  leftover: %q in the path %s\n", l.Text, path)
-		} else {
-			fmt.Fprintf(&b, "  leftover: %q at %s:%d\n", l.Text, path, l.Line)
-		}
-	}
-	for _, c := range r.Checks {
-		switch c.Status {
-		case template.Passed:
-			fmt.Fprintf(&b, "  passed: %s\n", c.Check)
-		case template.Failed:
-			fmt.Fprintf(&b, "  failed: %s\n", c.Check)
-			writeLines(&b, c.Lines())
-		case template.Skipped:
-			fmt.Fprintf(&b, "  skipped: %s\n", c.Check)
-		}
-	}
-	return b.String()
-}
-
-// writeLines writes each line after "    |", a space before the line when
-// it is not empty.
-func writeLines(b *strings.Builder, lines []string) {
-	for _, line := range lines {
-		if line == "" {
-			b.WriteString("    |\n")
-			continue
-		}
-		b.WriteString("    | " + line + "\n")
-	}
 }
 
 // ── Application ──

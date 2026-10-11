@@ -557,6 +557,86 @@ func (t *Terminal) Ask(q port.Question) (string, error) {
 	}
 }
 
+// Tagger is a template's own repository held in memory, where a release
+// is tagged: its local branches and origin's, each at a commit; each
+// commit's parent, a history to tell ahead from behind; and its tags,
+// really made and deleted. A tag Refused names, or one there already, is
+// refused as git refuses one; one Stuck names stays when deleted. A method
+// Fails names by its name fails with that error, as a git that cannot be
+// read does.
+type Tagger struct {
+	Folder  string // its top; "" for a folder in no repository
+	Remote  bool   // whether it has an origin
+	Local   map[string]string
+	Origin  map[string]string
+	Parents map[string]string // each commit's parent
+	Tags    map[string]Tagged
+	Refused map[string]error
+	Stuck   map[string]error
+	Fails   map[string]error // by method: Top, HasOrigin, Heads, IsAncestor
+}
+
+// Tagged is a tag a Tagger holds: the commit it names and its message.
+type Tagged struct{ Commit, Message string }
+
+var _ port.Tagger = (*Tagger)(nil)
+
+// Top is Folder, or a *port.NoRepository when it is "".
+func (t *Tagger) Top() (string, error) {
+	if err := t.Fails["Top"]; err != nil {
+		return "", err
+	}
+	if t.Folder == "" {
+		return "", &port.NoRepository{Why: "not a git repository"}
+	}
+	return t.Folder, nil
+}
+
+// HasOrigin is Remote.
+func (t *Tagger) HasOrigin() (bool, error) { return t.Remote, t.Fails["HasOrigin"] }
+
+// Heads are the branch's commits in Local and Origin.
+func (t *Tagger) Heads(branch string) (string, string, error) {
+	return t.Local[branch], t.Origin[branch], t.Fails["Heads"]
+}
+
+// IsAncestor is whether commit is of, or found walking of's Parents.
+func (t *Tagger) IsAncestor(commit, of string) (bool, error) {
+	if err := t.Fails["IsAncestor"]; err != nil {
+		return false, err
+	}
+	for c := of; c != ""; c = t.Parents[c] {
+		if c == commit {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
+// Tag makes the tag name, unless Refused names it or it is there already.
+func (t *Tagger) Tag(name, commit, message string) error {
+	if err := t.Refused[name]; err != nil {
+		return err
+	}
+	if _, ok := t.Tags[name]; ok {
+		return fmt.Errorf("tag '%s' already exists", name)
+	}
+	if t.Tags == nil {
+		t.Tags = map[string]Tagged{}
+	}
+	t.Tags[name] = Tagged{Commit: commit, Message: message}
+	return nil
+}
+
+// Untag deletes the tag name, unless Stuck names it.
+func (t *Tagger) Untag(name string) error {
+	if err := t.Stuck[name]; err != nil {
+		return err
+	}
+	delete(t.Tags, name)
+	return nil
+}
+
 // The modes of a fake tree's files but a plain one's (0, or 0o644): an
 // executable file's, a symbolic link's (its Data the target) and a
 // submodule's.

@@ -60,12 +60,15 @@ linters:
           files:
             - "**/internal/adopt/**"
             - "**/internal/check/**"
+            - "**/internal/cutrelease/**"
             - "**/internal/newproject/**"
             - "**/internal/update/**"
           deny:
             - pkg: github.com/donvargax/itos-template/internal/adopt$
               desc: "a slice imports no other slice (decision 17): move what they share into the domain"
             - pkg: github.com/donvargax/itos-template/internal/check$
+              desc: "a slice imports no other slice (decision 17): move what they share into the domain"
+            - pkg: github.com/donvargax/itos-template/internal/cutrelease$
               desc: "a slice imports no other slice (decision 17): move what they share into the domain"
             - pkg: github.com/donvargax/itos-template/internal/newproject$
               desc: "a slice imports no other slice (decision 17): move what they share into the domain"
@@ -80,6 +83,7 @@ linters:
             - "**/internal/caseform/**"
             - "**/internal/manifest/**"
             - "**/internal/project/**"
+            - "**/internal/releasing/**"
             - "**/internal/render/**"
             - "**/internal/template/**"
             - "**/internal/updating/**"
@@ -98,6 +102,8 @@ linters:
               desc: "the domain imports no slice (decision 17)"
             - pkg: github.com/donvargax/itos-template/internal/check$
               desc: "the domain imports no slice (decision 17)"
+            - pkg: github.com/donvargax/itos-template/internal/cutrelease$
+              desc: "the domain imports no slice (decision 17)"
             - pkg: github.com/donvargax/itos-template/internal/newproject$
               desc: "the domain imports no slice (decision 17)"
             - pkg: github.com/donvargax/itos-template/internal/update$
@@ -115,6 +121,7 @@ linters:
             - "**/internal/caseform/**"
             - "**/internal/manifest/**"
             - "**/internal/project/**"
+            - "**/internal/releasing/**"
             - "**/internal/render/**"
             - "**/internal/template/**"
             - "**/internal/updating/**"
@@ -169,6 +176,7 @@ linters:
             - "!**/internal/caseform/*_test.go"
             - "!**/internal/manifest/*_test.go"
             - "!**/internal/project/*_test.go"
+            - "!**/internal/releasing/*_test.go"
             - "!**/internal/render/*_test.go"
             - "!**/internal/template/*_test.go"
             - "!**/internal/updating/*_test.go"
@@ -183,6 +191,7 @@ linters:
             - "!**/internal/cli/**"
             - "!**/internal/adopt/**"
             - "!**/internal/check/**"
+            - "!**/internal/cutrelease/**"
             - "!**/internal/newproject/**"
             - "!**/internal/update/**"
           deny:

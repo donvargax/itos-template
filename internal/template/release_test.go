@@ -270,3 +270,59 @@ func TestTagsThatCannotBeReadStopTheChoiceOfARelease(t *testing.T) {
 		t.Errorf("UseRelease = %v", err)
 	}
 }
+
+func TestAReleaseIsCutOnlyAsVXYZWithAnOptionalPreRelease(t *testing.T) {
+	for v, want := range map[string]bool{
+		"v1.2.0": true, "v0.0.1": true, "v1.3.0-rc.1": true, "v10.20.30-alpha.beta": true,
+		"v1": false, "v1.2": false, "1.2.0": false, "v1.2.0+build": false, "v1.2.0-rc.1+build": false,
+		"v01.2.0": false, "latest": false, "": false, "V1.2.0": false,
+	} {
+		if Cuttable(v) != want {
+			t.Errorf("Cuttable(%q) = %v", v, !want)
+		}
+	}
+}
+
+func TestTheBranchesAReleaseTagsAndTheHeadsCheckReads(t *testing.T) {
+	repo := acme()
+	tpl := open(t, repo)
+	if !slices.Equal(tpl.Branches(), acmeBranches) {
+		t.Errorf("Branches = %q", tpl.Branches())
+	}
+	if head, err := tpl.Head("sh/extra"); err != nil || head != "commit of sh/extra" {
+		t.Errorf("Head(sh/extra) = %q, %v", head, err)
+	}
+	delete(repo.Branches, "py/tool")
+	var noBranch *NoBranch
+	if head, err := tpl.Head("py/tool"); !errors.As(err, &noBranch) || noBranch.Branch != "py/tool" || head != "" {
+		t.Errorf("Head of a branch the template lacks = %q, %v", head, err)
+	}
+	released := open(t, released("v1.0.0"))
+	if err := released.UseRelease("v1.0.0"); err != nil {
+		t.Fatal(err)
+	}
+	if head, err := released.Head("stack/sh"); err != nil || head != "tag stack/sh/v1.0.0" {
+		t.Errorf("Head of a release's branch = %q, %v", head, err)
+	}
+}
+
+func TestTaggedAreTheListedBranchesTagsOfAVersionWhereverTheyPoint(t *testing.T) {
+	repo := acme()
+	repo.Tagged = map[string]porttest.Tag{
+		"sh/more/v1.0.0":  {Tree: repo.Branches["main"]},
+		"main/v1.0.0":     {Tree: repo.Branches["main"], On: "main"},
+		"other/v1.0.0":    {Tree: repo.Branches["main"]},
+		"stack/sh/v1.1.0": {Tree: repo.Branches["stack/sh"], On: "stack/sh"},
+	}
+	tpl := open(t, repo)
+	if got, err := tpl.Tagged("v1.0.0"); err != nil || !slices.Equal(got, []string{"main/v1.0.0", "sh/more/v1.0.0"}) {
+		t.Errorf("Tagged(v1.0.0) = %q, %v", got, err)
+	}
+	if got, err := tpl.Tagged("v2.0.0"); err != nil || got != nil {
+		t.Errorf("Tagged(v2.0.0) = %q, %v", got, err)
+	}
+	repo.NoTags = errors.New("cannot read the tags")
+	if got, err := tpl.Tagged("v1.0.0"); got != nil || !errors.Is(err, repo.NoTags) {
+		t.Errorf("Tagged with tags that cannot be read = %q, %v", got, err)
+	}
+}

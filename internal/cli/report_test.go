@@ -1,4 +1,4 @@
-package check
+package cli
 
 import (
 	"errors"
@@ -21,17 +21,17 @@ func TestEachResultsExitCode(t *testing.T) {
 		{template.Result{Err: &git.Missing{Err: errors.New("no git")}}, 3},
 		{template.Result{Err: errors.New("a defect")}, 70},
 	} {
-		if got := exitCode(c.r); got != c.code {
-			t.Errorf("exitCode(%+v) = %d, not %d", c.r, got, c.code)
+		if got := ResultCode(c.r); got != c.code {
+			t.Errorf("ResultCode(%+v) = %d, not %d", c.r, got, c.code)
 		}
 	}
 }
 
 func TestTheSummaryCountsTheCombinationsThatPassed(t *testing.T) {
-	if got := summary(1, 1); got != "\n1 of 1 combination passed.\n" {
-		t.Errorf("summary(1, 1) = %q", got)
+	if got := Summary(1, 1); got != "\n1 of 1 combination passed.\n" {
+		t.Errorf("Summary(1, 1) = %q", got)
 	}
-	if got := summary(1, 2); got != "\n1 of 2 combinations passed.\n" {
-		t.Errorf("summary(1, 2) = %q", got)
+	if got := Summary(1, 2); got != "\n1 of 2 combinations passed.\n" {
+		t.Errorf("Summary(1, 2) = %q", got)
 	}
 }
