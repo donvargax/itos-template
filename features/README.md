@@ -104,7 +104,9 @@ scenario` checks:
 - A smoke scenario is fast and central to its file.
 
 So a `feat` that adds a feature file, or makes a `@wip` one live, picks its
-smoke scenario in the same commit.
+smoke scenario in the same commit: since itos 7.3.0 the commit-msg hook
+refuses a commit that stages a feature file with a live scenario and no
+smoke entry for it.
 
 ## Moving scenarios between files
 
