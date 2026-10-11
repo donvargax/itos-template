@@ -1058,16 +1058,6 @@
     survivors may fail a night until items kill them; that is expected, not a reason to weaken the
     nightly. Report the per-push proof's wall time in CI and a hand-run nightly's (gh workflow run
     nightly.yml), which the coordinator reports back on itos#41.
-  done_when:
-    - run: grep -qF 'tools/bin/pinned itos-cc mutation run --count 1 --since {base} --fail-uncovered=lines --all-tests --json cmd internal' itos.yaml
-    - run: "! grep -qF 'itos-cc mutation sample' itos.yaml"
-    - run: grep -qF 'itos-cc mutation run --count 20 --all-tests --seed' itos.yaml
-    - run: grep -qF 'itos ci run --nightly' .github/workflows/nightly.yml
-    - run: grep -qF 'schedule:' .github/workflows/nightly.yml
-    - run: "! git ls-files .metrics/mutate | grep -q ."
-    - run: "! grep -q 'GOTOOLCHAIN' tools/bin/pinned"
-    - run: grep -qF 'itos-cc mutation run --count 1 --since' AGENTS.md
-    - run: itos config check
 - id: T-46
   type: chore
   title: Re-record the mutants of cmd and internal in two tiers, so own-test outcomes stay fresh when another package's tests change
