@@ -313,7 +313,7 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     And the path "made/release.txt" does not exist
     And "made" has staged changes to ".itos-template.yaml" only, and nothing unstaged
 
-  @ID-UPDATE-25 @slice-18 @wip
+  @ID-UPDATE-25 @slice-18
   Scenario: a declined folder keeps out a file the release adds under it
     Given the template "acme" released as "v1.0.0", "v1.1.0" and "v1.2.0-rc.1", whose v1.1.0 adds "docs/acme-widget.md" containing "acme-widget AcmeWidget"
     And a project in "fresh" made by new from the release "v1.0.0" with stack "go", features "cli" and name "blue-fox"
@@ -321,4 +321,4 @@ Feature: update brings a made project to a newer template release by a 3-way mer
     When itos-template runs in "fresh" with "update --to v1.1.0"
     Then it exits with code 0
     And the path "fresh/docs/blue-fox.md" does not exist
-    And "fresh" has staged changes to ".itos-template.yaml" only, and nothing unstaged
+    And "fresh" has staged changes to "release.txt" and ".itos-template.yaml" only, and nothing unstaged
