@@ -108,14 +108,14 @@ git-cliff)
 	member=git-cliff-$version/git-cliff exe=
 	;;
 itos-cc)
-	# v0.12.0, 2026-10-11.
-	version=0.12.0
+	# v0.14.2, 2026-10-11.
+	version=0.14.2
 	case "$platform" in
-	linux-amd64) sum=ade5529ba9b175732c9160f70e4ce8df36a9e198f5cbe7283f70bb809dcaea1c ;;
-	linux-arm64) sum=a6e20c55f7428cf379b0383f6bd5ffdd32bd4ec63f2c21fdc202dfffc9a2999e ;;
-	darwin-amd64) sum=6457c87a04850b3cc5035c7b2122bb3fa2f402188e7109e4cd370ebbb08054fa ;;
-	darwin-arm64) sum=83847010c04494d5c109904e98e6edaa50fc6af683e632928bc5011240545de9 ;;
-	windows-amd64) sum=1dca6f36e6fbc6778a2480349fd37bb660702a39a02f238aa59f9d4618550680 ;;
+	linux-amd64) sum=e6c6672f5ff8a453ffe0b0baf3a8aa1ff040098840b58cc2a4dafcd2f5d7ec3d ;;
+	linux-arm64) sum=40846ee4f0f62607851d206986a7613e715dd24d577451c52ab3e55dec034f0b ;;
+	darwin-amd64) sum=368261da166592525060451489d6a532a8fb2cecd9ea03629ef7ae42d0e03d60 ;;
+	darwin-arm64) sum=9c5b9d4f0568431c641bcf5cdac190fe70b56d22005441dc7032a34c591ef322 ;;
+	windows-amd64) sum=ab0ce1ccfd7cba75789f03a8cb7fe9130633c2f9c3c416ba78c8249f4952941a ;;
 	*) die "no pinned $tool for $platform" ;;
 	esac
 	case "$platform" in
