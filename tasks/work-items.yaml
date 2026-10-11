@@ -13,6 +13,7 @@ phases:
 queue:
   - T-52
   - T-51
+  - T-53
 items:
   - id: T-2
     title: License itos-template under the AGPL-3.0, as itos is
