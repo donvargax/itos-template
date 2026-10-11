@@ -836,6 +836,10 @@ items:
       checkout. Until it is fixed, a checkout that records coverage holds no .go file git does not
       track; when fixed and pinned, nothing here changes but that warning in
       docs/mutation-baseline.md.
+
+      itos-cc#36 and #37 no longer touch this repository since T-45 (decision 40, 2026-10-11):
+      nothing is recorded, a counted run judges HEAD's tracked files in a private copy, and
+      tools/bin/pinned no longer sets GOTOOLCHAIN. Whenever they land, nothing here changes.
     tags: [ci]
   - id: T-24
     title: Upgrade the Go toolchain to clear the standard-library security failures
