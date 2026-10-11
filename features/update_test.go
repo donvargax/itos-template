@@ -36,9 +36,7 @@ func (w *world) updateSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^a saved snapshot of the HEAD of "([^"]*)"$`, w.saveHead)
 	sc.Step(`^the HEAD of "([^"]*)" is unchanged$`, w.headUnchanged)
 	sc.Step(`^"([^"]*)" has staged changes to (".*") only, and nothing unstaged$`, w.stagedOnly)
-	sc.Step(`^"([^"]*)" has the record staged$`, func(dir string) error {
-		return w.stagedAs(dir, ".itos-template.yaml", "modified")
-	})
+	sc.Step(`^"([^"]*)" has the record staged$`, w.recordStaged)
 	sc.Step(`^"([^"]*)" has "([^"]*)" staged as (added|removed)$`, w.stagedAs)
 	sc.Step(`^the file "([^"]*)" holds git's conflict markers around "([^"]*)" and "([^"]*)"$`, w.conflictMarkers)
 	sc.Step(`^the file "([^"]*)" has the line "([^"]*)"$`, w.hasLine)
@@ -48,6 +46,9 @@ func (w *world) updateSteps(sc *godog.ScenarioContext) {
 	})
 	sc.Step(`^the index of "([^"]*)" holds "([^"]*)" unmerged, its base "([^"]*)", no project side and the release's "([^"]*)"$`, func(dir, file, base, theirs string) error {
 		return w.unmerged(dir, file, map[string]string{"1": base, "3": theirs})
+	})
+	sc.Step(`^the index of "([^"]*)" holds "([^"]*)" unmerged, no base, the project's "([^"]*)" and the release's "([^"]*)"$`, func(dir, file, ours, theirs string) error {
+		return w.unmerged(dir, file, map[string]string{"2": ours, "3": theirs})
 	})
 	sc.Step(`^its update JSON conflicts are (".*")$`, w.updateConflicts)
 }
@@ -369,6 +370,17 @@ func (w *world) stagedAs(dir, file, kind string) error {
 		}
 	}
 	return fmt.Errorf("%s does not have %s staged as %s: git status says %v\n%s", dir, file, kind, entries, w.report())
+}
+
+// recordStaged is whether dir's index holds the record as its working tree
+// does: modified from HEAD's, as update stages it, or added when HEAD holds
+// none, as adopt --merge stages it.
+func (w *world) recordStaged(dir string) error {
+	kind := "added"
+	if _, err := w.gitOut(w.path(dir), "cat-file", "-e", "HEAD:.itos-template.yaml"); err == nil {
+		kind = "modified"
+	}
+	return w.stagedAs(dir, ".itos-template.yaml", kind)
 }
 
 // conflictMarkers is whether file holds a conflict as git marks one: a line
