@@ -1026,50 +1026,47 @@
     covers but the proof does not, is out of scope.
 - id: T-45
   type: ci
-  title: Per push the proof judges the changed lines and CI samples two mutants; nightly samples twenty (itos#41 tiers)
+  title: Mutation runs without a cache, one fresh mutant a push and twenty a night, as itos does (decision 40)
   why: >
-    The person chose donvargax/itos#41's testing tiers for this repository (2026-10-10): fast
-    locally, judging per push, thorough nightly, the code proof reading .metrics/mutate/ as it does
-    today. Locally the tier is AGENTS.md's (the item's mutation run with --fail-fast while fixing, a
-    sample of one); the scenarios that reach a survivor instead of --all-tests wait on itos#22 (the
-    idea listed-tests). This task makes the other two. Per push: ci.steps' tools/bin/pinned itos-cc
-    mutation sample --count 10 becomes --count 2, since a whole-suite mutant now costs 30 to 50 s
-    (docs/mutation-baseline.md, T-42) and the proof, not the sample, judges each changed function.
-    Nightly: a ci.nightly plan in itos.yaml (itos ci run --help, --nightly) holding tools/bin/pinned
-    itos-cc mutation sample --count 20 --seed nightly-$(date -u +%F), the seed by the day because a
-    commit's own id draws the same mutants every night no one pushes, and a workflow
-    .github/workflows/nightly.yml on a schedule (once a day, at an hour of the repository's
-    choosing) and workflow_dispatch, which runs itos ci run --nightly on ubuntu-latest, set up as
-    ci.yml's ci job sets itos, Go and the pinned tools up, read-only permissions. No whole scenario
-    suite nightly: ci.steps' comment says the whole suite is the smoke set's size, so a push runs it
-    already; and the platform jobs keep running the whole suite until itos#18 gives a push a
-    workflow of its own. Regenerate AGENTS.md's rules block with itos init --agent-rules, and update
-    itos.yaml's comments that name the sample's count or say there is no nightly. Run the nightly by
-    hand once (gh workflow run nightly.yml) after the push and report its run, its wall time, and
-    the per-push sample's wall time at --count 2 against --count 10's, which the coordinator reports
-    back on itos#41. With itos-cc 0.12.0 (pinned by T-43), the person also chose changed-line
-    coverage for the proof (2026-10-10): itos.yaml's proof.code.check takes --fail-uncovered=lines
-    in place of --fail-uncovered, and AGENTS.md's Finishing command for an item's run takes it too,
-    so an item covers the Go blocks it adds or changes, not every old line of a function it touches;
-    survivors are judged over whole functions as before. The Finishing form without --since (an item
-    about code it does not change) keeps --fail-uncovered, since =lines without --since is a usage
-    error. Old uncovered code stays listed in docs/mutation-baseline.md's T-43 section, for items of
-    its own. Update itos.yaml's proof comment and decision 27's consequences with a line saying the
-    gap it named is closed by itos-cc#23 and judged by changed lines since this task.
-    A sample draws only fresh outcomes and passes on none, so neither sample may pass quietly on an
-    empty pool: the per-push and nightly steps fail when they draw fewer fresh mutants than their
-    count asks for (a wrapper in tools/bin reading the sample's --json, or itos-cc's own option if
-    0.12.0 has one; a gap there is filed to itos-cc). T-46 re-records in two tiers first, so own-test
-    outcomes, most of them, stay fresh when another package's tests change; report the pool each
-    sample drew from.
+    Decision 40 (2026-10-11, superseding 39) takes itos's answer to donvargax/itos#41: no recorded
+    outcomes. Read it, and itos's own itos.yaml (proof, ci.nightly) and AGENTS.md's mutation
+    paragraph at ~/tmp/llms-safe/gamedev/svg-art/itos, which this harvests. Per push: itos.yaml's
+    proof.code.check becomes tools/bin/pinned itos-cc mutation run --count 1 --since {base}
+    --fail-uncovered=lines --all-tests --json cmd internal, one mutation site of the range's changed
+    functions judged freshly and every Go block the range adds or changes covered; a range with no
+    site is not applicable and passes. --all-tests because nothing here lists the scenarios that
+    reach a site yet (the idea listed-tests), and the scenarios kill 272 of T-43's 1504 mutants that
+    own tests leave. Take out ci.steps' mutation sample step: there is nothing recorded to sample.
+    Nightly: a ci.nightly plan holding tools/bin/pinned itos-cc mutation run --count 20 --all-tests
+    --seed "${GITHUB_RUN_ID:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}" --json cmd internal, without
+    --fail-uncovered (with no range strict coverage judges every function, and T-43's 187 uncovered
+    statements are a backlog of their own), and .github/workflows/nightly.yml, on a daily schedule
+    and workflow_dispatch, running itos ci run --nightly on ubuntu-latest, set up as ci.yml's ci job
+    sets itos, Go and the pinned tools up, read-only permissions. Take .metrics/mutate/ out of the
+    repository, and tools/bin/pinned's GOTOOLCHAIN=local line, which only made recorded evidence
+    match CI's (itos-cc#36): confirm a counted run passes in CI without it, and note in the
+    upstream-fixes idea that #36 and #37 no longer touch this repository. itos-cc.yaml's exceptions
+    stay: counted runs apply them. AGENTS.md's Finishing says, as itos's does, that the one local
+    mutation run is the push's proof run once before pushing a Go change (tools/bin/pinned itos-cc
+    mutation run --count 1 --since $(git rev-parse origin/main) --fail-uncovered=lines --all-tests
+    --json cmd internal), a survivor it finds killed with a test or excepted for the person's review,
+    an uncovered line given a test; the two-run text, --fail-fast and the sample of one go. Then
+    itos init --agent-rules for its rules block. T-20's checks name the cache (mutation check, the
+    sample step, 0.12.0's version stays): rewrite the ones the change makes untrue to hold the new
+    commands, saying so in the commit body. docs/mutation-baseline.md gains a short note that the
+    records left with decision 40 and its tables stay as the last full measurement. The 50 known
+    survivors may fail a night until items kill them; that is expected, not a reason to weaken the
+    nightly. Report the per-push proof's wall time in CI and a hand-run nightly's (gh workflow run
+    nightly.yml), which the coordinator reports back on itos#41.
   done_when:
-    - run: grep -qF 'tools/bin/pinned itos-cc mutation check --since {base} --fail-uncovered=lines --json cmd internal' itos.yaml
-    - run: grep -qF -- '--fail-uncovered=lines --no-annotate cmd internal`, then the same with `--all-tests`' AGENTS.md
-    - run: grep -qF 'tools/bin/pinned itos-cc mutation sample --count 2,' itos.yaml
-    - run: grep -qF 'itos-cc mutation sample --count 20 --seed nightly-' itos.yaml
+    - run: grep -qF 'tools/bin/pinned itos-cc mutation run --count 1 --since {base} --fail-uncovered=lines --all-tests --json cmd internal' itos.yaml
+    - run: "! grep -qF 'itos-cc mutation sample' itos.yaml"
+    - run: grep -qF 'itos-cc mutation run --count 20 --all-tests --seed' itos.yaml
     - run: grep -qF 'itos ci run --nightly' .github/workflows/nightly.yml
     - run: grep -qF 'schedule:' .github/workflows/nightly.yml
-    - run: grep -qF 'tools/bin/pinned itos-cc mutation sample --count 2' AGENTS.md
+    - run: "! git ls-files .metrics/mutate | grep -q ."
+    - run: "! grep -q 'GOTOOLCHAIN' tools/bin/pinned"
+    - run: grep -qF 'itos-cc mutation run --count 1 --since' AGENTS.md
     - run: itos config check
 - id: T-46
   type: chore
