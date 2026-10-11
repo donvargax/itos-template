@@ -181,3 +181,37 @@ Feature: release tags every branch of a template with one version once check pas
       | where                                        | dir   | code | problem |
       | a copy "plain" of the template with no origin | plain | 1    | origin  |
       | a folder "loose" outside any git repository   | loose | 3    | git     |
+
+  # bug-7: release took the root from the branch the checkout is on, as check
+  # does, so from stack/go it planned that tag twice and main's never (git
+  # refused the second; release took back the first and named no cause), and
+  # from an unlisted branch pushed to origin it would have tagged that branch
+  # as the root and left main untagged. A release is for origin, and the root
+  # is the template's default branch (decision 36), so release reads it from
+  # origin whatever is checked out: origin's HEAD as git clone recorded it,
+  # else as origin says it, as check reads a detached checkout's. An origin
+  # naming no default branch is refused with exit 2, as check refuses one.
+  # The person's call, 2026-10-10. check keeps its own rule (check-root-branch).
+  @ID-RELEASE-15 @bug-7 @wip
+  Scenario: release from a checkout on a listed branch still tags the root, main, and every other branch once
+    Given in "tpl" the branch "stack/go" checked out
+    When itos-template runs in the folder "tpl" with "release v1.0.0 --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And in "tpl" every branch the template lists carries the annotated tag "<branch>/v1.0.0" at its head, its message naming "v1.0.0"
+
+  @ID-RELEASE-16 @bug-7 @wip
+  Scenario: release from a checkout on an unlisted branch pushed to origin tags the listed branches, never it
+    Given in "tpl" a branch "notes" off "main" with one more commit, pushed to origin and checked out
+    When itos-template runs in the folder "tpl" with "release v1.0.0 --answer name=blue-fox --defaults"
+    Then it exits with code 0
+    And in "tpl" every branch the template lists carries the annotated tag "<branch>/v1.0.0" at its head, its message naming "v1.0.0"
+    And "tpl" has no tag "notes/v1.0.0"
+
+  @ID-RELEASE-17 @bug-7 @wip
+  Scenario: release refuses with exit 2 an origin that names no default branch, making no tag
+    Given the clone "tpl" has no record of origin's HEAD
+    And the clone "tpl" has an origin whose HEAD names no branch
+    When itos-template runs in the folder "tpl" with "release v1.0.0 --answer name=blue-fox --defaults"
+    Then it exits with code 2
+    And its error output says "no default branch"
+    And "tpl" has no tag ending "/v1.0.0"
