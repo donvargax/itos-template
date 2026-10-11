@@ -283,6 +283,12 @@ excepted, no test was added and no code changed, since what to kill waits on ito
 - 0.12.0 came out during the run. Pinned at `36d0674`, its check read every record of the 0.11.0
   run fresh, coverage evidence included, so nothing was run again: 0.12.0 makes only Python and
   TypeScript evidence stale once.
+- In CI the same records read coverage-stale, all 505 functions, on itos-cc's `@go-env` input:
+  itos-cc fingerprints the raw value of `GOTOOLCHAIN`, which actions/setup-go sets to `local` and a
+  shell here leaves unset (donvargax/itos-cc#36). Here, `GOTOOLCHAIN=auto`, Go's own default, reads
+  all 505 stale too. Since `6e0d92d`, `tools/bin/pinned` runs itos-cc with `GOTOOLCHAIN=local`, as
+  CI does, and the run was made again under it. It reused every outcome but the 50 survivors, which
+  it ran again (all 50 survived again), and measured the coverage again.
 
 ```
 tools/bin/pinned itos-cc mutation run --fail-uncovered --all-tests --no-annotate --json cmd internal
@@ -293,8 +299,9 @@ tools/bin/pinned itos-cc mutation sample --count 1 cmd internal
 | Command | Wall time | Exit |
 |---|---|---|
 | `mutation run`, 0.11.0 | 11001 s (3 h 3 min), 1484 mutants run, 20 uncovered, none reused | 1 |
+| `mutation run`, 0.12.0, `GOTOOLCHAIN=local` | 413 s, 50 mutants run, 1434 reused | 1 |
 | `mutation check`, 0.12.0 | 2 s | 1 |
-| `mutation sample --count 1`, 0.12.0 | 32 s | 0 |
+| `mutation sample --count 1`, 0.12.0 | 32 s, and 24 s after the second run | 0 |
 
 Every mutant ran against the whole suite: under 0.11.0 and 0.12.0, `--all-tests` runs the whole
 suite for every mutant it runs, and reuses only fresh results, which 0.5.0's records were not. A
@@ -304,10 +311,10 @@ the whole suite for what they leave, holds only as two runs: tried in a scratch 
 ran 1 mutant. Done that way here, it would have run an own-tests pass (313 s, below) and then about
 345 mutants with the whole suite rather than 1484.
 
-After the run no rapid failfile was left in the tree (no `testdata/rapid` anywhere), and before the
-records were committed one mutant was sampled again (the person's choice of a local sample of 1;
-CI samples 10): `internal/answer/answer.go:33` `0` → `1`, killed again, seed `36d06748`, no
-mismatch.
+After the runs no rapid failfile was left in the tree (no `testdata/rapid` anywhere), and before the
+records were committed one mutant was sampled again each time (the person's choice of a local
+sample of 1; CI samples 10): `internal/answer/answer.go:33` `0` → `1`, seed `36d06748`, and
+`internal/template/template.go:161` `!=` → `==`, seed `6e0d92d7`, each killed again, no mismatch.
 
 ### Per package
 
@@ -317,7 +324,10 @@ comes from a second run, in a scratch worktree at `36d0674` with no records, wit
 is **Killed only with the whole suite**. No mutant its own tests killed survived the whole suite.
 **Survived** leaves out the three excepted survivors, counted under **Excepted**. **Uncovered** is
 a mutant no test of the whole suite executes; **Uncovered statements** are the
-`mutation.uncovered-statement` blocks, mutants or not, strict coverage reports.
+`mutation.uncovered-statement` blocks, mutants or not, strict coverage reports. One block moved
+between the two coverage measurements: `internal/manifest/decode.go:48` (`Decode`, a second
+document that does not parse) was uncovered in the first and covered in the second, since only a
+property's random input reaches it, so the count is 187 here and was 188 under 0.11.0.
 
 | Package | Mutants | Killed, own tests | Killed only with the whole suite | Survived | Excepted | Uncovered | Uncovered statements |
 |---|---|---|---|---|---|---|---|
@@ -331,7 +341,7 @@ a mutant no test of the whole suite executes; **Uncovered statements** are the
 | internal/cutrelease | 25 | 0 | 25 | 0 | 0 | 0 | 7 |
 | internal/disk | 13 | 10 | 1 | 0 | 0 | 2 | 6 |
 | internal/git | 270 | 214 | 33 | 17 | 0 | 6 | 72 |
-| internal/manifest | 255 | 229 | 3 | 12 | 1 | 10 | 13 |
+| internal/manifest | 255 | 229 | 3 | 12 | 1 | 10 | 12 |
 | internal/newproject | 26 | 13 | 13 | 0 | 0 | 0 | 2 |
 | internal/program | 7 | 0 | 7 | 0 | 0 | 0 | 0 |
 | internal/project | 30 | 28 | 2 | 0 | 0 | 0 | 6 |
@@ -347,7 +357,7 @@ a mutant no test of the whole suite executes; **Uncovered statements** are the
 | internal/update | 21 | 0 | 21 | 0 | 0 | 0 | 11 |
 | internal/updating | 47 | 46 | 1 | 0 | 0 | 0 | 2 |
 | internal/version | 14 | 14 | 0 | 0 | 0 | 0 | 1 |
-| **Total** | **1504** | **1159** | **272** | **50** | **3** | **20** | **188** |
+| **Total** | **1504** | **1159** | **272** | **50** | **3** | **20** | **187** |
 
 Under its own tests alone the project leaves 73 survivors, 272 uncovered mutants and 653 uncovered
 statements; the whole suite kills 272 of those 345 mutants and leaves 50 survivors, 3 excepted
