@@ -138,6 +138,7 @@ A push that touches only `**/*.md`, `docs/**` and `tasks/**` runs only `itos con
 The nightly, `itos ci run --nightly`, runs these in order:
 
 - `go mod download`
+- `tools/bin/e2e-coverage`
 - `tools/bin/pinned itos-cc mutation run --count 20 --all-tests --seed "${GITHUB_RUN_ID:-$(date -u +%Y-%m-%dT%H:%M:%SZ)}" --json cmd internal`
 
 <!-- itos:end -->

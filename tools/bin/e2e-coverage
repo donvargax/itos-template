@@ -1,0 +1,174 @@
+#!/bin/sh
+# e2e-coverage: holds each package of cmd and internal outside the domain to
+# a floor of coverage, 80% of its statements, the domain's floor (T-47), its
+# unit tests and the scenarios counted together. Decision 19 leaves the
+# adapters, the UI, the slices and cmd to the scenarios on the real git, with
+# a unit test only for what no scenario can reach (asking on a terminal), so
+# neither alone is the figure: the scenarios alone leave prompt at 4%, and the
+# unit tests alone leave a slice near nothing. Run by the nightly plan
+# (itos.yaml's ci.nightly), never a push's: a push holds the domain's floor
+# (tools/bin/domain-coverage) and its changed lines (the code proof). It
+# prints each package's figure and the total over them, then exits 1 naming
+# each package under the floor and its figure, else 0. A package under it is
+# given a test, never a lower floor.
+#
+# The packages are read, never listed: every package of cmd and internal
+# that go list finds, less three kinds.
+#  - The domain's, read from depguard's domain rule in .golangci.yml, its
+#    files list, as tools/bin/domain-coverage reads it: a glob
+#    **/internal/answer/** is ./internal/answer and every package beneath it.
+#  - A port package, internal/**/port: interfaces, with nothing to run.
+#  - Test support, porttest and releasetest among them: a package some
+#    package's tests import (go list's TestImports and XTestImports) and no
+#    package's own code does (its Imports), over the whole module, tools/bin
+#    included. A package nothing imports at all, cmd/itos-template, is not
+#    test support and is measured.
+#
+# Measured as go's own tools count it (go.dev/doc/build-cover): the unit
+# tests of cmd and internal run with -cover -coverpkg=./..., writing their
+# counters to one folder (-test.gocoverdir), and the scenarios run with
+# GOCOVERDIR naming that folder, which builds itos-template with -cover
+# (features/features_test.go, T-19); go tool covdata textfmt merges the two.
+# A statement counts as run when any test or scenario ran it, whichever
+# package's test that was. RAPID_CHECKS=1 as the push's unit tests run: the
+# properties are the domain's, which is not measured here. A figure is
+# printed cut to one decimal, never rounded up past the floor.
+set -eu
+cd -- "$(dirname -- "$0")/../.."
+
+floor=80
+
+# The domain rule's files, as ./ paths, read as tools/bin/domain-coverage
+# reads them (the same awk): under linters.settings.depguard's rules, the key
+# domain, its files list, each "**/<dir>/**" its <dir>. Lines are read by
+# their indentation; a carriage return (a Windows checkout) is dropped.
+domain=$(awk '
+	{ sub(/\r$/, "") }
+	/^[ \t]*(#.*)?$/ { next }
+	{
+		match($0, /^ */); indent = RLENGTH
+		line = substr($0, indent + 1)
+	}
+	infiles && indent <= filesindent && line !~ /^- / { infiles = 0 }
+	indomain && indent <= domainindent { indomain = 0 }
+	inrules && indent <= rulesindent { inrules = 0 }
+	indepguard && indent <= depguardindent { indepguard = 0 }
+	line == "depguard:" { indepguard = 1; depguardindent = indent; next }
+	indepguard && line == "rules:" { inrules = 1; rulesindent = indent; next }
+	inrules && line == "domain:" { indomain = 1; domainindent = indent; next }
+	indomain && line == "files:" { infiles = 1; filesindent = indent; next }
+	infiles && line ~ /^- / {
+		glob = substr(line, 3)
+		gsub(/^["\047]|["\047][ \t]*(#.*)?$/, "", glob)
+		if (glob !~ /^\*\*\/.*\/\*\*$/) {
+			print "e2e-coverage: the domain rule names " glob ", not a **/<folder>/** glob" > "/dev/stderr"
+			exit 2
+		}
+		print "./" substr(glob, 4, length(glob) - 6)
+	}
+' .golangci.yml)
+if [ -z "$domain" ]; then
+	echo "e2e-coverage: .golangci.yml names no domain packages under depguard's domain rule" >&2
+	exit 2
+fi
+
+tmp=$(mktemp -d)
+trap 'rm -rf "$tmp"' EXIT
+
+# Every package of the module, a line each: its import path, its own code's
+# imports, then its tests' imports, the three fields split by |.
+module=$(go list -m)
+go list -f '{{.ImportPath}}|{{join .Imports " "}}|{{join .TestImports " "}} {{join .XTestImports " "}}' ./... >"$tmp/packages"
+
+# The packages held, as ./ paths in go list's order: those of cmd and
+# internal less the domain's, the ports and test support.
+packages=$(printf '%s\n' "$domain" | awk -F'|' -v module="$module" '
+	FNR == NR { domain[++d] = $0; next }
+	{
+		path[++n] = $1
+		k = split($2, own, " ")
+		for (i = 1; i <= k; i++) imported[own[i]] = 1
+		k = split($3, tests, " ")
+		for (i = 1; i <= k; i++) testimported[tests[i]] = 1
+	}
+	END {
+		for (p = 1; p <= n; p++) {
+			if (index(path[p], module "/") != 1) continue
+			rel = "./" substr(path[p], length(module) + 2)
+			if (rel !~ /^\.\/(cmd|internal)(\/|$)/) continue
+			if (rel ~ /^\.\/internal\/(.*\/)?port$/) continue
+			if ((path[p] in testimported) && !(path[p] in imported)) continue
+			indomain = 0
+			for (i = 1; i <= d; i++)
+				if (rel == domain[i] || index(rel, domain[i] "/") == 1) indomain = 1
+			if (!indomain) print rel
+		}
+	}
+' - "$tmp/packages")
+if [ -z "$packages" ]; then
+	echo "e2e-coverage: cmd and internal hold no package outside the domain" >&2
+	exit 2
+fi
+
+mkdir "$tmp/covdata"
+if ! RAPID_CHECKS=1 go test -count=1 -cover -covermode=atomic -coverpkg=./... ./cmd/... ./internal/... -args -test.gocoverdir="$tmp/covdata" >"$tmp/test.out" 2>&1; then
+	cat "$tmp/test.out" >&2
+	echo "e2e-coverage: the unit tests fail, so there is no figure to hold" >&2
+	exit 1
+fi
+if ! GOCOVERDIR="$tmp/covdata" go test ./features -count=1 >"$tmp/features.out" 2>&1; then
+	cat "$tmp/features.out" >&2
+	echo "e2e-coverage: the scenarios fail, so there is no figure to hold" >&2
+	exit 1
+fi
+go tool covdata textfmt -i="$tmp/covdata" -o "$tmp/cover.out"
+
+# Each block of the profile is file:start,end statements count; a block in
+# it twice counts as run when either run it, as go tool cover merges them.
+# A package is a file's import path less its file name; its figure is its
+# statements run over its statements. The packages are printed in go list's
+# order, each by its ./ path, then the total over them.
+printf '%s\n' "$packages" | awk -v floor="$floor" -v module="$module" '
+	FNR == NR { order[++n] = $0; held[$0] = 1; next }
+	FNR == 1 { next } # mode: atomic
+	{
+		split($0, f, " ")
+		block = f[1]
+		stmts[block] = f[2]
+		if (f[3] > 0) run[block] = 1
+	}
+	END {
+		for (block in stmts) {
+			file = block
+			sub(/:[^:]*$/, "", file)
+			pkg = file
+			sub(/\/[^\/]*$/, "", pkg)
+			pkg = "./" substr(pkg, length(module) + 2)
+			if (!(pkg in held)) continue
+			total[pkg] += stmts[block]
+			if (block in run) covered[pkg] += stmts[block]
+		}
+		refusals = ""
+		for (i = 1; i <= n; i++) {
+			pkg = order[i]
+			if (total[pkg] == 0) {
+				refusals = refusals "e2e-coverage: " pkg " has no statements to measure\n"
+				continue
+			}
+			alltotal += total[pkg]
+			allcovered += covered[pkg]
+			printf "%s %s\n", pkg, figure(covered[pkg], total[pkg])
+			if (covered[pkg] * 100 < floor * total[pkg])
+				refusals = refusals sprintf("e2e-coverage: %s is at %s, under the floor of %d%%: test the behaviour its uncovered statements carry\n", pkg, figure(covered[pkg], total[pkg]), floor)
+		}
+		if (alltotal > 0) printf "total %s\n", figure(allcovered, alltotal)
+		if (refusals == "") exit 0
+		fflush()
+		printf "%s", refusals > "/dev/stderr"
+		exit 1
+	}
+	function figure(c, t,    tenths) {
+		tenths = int(c * 1000 / t)
+		return sprintf("%d.%d%%", tenths / 10, tenths % 10)
+	}
+' - "$tmp/cover.out"

@@ -161,6 +161,13 @@ ci:
       # itos-cc's counted run builds with Go offline (GOPROXY=off), so the modules are fetched
       # first, should the runner's module cache hold none.
       - { run: go mod download, cost: static }
+      # Each package of cmd and internal outside the domain keeps 80% of its statements covered by
+      # its unit tests and the scenarios together (T-47), the packages read as the script says.
+      # Before the mutation step: a plan stops at its first failure, and the known survivors fail
+      # that step about half the nights, which would leave the floor unjudged; coverage is
+      # deterministic, so it fails first and plainly. Not a push's: a push holds the domain's floor
+      # and its changed lines. A package under it names a path to give a test, not a floor to lower.
+      - { run: tools/bin/e2e-coverage, cost: late }
       # Twenty mutation sites of cmd and internal judged freshly (decision 40, as itos's nightly),
       # drawn with no cache; a survivor itos-cc.yaml does not except fails the night, and the 50
       # docs/mutation-baseline.md lists will, until items kill them. --all-tests as in the proof.

@@ -1,11 +1,14 @@
 name: Nightly
 
 # What a push's CI leaves to the night (itos.yaml's ci.nightly), once a day on main and by hand from
-# the Actions tab (gh workflow run nightly.yml): twenty mutation sites of cmd and internal judged
-# freshly with the whole suite, with no cache (decision 40, T-45). Harvested from itos's
+# the Actions tab (gh workflow run nightly.yml): each package of cmd and internal outside the domain
+# held to 80% of its statements by its unit tests and the scenarios together
+# (tools/bin/e2e-coverage, T-47), then twenty mutation sites of cmd and internal judged freshly
+# with the whole suite, with no cache (decision 40, T-45). Harvested from itos's
 # (github.com/donvargax/itos, .github/workflows/nightly.yml), its features, self-tests, Claude Code
 # and red-issue steps left behind: the whole scenario suite runs on every push here, and the job
-# only reads. A red night is a survivor to kill with a test, or to except for the person's review.
+# only reads. A red night is a package under the floor to give a test, or a survivor to kill with a
+# test or to except for the person's review.
 on:
   schedule:
     - cron: "23 4 * * *" # 04:23 UTC every day
@@ -27,7 +30,9 @@ jobs:
       # Set up as ci.yml's ci job sets itos, Go and the pinned tools up, every action pinned to the
       # same commit: actions/checkout v7.0.1, actions/setup-go v7.0.0, and itos's own action at
       # v7.0.0, the release itos.yaml pins. tools/bin/pinned fetches itos-cc itself. No Node: no
-      # step of the nightly plan runs it.
+      # step of the nightly plan runs it (T-14's checks do, in a push's plan). No full history:
+      # only a push's range reads it, and the scenarios e2e-coverage runs need what ci.yml's
+      # platform jobs give them, which run every scenario with neither.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       # Go for the build, the tests and the scenarios' steps (godog), the version go.mod's
       # toolchain line pins.
