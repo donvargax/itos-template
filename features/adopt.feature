@@ -275,3 +275,74 @@ Feature: adopt links an existing project to a template baseline
     And its error output says "template"
     And its error output says "U+0009"
     And the adoption snapshot of "made" is unchanged
+
+  # slice-17 (adopt --merge): GitHub issue #3, part 1, the person's calls
+  # 2026-10-11. --merge merges the baseline render into the project with git's
+  # own merge, as update merges (decision 38), over an empty base: a file the
+  # project lacks is added, a file both hold the same is untouched, a file both
+  # hold differently is an add/add conflict, and a project-only file is
+  # untouched. As update leaves its merge (decision 37), the merge and the record
+  # are staged, HEAD is unchanged and nothing is committed; a conflict exits 1
+  # naming the file and how to back out, as update's does, the record staged
+  # too. The record names the baseline, so a later update's base is that render.
+  # --merge accepts the differences itself, and --force, which writes the record
+  # and nothing else, contradicts it: the two together are a usage error. Every
+  # clean-repository check holds as it does for --force. The feat commit also
+  # corrects the description above and adopt's help, which say a later update
+  # keeps a missing file: it keeps one only while the template leaves it
+  # unchanged, a release that changes it leaving a modify/delete conflict, and
+  # --merge adds it instead. Declined paths (--decline) are the next slice. The
+  # fixture's release.txt holds the release's name.
+  @ID-ADOPT-22 @slice-17 @wip
+  Scenario: merge adds the files the project lacks, keeps its own and the same ones, and stages them with the record
+    Given a committed deletion of "made/cli.txt"
+    And a committed project-only file "made/own.txt" containing "keep-this-file"
+    And a saved snapshot of the HEAD of "made"
+    When itos-template runs in "made" with "adopt {template} --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --answer module=example.com/blue/fox --merge"
+    Then it exits with code 0
+    And "made" has "cli.txt" staged as added
+    And "made" has staged changes to "cli.txt" and ".itos-template.yaml" only, and nothing unstaged
+    And the file "made/own.txt" contains "keep-this-file"
+    And the HEAD of "made" is unchanged
+    And the record in "made" names the release "v1.0.0" and its exact branch commits
+
+  @ID-ADOPT-23 @slice-17 @wip
+  Scenario: a file both hold differently is left as an add/add conflict, the record staged
+    Given a committed deletion of "made/release.txt"
+    And a committed project-only file "made/release.txt" containing "project-release"
+    And a saved snapshot of the HEAD of "made"
+    When itos-template runs in "made" with "adopt {template} --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --answer module=example.com/blue/fox --merge"
+    Then it exits with code 1
+    And its error output says "release.txt"
+    And its error output says "git reset --hard"
+    And the file "made/release.txt" holds git's conflict markers around "project-release" and "v1.0.0"
+    And the index of "made" holds "release.txt" unmerged, no base, the project's "project-release" and the release's "v1.0.0"
+    And the HEAD of "made" is unchanged
+    And "made" has the record staged
+
+  @ID-ADOPT-24 @slice-17 @wip
+  Scenario: merge and force together are a usage error, and nothing is written
+    Given a saved adoption snapshot of "made"
+    When itos-template runs in "made" with "adopt {template} --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --answer module=example.com/blue/fox --merge --force"
+    Then it exits with code 2
+    And its error output says "--merge"
+    And its error output says "--force"
+    And the adoption snapshot of "made" is unchanged
+
+  @ID-ADOPT-25 @slice-17 @wip
+  Scenario: merge refuses a dirty repository and writes nothing
+    Given "made" has an unstaged tracked change
+    And a saved adoption snapshot of "made"
+    When itos-template runs in "made" with "adopt {template} --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --answer module=example.com/blue/fox --merge"
+    Then it exits with code 1
+    And its error output says "clean"
+    And the adoption snapshot of "made" is unchanged
+
+  @ID-ADOPT-26 @slice-17 @wip
+  Scenario: merge with dry-run previews the differences and writes nothing
+    Given a committed deletion of "made/cli.txt"
+    And a saved adoption snapshot of "made"
+    When itos-template runs in "made" with "adopt {template} --ref v1.0.0 --stack go --feature cli --answer name=blue-fox --answer module=example.com/blue/fox --merge --dry-run"
+    Then it exits with code 0
+    And its standard output identifies "cli.txt" as "missing"
+    And the adoption snapshot of "made" is unchanged
