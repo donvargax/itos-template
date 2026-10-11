@@ -828,6 +828,13 @@ items:
       GOTOOLCHAIN, which actions/setup-go sets to local and a shell leaves unset, so records made
       here read coverage-stale in CI. tools/bin/pinned exports GOTOOLCHAIN=local for itos-cc
       meanwhile (6e0d92d); when fixed and pinned, drop that line and rerun the strict coverage once.
+
+      itos-cc#37 (2026-10-11, found by T-43): strict Go coverage takes every .go file on disk under
+      the module as an input, untracked ones and those under .git/, testdata and ignored folders
+      included, so a stray file where records are made makes them coverage-stale in every clean
+      checkout. Until it is fixed, a checkout that records coverage holds no .go file git does not
+      track; when fixed and pinned, nothing here changes but that warning in
+      docs/mutation-baseline.md.
     tags: [ci]
   - id: T-24
     title: Upgrade the Go toolchain to clear the standard-library security failures
