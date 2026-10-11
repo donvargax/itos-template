@@ -45,6 +45,14 @@ linters:
           msg: "main alone exits (decision 17): return the exit code to it"
         - pattern: ^log\.Fatal(f|ln)?$
           msg: "main alone exits (decision 17): return the exit code to it"
+        # docs/CLI.md rule 31: a bug exits 70, as an error nobody
+        # classified, never as a panic, which exits 2 with a trace. Input
+        # is checked at its edge into a value its one constructor makes and
+        # trusted after (decision 41), so no inner code meets a case it
+        # must panic on; T-52 removed the last one, Replacements'. Tests
+        # are left out (below).
+        - pattern: ^panic$
+          msg: "a bug exits 70, never as a panic (docs/CLI.md rule 31): return an error, or take a value checked at its edge (decision 41)"
         # Decision 22: configuration is read strictly, refusing what JSON
         # cannot say; manifest.Decode is that reader (its exclusion below),
         # so no other code reads YAML loosely.
@@ -321,10 +329,12 @@ linters:
       # input a template brings (decision 22). They exit: TestMain's
       # os.Exit(m.Run()) and a helper process exiting with a code, as
       # internal/git's stub git does, are standard Go, and decision 17's
-      # main-alone rule holds production code, still held (T-48).
+      # main-alone rule holds production code, still held (T-48). A test
+      # may panic, as a failure of its own: rule 31's exit codes are the
+      # binary's (T-52).
       - path: _test\.go$
         linters: [forbidigo]
-        text: runtime\.GOOS|yaml\.(Unmarshal|NewDecoder)|(os|syscall)\.Exit
+        text: runtime\.GOOS|yaml\.(Unmarshal|NewDecoder)|(os|syscall)\.Exit|panic
       # main exits with the code the slice returned (decision 17).
       - path: ^cmd/itos-template/main\.go$
         linters: [forbidigo]

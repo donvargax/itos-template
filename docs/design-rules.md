@@ -17,7 +17,7 @@ how it is built, is the scenarios' to hold (`features/`), and is not listed here
 | Every error kind is given its exit code, in one switch per sealed set, a default not counting | 17, `docs/CLI.md` rule 31 | gochecksumtype; whether a new error joins a sealed set is judgement, an unclassified one exiting 70 |
 | Output goes through the writers the UI hands down, never to the process's stdout behind them | 17 | forbidigo: `fmt.Print`, `fmt.Printf`, `fmt.Println`, `print`, `println` |
 | main alone exits, with the code the slice returned | 17 | forbidigo: `os.Exit`, `syscall.Exit`, `log.Fatal*`, `cmd/itos-template/main.go` excepted, and tests' `os.Exit` and `syscall.Exit`: TestMain's `os.Exit(m.Run())` and a helper process exiting with a code (`internal/git`'s stub git) are standard Go, and the rule is about production code (T-48) |
-| A bug exits 70, as an error nobody classified, never as a panic | 17, `docs/CLI.md` rule 31 | Not held yet: forbidigo could refuse `panic`, but `manifest.Replacements` panics on an answer `Check` did not take, and changing it is the person's call (the idea `no-panic`) |
+| A bug exits 70, as an error nobody classified, never as a panic | 17, 41, `docs/CLI.md` rule 31 | forbidigo: `panic`, tests left out, as a test's panic is its own failure, not the binary's exit (T-52) |
 | A slice stays in one file until it grows large: 600 lines of code | 17 | revive, `file-length-limit` |
 | Commands carry domain objects: no DTO or options struct copying a type | 17 | Judgement: whether a struct copies a type is what its fields stand for, which no linter reads; Run assembling a command from kong's flags is the one copy allowed |
 | An anti-corruption layer only where an outside model would leak in | 17 | Judgement: whether a model would leak is a question about the outside, not a shape in the code |
@@ -67,6 +67,8 @@ When T-49 turned the rules on, they found:
   instead changes `Replacements` and its three callers in `internal/template` (a render's plan,
   `Check`, and `Setup`, which returns no error today, so its callers too) and needs tests for each
   new path, so it is not this task's: the panic rule stays off until the
-  person decides, the idea `no-panic`.
+  person decides, the idea `no-panic`. T-52 settled it as decision 41 has it: `Question.Take` keeps
+  the words it parsed in a `manifest.Answer`, `Replacements` takes those and cannot fail, and
+  forbidigo refuses `panic`.
 - `tools/bin/release-notes` and `tools/bin/release-version` print and exit in their main, which is
   theirs to do (above).
