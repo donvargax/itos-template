@@ -1,8 +1,8 @@
 // The steps of release.feature: a template's clone with every branch local,
-// as its author or its CI releases from one, its branches moved off origin's
-// and its working tree changed; the tags release makes, read from git, never
-// from what release says; the tags pushed to an origin of the scenario's
-// own; and release's --json object.
+// as its author or its CI releases from one, its branches moved off origin's,
+// another branch checked out and its working tree changed; the tags release
+// makes, read from git, never from what release says; the tags pushed to an
+// origin of the scenario's own; and release's --json object.
 //
 // A pushed tag would reach every later scenario through the fixture
 // template, which the run builds once and shares (templates_test.go), and
@@ -32,6 +32,9 @@ func (w *world) releaseCutSteps(sc *godog.ScenarioContext) {
 	})
 	sc.Step(`^in "([^"]*)" the branch "([^"]*)" carries the tag "([^"]*)"$`, w.branchCarriesTag)
 	sc.Step(`^in "([^"]*)" the branch "([^"]*)" is (ahead of|behind|diverged from) origin's$`, w.branchMovedOffOrigin)
+	sc.Step(`^in "([^"]*)" the branch "([^"]*)" checked out$`, w.branchCheckedOut)
+	sc.Step(`^in "([^"]*)" a branch "([^"]*)" off "([^"]*)" with one more commit, pushed to origin and checked out$`, w.branchPushedAndCheckedOut)
+	sc.Step(`^the clone "([^"]*)" has no record of origin's HEAD$`, w.cloneForgetsOriginsHead)
 	sc.Step(`^in "([^"]*)" an uncommitted change to "([^"]*)" and an untracked file "([^"]*)"$`, w.uncommittedChange)
 	sc.Step(`^itos-template ran in the folder "([^"]*)" with "([^"]*)"$`, w.ranInFolder)
 	sc.Step(`^the tags of "([^"]*)" pushed to its origin$`, w.pushTags)
@@ -139,6 +142,48 @@ func (w *world) branchMovedOffOrigin(dir, branch, how string) error {
 		}
 	}
 	return w.gitIn(repo, "update-ref", ref, to)
+}
+
+// branchCheckedOut checks the clone dir's local branch out, as its author
+// may have one checked out when releasing.
+func (w *world) branchCheckedOut(dir, branch string) error {
+	return w.gitIn(w.path(dir), "checkout", "-q", branch)
+}
+
+// branchPushedAndCheckedOut makes, in the clone dir, the branch branch off
+// the local branch from with one more commit, pushes it to origin and leaves
+// it checked out: a branch of the template's repository the manifest does
+// not list. The clone first gets an origin of its own, a mirror of the
+// scenario's template in the scratch folder, as pushTags gives one, so the
+// shared fixture is never written; the scenario's template stays the
+// fixture, whose branches are those the manifest lists.
+func (w *world) branchPushedAndCheckedOut(dir, branch, from string) error {
+	if w.templateDir == "" {
+		return errors.New("no template in this scenario")
+	}
+	origin := w.path(dir + "-origin.git")
+	if err := w.git("clone", "-q", "--mirror", "--", w.template, origin); err != nil {
+		return err
+	}
+	repo := w.path(dir)
+	for _, args := range [][]string{
+		{"remote", "set-url", "origin", filepath.ToSlash(origin)},
+		{"checkout", "-q", "-b", branch, "refs/heads/" + from},
+		{"commit", "-q", "--allow-empty", "-m", "A commit of a branch the manifest does not list"},
+		{"push", "-q", "-u", "origin", branch},
+	} {
+		if err := w.gitIn(repo, args...); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// cloneForgetsOriginsHead deletes the clone name's record of origin's HEAD,
+// refs/remotes/origin/HEAD, which git clone made, so only origin itself can
+// say which branch is the root.
+func (w *world) cloneForgetsOriginsHead(name string) error {
+	return w.gitIn(w.path(name), "remote", "set-head", "origin", "-d")
 }
 
 // The change to a file and the untracked file uncommittedChange makes.
