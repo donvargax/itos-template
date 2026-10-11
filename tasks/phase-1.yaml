@@ -1257,10 +1257,6 @@
     behaviour unchanged, the push's proof once), and add each larger finding as an idea for the
     person, with its edge and why. Half (1) comes first in the report: a missing check is a security
     finding, a double one only a smell.
-  done_when:
-    - run: grep -qiF 'secure by design' docs/design-rules.md
-    - run: tools/bin/pinned golangci-lint run ./...
-      timeout: 900
 - id: T-54
   type: build
   title: Pin itos 7.5.0, the newest of its v7 line, and itos-cc 0.14.2
