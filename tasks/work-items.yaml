@@ -1680,3 +1680,18 @@ items:
       Nothing in the type proves the IsTreePath check ran (decision 41). What could go wrong: a path
       reaching Covers that no edge vetted, so a prefix match behaves unexpectedly. Fix: a TreePath
       value object whose one constructor is IsTreePath, carried where a tree path is matched.
+  - id: p1-default-taken-once
+    title: Take a question default once, not again when a person accepts it
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Edge: the terminal. Input: a question default. It is taken once when the manifest is read
+      (manifest.Question.Take at parse, kept as Question.DefaultAnswer), and taken again by the
+      asker check when a person presses enter to accept it on the terminal (template.Choose builds a
+      check closure calling Take, and prompt.Lines.Ask runs it on the default). A check made twice
+      is a smell, half two, interactive only, no security finding. Fix: pass the already-taken
+      default (DefaultAnswer) through the ask path so the asker check runs only on text a person
+      typed, never on a default the manifest already took.
