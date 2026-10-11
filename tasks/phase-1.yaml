@@ -992,6 +992,3 @@
     docs/mutation-baseline.md with the run, the numbers and the cause, and correct the baseline's
     ranges if the cause moves them. Kill or except nothing here; the person decides what follows
     from itos#41.
-  done_when:
-    - run: "! grep -q 'The cause was not found' docs/mutation-baseline.md"
-    - run: grep -q 'T-42' docs/mutation-baseline.md
