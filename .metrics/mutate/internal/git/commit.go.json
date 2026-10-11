@@ -104,7 +104,6 @@
         "function_hash": "4b563ec16eed166c",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -995,7 +994,6 @@
         "function_hash": "c73dfa9a9dcc4807",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",

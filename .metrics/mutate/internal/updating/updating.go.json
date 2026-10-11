@@ -810,7 +810,6 @@
         "function_hash": "d1572406000fd143",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -2140,7 +2139,6 @@
         "function_hash": "0200295483cf1388",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -2505,7 +2503,6 @@
         "function_hash": "11071e9fff581818",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -2671,7 +2668,6 @@
         "function_hash": "0c72b84c2ea2e02d",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -3243,7 +3239,6 @@
         "function_hash": "52395679e52b993b",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -3686,7 +3681,6 @@
         "function_hash": "536f0dab52e7a473",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -3845,7 +3839,6 @@
         "function_hash": "918e3d5efd7d1762",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -3990,7 +3983,6 @@
         "function_hash": "b35205218d80caae",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -4127,7 +4119,6 @@
         "function_hash": "f7c2fd2625634c46",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -4264,7 +4255,6 @@
         "function_hash": "57042ee2df55e4c6",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -4401,7 +4391,6 @@
         "function_hash": "074068d9e17af2fa",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -4538,7 +4527,6 @@
         "function_hash": "93c01de609d81492",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -4675,7 +4663,6 @@
         "function_hash": "8ea87fdf7b8ef123",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -4812,7 +4799,6 @@
         "function_hash": "7186b67142089b0c",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -4949,7 +4935,6 @@
         "function_hash": "2c0690ccab8214b7",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -5086,7 +5071,6 @@
         "function_hash": "5faad6a14274b2c3",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -5295,7 +5279,6 @@
         "function_hash": "17b688b976690498",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -5440,7 +5423,6 @@
         "function_hash": "d0c2aa9a8d110971",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -5657,7 +5639,6 @@
         "function_hash": "3395543f4a325397",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -5874,7 +5855,6 @@
         "function_hash": "4530551d585d563d",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -6162,7 +6142,6 @@
         "function_hash": "108c332665c9b6e6",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -6450,7 +6429,6 @@
         "function_hash": "4c09dadd29f37b79",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -6595,7 +6573,6 @@
         "function_hash": "57de9a2b9bfbc0b3",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -6883,7 +6860,6 @@
         "function_hash": "77fa6cb9ffe63073",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",
@@ -7100,7 +7076,6 @@
         "function_hash": "095c3a0032aa4a11",
         "producer": "go test -count=1 -covermode=set -coverpkg=./... -coverprofile=coverage.out ./...; scope=all-tests",
         "inputs": {
-          ".git/T-43-scratch/T-43-go_coverage_inputs.go": "037f32fa4f461b35fc79fca2292cd59be948036efdc8c7a381b5f6fcda112245",
           "@go-env": "4ecaceafbf0c1b400de200ad2330ca72a6ca398c5347399f4348c97f6f3739d2",
           "@producer": "eb100cc518731eb37736d72cff93fa5d1e0af9fc5b875e3c81e5117d07adbc20",
           "cmd/itos-template/main.go": "5df14596c2627617ad96a755d80af995d033c9b36d640458333145ec87e4ed33",

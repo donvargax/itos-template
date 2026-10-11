@@ -289,6 +289,13 @@ excepted, no test was added and no code changed, since what to kill waits on ito
   all 505 stale too. Since `6e0d92d`, `tools/bin/pinned` runs itos-cc with `GOTOOLCHAIN=local`, as
   CI does, and the run was made again under it. It reused every outcome but the 50 survivors, which
   it ran again (all 50 survived again), and measured the coverage again.
+- Those records read coverage-stale in CI too, for another reason: itos-cc takes every `.go` file
+  on disk under the module as an input, tracked or not, `.git/`, `testdata` and ignored folders
+  included (donvargax/itos-cc#37), and a `.go` file kept for reading under `.git/` had become one.
+  With it gone, the run was made a third time, again reusing all but the 50 survivors, which all
+  survived again, and a fresh clone with only `HOME`, `PATH` and `GOTOOLCHAIN=local` set read all
+  505 functions fresh. Until #37 is fixed, a checkout that records coverage holds no `.go` file git
+  does not track.
 
 ```
 tools/bin/pinned itos-cc mutation run --fail-uncovered --all-tests --no-annotate --json cmd internal
@@ -300,6 +307,7 @@ tools/bin/pinned itos-cc mutation sample --count 1 cmd internal
 |---|---|---|
 | `mutation run`, 0.11.0 | 11001 s (3 h 3 min), 1484 mutants run, 20 uncovered, none reused | 1 |
 | `mutation run`, 0.12.0, `GOTOOLCHAIN=local` | 413 s, 50 mutants run, 1434 reused | 1 |
+| `mutation run`, 0.12.0, no stray `.go` file | 406 s, 50 mutants run, 1434 reused | 1 |
 | `mutation check`, 0.12.0 | 2 s | 1 |
 | `mutation sample --count 1`, 0.12.0 | 32 s, and 24 s after the second run | 0 |
 
@@ -327,7 +335,8 @@ a mutant no test of the whole suite executes; **Uncovered statements** are the
 `mutation.uncovered-statement` blocks, mutants or not, strict coverage reports. One block moved
 between the two coverage measurements: `internal/manifest/decode.go:48` (`Decode`, a second
 document that does not parse) was uncovered in the first and covered in the second, since only a
-property's random input reaches it, so the count is 187 here and was 188 under 0.11.0.
+property's random input reaches it, so the count is 187 here (in the third measurement too) and
+was 188 under 0.11.0.
 
 | Package | Mutants | Killed, own tests | Killed only with the whole suite | Survived | Excepted | Uncovered | Uncovered statements |
 |---|---|---|---|---|---|---|---|
