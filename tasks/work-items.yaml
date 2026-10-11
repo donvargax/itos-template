@@ -1596,3 +1596,21 @@ items:
       git clone, printed into the record and the first commit. The wrap crosses the port boundary
       into infra, which cannot import a domain value object, so the type would be unwrapped to a
       string for git.Clone; weigh that before building it.
+  - id: p1-record-commits-checked
+    title: Check the record branch commits, or pass them to git after a double dash
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Edge: the project record (.itos-template.yaml), which a person may edit. Input: the commits
+      map (commits:), each branch to a sha. In update these shas flow through template.Rendered into
+      git.Repo.Merge and manifestAt as positional arguments to git rev-parse, merge-tree,
+      commit-tree and cat-file, with no -- guard and no check that each is an object name. git
+      refuses an unknown object, but a value such as --output=… or --upload-pack=… could be read as
+      an option rather than a revision, since the person edits their own project record (local and
+      self-targeting, not a remote or a template escaping the project). Half one finding, low
+      severity. Fix: check each commit in project.ReadRecord as a hex object name, refusing a record
+      that is not, or pass each revision after -- where git takes it, and record which in the design
+      rules.
