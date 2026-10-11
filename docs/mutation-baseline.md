@@ -5,6 +5,11 @@ strategy: fast local, judging CI, thorough nightly) can be answered from numbers
 the tests kill and what they leave. Nothing was killed or excepted for it: no test was added, no
 code changed, and `itos-cc.yaml` holds the same three exceptions it held before.
 
+The records left the repository with decision 40 (T-45): the code proof and the nightly now judge
+a few fresh mutants with no cache, so `.metrics/mutate/` is neither read nor committed. The tables
+below stay as the last full measurement of `cmd` and `internal`, the survivors T-43 lists among
+them.
+
 ## How it was run
 
 - Commit measured: `d1db20ee1c1bd0c80f84d664609392dfecc9dfd9` (`docs: take T-39`), a clean tree.
