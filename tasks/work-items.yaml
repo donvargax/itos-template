@@ -1433,8 +1433,8 @@ items:
   - id: T-48
     title: Kill or except internal/git's 17 survivors, its OS branches taking the OS as a value
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: [T-49]
     kind: task
     why: >
