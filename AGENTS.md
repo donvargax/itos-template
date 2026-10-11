@@ -35,6 +35,7 @@ owner or a status by hand.
   (decision 19).
 - **Code that differs by OS takes the OS as a value** (decision 26): no `runtime.GOOS` branch in
   logic; a build-tagged file only for a call one OS lacks, holding no mutation site.
+- **How each code rule is held,** by a linter or by judgement: `docs/design-rules.md`.
 - **Decide the split before editing:** each commit type touches only its paths (the block);
   `itos commit check-paths --type <type> <path>…` checks one. Never relabel a commit.
 
