@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"strings"
 
@@ -40,6 +41,8 @@ func (w *world) updateSteps(sc *godog.ScenarioContext) {
 	})
 	sc.Step(`^"([^"]*)" has "([^"]*)" staged as (added|removed)$`, w.stagedAs)
 	sc.Step(`^the file "([^"]*)" holds git's conflict markers around "([^"]*)" and "([^"]*)"$`, w.conflictMarkers)
+	sc.Step(`^the file "([^"]*)" has the line "([^"]*)"$`, w.hasLine)
+	sc.Step(`^the file "([^"]*)" names no git object id$`, w.namesNoObjectID)
 	sc.Step(`^the index of "([^"]*)" holds "([^"]*)" unmerged, its base "([^"]*)", the project's "([^"]*)" and the release's "([^"]*)"$`, func(dir, file, base, ours, theirs string) error {
 		return w.unmerged(dir, file, map[string]string{"1": base, "2": ours, "3": theirs})
 	})
@@ -374,11 +377,10 @@ func (w *world) stagedAs(dir, file, kind string) error {
 // base's side, after a line |||||||, is not the project's. A line ending in
 // \r\n is read as one in \n.
 func (w *world) conflictMarkers(file, ours, theirs string) error {
-	data, err := os.ReadFile(w.path(file))
+	lines, data, err := w.lines(file)
 	if err != nil {
-		return fmt.Errorf("%v\n%s", err, w.report())
+		return err
 	}
-	lines := strings.Split(strings.ReplaceAll(string(data), "\r\n", "\n"), "\n")
 	start := slices.IndexFunc(lines, func(l string) bool { return strings.HasPrefix(l, "<<<<<<< ") })
 	middle := slices.Index(lines, "=======")
 	end := slices.IndexFunc(lines, func(l string) bool { return strings.HasPrefix(l, ">>>>>>> ") })
@@ -391,6 +393,51 @@ func (w *world) conflictMarkers(file, ours, theirs string) error {
 	}
 	if !strings.Contains(strings.Join(project, "\n"), ours) || !strings.Contains(strings.Join(lines[middle+1:end], "\n"), theirs) {
 		return fmt.Errorf("%s's conflict is not the project's %q against the release's %q:\n%s", file, ours, theirs, data)
+	}
+	return nil
+}
+
+// lines are file's lines, a CRLF read as LF, as git may write them on
+// Windows.
+func (w *world) lines(file string) ([]string, []byte, error) {
+	data, err := os.ReadFile(w.path(file))
+	if err != nil {
+		return nil, nil, fmt.Errorf("%v\n%s", err, w.report())
+	}
+	return strings.Split(strings.ReplaceAll(string(data), "\r\n", "\n"), "\n"), data, nil
+}
+
+// hasLine is whether file holds line as one of its lines, whole.
+func (w *world) hasLine(file, line string) error {
+	lines, data, err := w.lines(file)
+	if err != nil {
+		return err
+	}
+	if !slices.Contains(lines, line) {
+		return fmt.Errorf("%s has no line %q:\n%s", file, line, data)
+	}
+	return nil
+}
+
+// conflictMarker is a line git's conflict markers start: seven or more of
+// one marker character, then the end of the line or a space and a label.
+var conflictMarker = regexp.MustCompile(`^(<{7,}|\|{7,}|={7,}|>{7,})( |$)`)
+
+// objectID is a run of hex digits as long as a git object id, SHA-1's 40
+// or SHA-256's 64.
+var objectID = regexp.MustCompile(`[0-9a-f]{40}`)
+
+// namesNoObjectID is whether no conflict marker line of file names a git
+// object id, as a label of git merge-tree's arguments would.
+func (w *world) namesNoObjectID(file string) error {
+	lines, data, err := w.lines(file)
+	if err != nil {
+		return err
+	}
+	for _, l := range lines {
+		if conflictMarker.MatchString(l) && objectID.MatchString(l) {
+			return fmt.Errorf("%s's marker line %q names a git object id:\n%s", file, l, data)
+		}
 	}
 	return nil
 }

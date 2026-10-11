@@ -82,8 +82,14 @@ func (w *world) newSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^itos-template runs with git knowing no one with "([^"]*)"$`, func(args string) error {
 		return w.runWith(w.knowingNoOne(), args)
 	})
-	sc.Step(`^itos-template runs with git's commit\.cleanup set to ([a-z-]+) with "([^"]*)"$`, func(mode, args string) error {
-		return w.runWith(w.withGitConfig("commit.cleanup", mode), args)
+	// In the scratch repository, or in the folder in names; key is any of
+	// git's config keys, set as withGitConfig sets it.
+	sc.Step(`^itos-template runs(?: in "([^"]*)")? with git's ([a-zA-Z.]+) set to ([a-z0-9-]+) with "([^"]*)"$`, func(dir, key, value, args string) error {
+		in := w.dir
+		if dir != "" {
+			in = w.path(dir)
+		}
+		return w.runWithIn(in, w.withGitConfig(key, value), args)
 	})
 	sc.Step(`^itos-template runs with git cloning the template for "([^"]*)", with "([^"]*)"$`, w.runCloningTemplateFor)
 	sc.Step(`^an empty folder "([^"]*)"$`, func(dir string) error {
