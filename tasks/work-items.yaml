@@ -1614,3 +1614,20 @@ items:
       severity. Fix: check each commit in project.ReadRecord as a hex object name, refusing a record
       that is not, or pass each revision after -- where git takes it, and record which in the design
       rules.
+  - id: p1-symlink-target
+    title: Decide what a rendered symbolic link target may point to
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Edge: the template repository (a template is anything git clone takes, decision 9). Input: a
+      symbolic link, whose contents are its target. render.Plan replaces the literals in the target
+      (Replacer.Text) and disk.Write writes it verbatim with os.Symlink, never checking where it
+      points, while a tree path is refused element by element. Writing the link does not itself
+      escape the project folder, but the made project then holds a link out of it (../../etc, an
+      absolute path), and a later tool that follows it, a setup step or the project own gates, reads
+      or writes outside the project. What could go wrong: an untrusted template plants a link that a
+      later step dereferences. Decide whether to refuse a target leaving the project or keep it as
+      git would, and record the reasoning beside render.Path.
