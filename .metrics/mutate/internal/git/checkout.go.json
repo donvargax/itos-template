@@ -3,11 +3,14 @@
   "file": "internal/git/checkout.go",
   "language": "go",
   "tests": {
-    "internal/check/check_test.go": "19867f988c0ccd5a52034cf5b0239e2646df6003c1bbc096aebfe31df3fbfe5f",
-    "internal/cli/cli_test.go": "516eee21ede0679da5787092c6f8aa86a55449935222c9fa41ea139b6c1196af",
+    "internal/adopt/adopt_test.go": "3498983581410317dd8b7a835ab84b7a0b6cb519d7cc037e918952286319b3eb",
+    "internal/cli/cli_test.go": "2faf62d77e0908a833f27eef14713a0aaf7f279e0f74473263fcdae6186bda9f",
     "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
     "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
-    "internal/git/git_test.go": "a9a8a59a7ce106ec082c98eb76505c0c80321785566320990304ff5c2f52a6ae",
+    "internal/cli/report_test.go": "5a6ae76b5c3ad6839ce48f02b848b2a8e6d65404f60dcfe83f2e1300e1b593ab",
+    "internal/git/git_test.go": "0fd9520a4ef7a414d6df2b728578d2d0d0d7181092d15fdadb0e4681e1f04411",
+    "internal/git/project_test.go": "2055fdbacff2f84778205c88ad65696b136f810cbe3c2d2aad175c4622e74be8",
+    "internal/git/worktree_test.go": "dfe8ab36d1bb0befc9ce7152f4ce4462291ee5263a594ea780c85bb97f0eecca",
     "internal/newproject/newproject_test.go": "0cb6019a3fbedc92035018cf3f5adb58ff800545c763533bf6d07c3d57e12f44"
   },
   "units": [
@@ -76,39 +79,61 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/git",
       "name": "Top",
-      "hash": "26db8b90ec6f520a",
-      "start_line": 54,
-      "end_line": 63,
+      "hash": "37d4b15a11eb21e1",
+      "start_line": 56,
+      "end_line": 62,
+      "killed": 1,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 1,
+      "mutants": [
+        {
+          "line": 58,
+          "column": 9,
+          "offset": 60,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/git",
+      "name": "topIn",
+      "hash": "59a2fac26801c93b",
+      "start_line": 66,
+      "end_line": 75,
       "killed": 2,
       "survived": 0,
       "uncovered": 0,
       "sites": 2,
       "mutants": [
         {
-          "line": 55,
-          "column": 62,
-          "offset": 90,
+          "line": 67,
+          "column": 63,
+          "offset": 103,
           "original": "==",
           "replacement": "!=",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 59,
+          "line": 71,
           "column": 9,
-          "offset": 211,
+          "offset": 225,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ],
-      "stale": true
+      ]
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/git",
