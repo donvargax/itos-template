@@ -53,13 +53,11 @@ func (r *Repository) DefaultBranch() (string, error) {
 	return r.Root, nil
 }
 
-// Commit is the branch's commit, "commit of <branch>".
+// Commit is the branch's commit, "commit of <branch>", or the error
+// Fails gives Commit.
 func (r *Repository) Commit(branch string) (string, bool, error) {
-	if err := r.Fails["Commit"]; err != nil {
-		return "", false, err
-	}
-	if _, ok := r.Branches[branch]; !ok {
-		return "", false, nil
+	if _, ok := r.Branches[branch]; !ok || r.Fails["Commit"] != nil {
+		return "", false, r.Fails["Commit"]
 	}
 	return "commit of " + branch, true, nil
 }
