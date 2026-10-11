@@ -1331,3 +1331,5 @@ items:
       Reported as donvargax/itos-cc#35 with a reproduction. Nothing flips on main now, but any test
       that writes into its package folder and fails once would bring it back. Once #35 is fixed in a
       release, pin it.
+    deferred: >
+      Waits on donvargax/itos-cc#35 being fixed in a release
