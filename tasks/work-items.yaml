@@ -1535,3 +1535,34 @@ items:
       the report; a survivor --since would miss lives in functions the task does not change. Then
       the push's proof once, as AGENTS.md's Finishing says. A survivor a no-panic change would
       remove (manifest.Replacements) is left to the item no-panic, which the person is defining.
+  - id: T-51
+    title: Kill or except the last 21 survivors, in cli, prompt, release, render, tempdir, template and porttest
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: task
+    why: >
+      T-43 left these survivors under the whole suite (docs/mutation-baseline.md, T-43's list):
+      cli/cli.go 126:20 in UI#JSON; prompt/prompt.go 47:45 in Lines#Ask and 77:45 in Terminal;
+      release/build.go 157:10 in goIn, 183:14 in extract, 230:34 in write; release/release.go 75:58
+      in Newest, 86:16 and 91:12 in compareTags; render/leftover.go 81:38 and 84:68 in Scan#find;
+      tempdir/tempdir.go 48:17 and 48:56 in Remove, 58:29 in Discard, 74:29 in Renders#Remove;
+      template/choose.go 29:52, 29:54 and 73:13 in Choose; template/release.go 131:11 in
+      Template#UseNewest; template/port/porttest/porttest.go 154:13 in file and 549:19 in
+      Terminal#Ask. porttest is test support, the fakes the domain's tests use: kill a survivor
+      there when the fake's behaviour is one a domain test relies on (a fake must work, decision
+      19), else except it naming itos-cc#16 (leave test support out of mutation). With these and
+      T-50's gone, the nightly fails only on something new. Decision 40 has a survivor of the whole
+      suite get a test or an exception, and while one stands it fails the nightly when drawn. Kill
+      each with a test asserting an outcome (fakes and stubs, never mocks, decision 19), or, for one
+      truly equivalent, except it with tools/bin/pinned itos-cc mutation except and its reason, for
+      the person's review. The lines are as of 487ab3f; code has moved since (slice-17 and slice-18
+      touched manifest and template), so find each site by its function and mutation. A test outside
+      the domain says in a comment why no scenario reaches it; a survivor that shows behaviour a
+      scenario should hold is not this task's: stop and propose the scenario. Judge the kills as
+      T-48 did: two full runs over the named files without --since (own tests, then --all-tests,
+      which reuses the first's kills), both exit 0, each survivor's fate in the report; a survivor
+      --since would miss lives in functions the task does not change. Then the push's proof once, as
+      AGENTS.md's Finishing says. A survivor a no-panic change would remove (manifest.Replacements)
+      is left to the item no-panic, which the person is defining.
