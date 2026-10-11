@@ -1677,8 +1677,8 @@ items:
   - id: bug-8
     title: "new can write outside the project folder on a case-insensitive disk: a template's paths are checked as exact strings and disk.Write follows a symlink in a parent folder"
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: bug
     why: >
