@@ -1500,18 +1500,9 @@ items:
     title: "A bug exits 70, never as a panic: manifest.Replacements returns an error and forbidigo refuses panic"
     phase: 1
     owner: null
-    status: todo
+    status: dropped
     depends_on: []
     kind: idea
-    why: >
-      T-49 weighed refusing panic in production code with forbidigo and found one:
-      manifest.Replacements panics when an answer Check did not take reaches it. A panic exits 2
-      with a trace, where decision 17 and docs/CLI.md rule 31 have a bug, an error nobody
-      classified, exit 70. Returning an error instead changes Replacements and its callers in
-      internal/template (a render plan, Check, and Setup, which returns no error today) and needs a
-      test for each new path, so T-49 left it for the person: keep the panic as an invariant, the
-      rule judgement, or return the error and enable the forbidigo pattern ^panic$ in production
-      code. docs/design-rules.md lists it.
   - id: T-50
     title: Kill or except internal/manifest's 12 survivors
     phase: 1
