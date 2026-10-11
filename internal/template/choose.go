@@ -22,8 +22,10 @@ import (
 // usage error; only when there are none, the combinations the template
 // refuses (a feature of another stack, one without a feature it needs, a
 // combination listed as unsupported). Only then are the answers asked, so
-// nobody answers questions for a refusal.
-func Choose(m *manifest.Manifest, choice manifest.Choice, given answer.Given, defaults bool, ask port.Asker) (manifest.Combination, answer.Set, error) {
+// nobody answers questions for a refusal. An answer asked is the one the
+// question's own check took, the last the asker's check passed, which the
+// asker returns: it is kept as that check took it, never taken again.
+func Choose(m *manifest.Manifest, choice manifest.Choice, given answer.Given, defaults bool, ask port.Asker) (manifest.Combination, manifest.Answers, error) {
 	var unknown, refused []error
 	stackName := choice.Stack
 	if stackName == "" && ask != nil && len(m.Stacks) > 0 {
@@ -38,7 +40,7 @@ func Choose(m *manifest.Manifest, choice manifest.Choice, given answer.Given, de
 			},
 		})
 		if err != nil {
-			return manifest.Combination{}, nil, &NoStack{Stacks: m.StackNames()}
+			return manifest.Combination{}, manifest.Answers{}, &NoStack{Stacks: m.StackNames()}
 		}
 	}
 	stack, stackOK := m.Stack(stackName)
@@ -79,17 +81,21 @@ func Choose(m *manifest.Manifest, choice manifest.Choice, given answer.Given, de
 	answers, missing, problems := answer.Read(m, given, defaults, ask != nil)
 	unknown = append(unknown, problems...)
 	if len(unknown) > 0 {
-		return manifest.Combination{}, nil, errors.Join(unknown...)
+		return manifest.Combination{}, manifest.Answers{}, errors.Join(unknown...)
 	}
 	if len(refused) > 0 {
-		return manifest.Combination{}, nil, errors.Join(refused...)
+		return manifest.Combination{}, manifest.Answers{}, errors.Join(refused...)
 	}
 	for _, q := range missing {
-		given, err := ask.Ask(port.Answer{Text: q.Question, Default: q.Default, Check: q.Check})
-		if err != nil {
-			return manifest.Combination{}, nil, &answer.NotAnswered{Question: q, Err: err}
+		var taken manifest.Answer
+		check := func(text string) (err error) {
+			taken, err = q.Take(text)
+			return err
 		}
-		answers[q.Name] = given
+		if _, err := ask.Ask(port.Answer{Text: q.Question, Default: q.Default, Check: check}); err != nil {
+			return manifest.Combination{}, manifest.Answers{}, &answer.NotAnswered{Question: q, Err: err}
+		}
+		answers.Add(taken)
 	}
 	return c, answers, nil
 }

@@ -88,49 +88,49 @@ func TestFeaturesNamedKeepTheManifestsOrderAfterTheStacksOwn(t *testing.T) {
 	}
 }
 
-func TestCheckTakesAnAnswerMatchingThePatternWhole(t *testing.T) {
+func TestAQuestionTakesAnAnswerMatchingThePatternWhole(t *testing.T) {
 	m := acme(t)
 	name, _ := m.Question("name")
 	for _, ok := range []string{"blue-fox", "fox", "a1-b2"} {
-		if err := name.Check(ok); err != nil {
+		if _, err := name.Take(ok); err != nil {
 			t.Errorf("name refuses %q: %v", ok, err)
 		}
 	}
 	for _, bad := range []string{"Blue_Fox", "blue fox", "-fox", "fox-", "x blue-fox"} {
-		if err := name.Check(bad); err == nil {
+		if _, err := name.Take(bad); err == nil {
 			t.Errorf("name takes %q", bad)
 		}
 	}
 }
 
-func TestCheckTakesAnyAnswerButAnEmptyOneWithoutAPattern(t *testing.T) {
+func TestAQuestionTakesAnyAnswerButAnEmptyOneWithoutAPattern(t *testing.T) {
 	m, err := Parse([]byte("version: 1\nstacks: [{name: go}]\nquestions: [{name: owner, literal: Acme Corp, question: \"Owner?\"}]\n"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	q, _ := m.Question("owner")
-	if err := q.Check("Blue Fox & Co"); err != nil {
-		t.Errorf("Check refuses an answer: %v", err)
+	if _, err := q.Take("Blue Fox & Co"); err != nil {
+		t.Errorf("Take refuses an answer: %v", err)
 	}
-	if err := q.Check(""); err == nil {
-		t.Error("Check takes an empty answer")
+	if _, err := q.Take(""); err == nil {
+		t.Error("Take takes an empty answer")
 	}
 }
 
 // A case-forms question with no pattern still takes only words in kebab
 // case, which its five forms are made from.
-func TestCheckTakesOnlyKebabCaseForACaseFormsQuestionWithoutAPattern(t *testing.T) {
+func TestAQuestionTakesOnlyKebabCaseForACaseFormsQuestionWithoutAPattern(t *testing.T) {
 	m, err := Parse([]byte("version: 1\nstacks: [{name: go}]\nquestions: [{name: name, literal: acme-widget, question: Q, case_forms: true}]\n"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	q, _ := m.Question("name")
-	if err := q.Check("blue-fox"); err != nil {
-		t.Errorf("Check refuses blue-fox: %v", err)
+	if _, err := q.Take("blue-fox"); err != nil {
+		t.Errorf("Take refuses blue-fox: %v", err)
 	}
 	for _, bad := range []string{"Blue_Fox", "blue--fox", "blue fox"} {
-		if err := q.Check(bad); err == nil {
-			t.Errorf("Check takes %q", bad)
+		if _, err := q.Take(bad); err == nil {
+			t.Errorf("Take takes %q", bad)
 		}
 	}
 }
@@ -152,7 +152,7 @@ func owner(t *testing.T) *Question {
 // does, naming the first character that makes it refused by its code
 // point, never showing it. A joiner is refused where no script spells with
 // it: between Latin letters, or the people of a family emoji.
-func TestCheckRefusesWhatPRECISRefusesNamingTheFirstCharacterToBlame(t *testing.T) {
+func TestTakeRefusesWhatPRECISRefusesNamingTheFirstCharacterToBlame(t *testing.T) {
 	q := owner(t)
 	cases := map[string]string{
 		"blue\x1bfox":         "U+001B",
@@ -174,17 +174,17 @@ func TestCheckRefusesWhatPRECISRefusesNamingTheFirstCharacterToBlame(t *testing.
 		"\u0915\u094d\u200d\u0937\u202e":           "U+202E",
 	}
 	for answer, code := range cases {
-		err := q.Check(answer)
+		_, err := q.Take(answer)
 		if err == nil {
-			t.Errorf("Check takes %+q", answer)
+			t.Errorf("Take takes %+q", answer)
 			continue
 		}
 		if !strings.Contains(err.Error(), code+",") {
-			t.Errorf("Check's refusal of %+q names no %s: %v", answer, code, err)
+			t.Errorf("Take's refusal of %+q names no %s: %v", answer, code, err)
 		}
 		for _, r := range answer {
 			if r > 0x7e && strings.ContainsRune(err.Error(), r) {
-				t.Errorf("Check's refusal of %+q shows %U: %v", answer, r, err)
+				t.Errorf("Take's refusal of %+q shows %U: %v", answer, r, err)
 			}
 		}
 	}
@@ -194,7 +194,7 @@ func TestCheckRefusesWhatPRECISRefusesNamingTheFirstCharacterToBlame(t *testing.
 // no-break space, a bare heart, and a joiner where a script spells with
 // it, Persian's non-joiner between letters that join and Hindi's joiner
 // after a virama.
-func TestCheckTakesWhatPRECISTakes(t *testing.T) {
+func TestAQuestionTakesWhatPRECISTakes(t *testing.T) {
 	q := owner(t)
 	for _, answer := range []string{
 		"Blue Fox & Co",
@@ -204,8 +204,8 @@ func TestCheckTakesWhatPRECISTakes(t *testing.T) {
 		"\u0645\u06cc\u200c\u062e\u0648\u0627\u0647\u0645",
 		"\u0915\u094d\u200d\u0937",
 	} {
-		if err := q.Check(answer); err != nil {
-			t.Errorf("Check refuses %+q: %v", answer, err)
+		if _, err := q.Take(answer); err != nil {
+			t.Errorf("Take refuses %+q: %v", answer, err)
 		}
 	}
 }
@@ -228,7 +228,7 @@ func TestRefusedNamesTheFirstCharacterFreeTextMayNotHold(t *testing.T) {
 	}
 }
 
-// A default goes through Check when the manifest is read, so one holding
+// A default goes through Take when the manifest is read, so one holding
 // an invisible character is refused there, naming the question and the
 // character's code point, the default quoted escaped.
 func TestParseRefusesADefaultPRECISRefuses(t *testing.T) {
@@ -239,9 +239,24 @@ func TestParseRefusesADefaultPRECISRefuses(t *testing.T) {
 	}
 }
 
+// taken are texts as m's questions take them, by name.
+func taken(t *testing.T, m *Manifest, texts map[string]string) Answers {
+	t.Helper()
+	var answers Answers
+	for name, text := range texts {
+		q, _ := m.Question(name)
+		answer, err := q.Take(text)
+		if err != nil {
+			t.Fatalf("%s does not take %q: %v", name, text, err)
+		}
+		answers.Add(answer)
+	}
+	return answers
+}
+
 func TestReplacementsPutTheLongestLiteralFirst(t *testing.T) {
 	m := acme(t)
-	got := m.Replacements(map[string]string{"name": "blue-fox", "module": "example.com/blue/fox"})
+	got := m.Replacements(taken(t, m, map[string]string{"name": "blue-fox", "module": "example.com/blue/fox"}))
 	// The longest first; equal lengths keep the manifest's order (kebab,
 	// snake, camel, Pascal, upper snake), so the 11-byte forms precede the
 	// 10-byte ones.

@@ -47,7 +47,7 @@ func TestNewestIsTheHighestCompleteStableReleaseAndTheRenderIsIts(t *testing.T) 
 		t.Errorf("the newest release is %q, not v1.10.0: semver orders them, a pre-release is never the newest", tpl.Release())
 	}
 	w, d, _ := writer()
-	p, err := tpl.Render(combination(t, tpl, "sh", "extra"), answers, project.Folder{Path: "made", New: true}, nil, w)
+	p, err := tpl.Render(combination(t, tpl, "sh", "extra"), taken(t, tpl.Manifest, answers), project.Folder{Path: "made", New: true}, nil, w)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -100,7 +100,7 @@ func TestATemplateWithNoCompleteStableReleaseRendersItsHeads(t *testing.T) {
 			continue
 		}
 		w, d, _ := writer()
-		p, err := tpl.Render(combination(t, tpl, "sh"), answers, project.Folder{Path: "made", New: true}, nil, w)
+		p, err := tpl.Render(combination(t, tpl, "sh"), taken(t, tpl.Manifest, answers), project.Folder{Path: "made", New: true}, nil, w)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -146,7 +146,7 @@ func TestUseReleaseRendersTheReleaseNamedAPreReleaseToo(t *testing.T) {
 			t.Fatal(err)
 		}
 		w, d, _ := writer()
-		p, err := tpl.Render(combination(t, tpl, "py", "tool"), answers, project.Folder{Path: "made", New: true}, nil, w)
+		p, err := tpl.Render(combination(t, tpl, "py", "tool"), taken(t, tpl.Manifest, answers), project.Folder{Path: "made", New: true}, nil, w)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -234,7 +234,7 @@ func TestCheckProvesTheReleaseUsed(t *testing.T) {
 		holds = append(holds, string(d.Folders[dir]["release.txt"].Data))
 		return nil, true
 	}}
-	if err := tpl.Check(answers, folders, w, run, func(Result) error { return nil }); err != nil {
+	if err := tpl.Check(taken(t, tpl.Manifest, answers), folders, w, run, func(Result) error { return nil }); err != nil {
 		t.Fatal(err)
 	}
 	if len(holds) == 0 || slices.ContainsFunc(holds, func(h string) bool { return h != "v1.0.0\n" }) {

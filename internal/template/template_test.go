@@ -111,6 +111,19 @@ func combination(t *testing.T, tpl *Template, stack string, features ...string) 
 
 var answers = answer.Set{"name": "blue-fox", "owner": "Blue Corp"}
 
+// taken are texts as m's questions take them, as new reads answers given.
+func taken(t interface{ Fatalf(string, ...any) }, m *manifest.Manifest, texts answer.Set) manifest.Answers {
+	var given answer.Given
+	for name, text := range texts {
+		given = append(given, name+"="+text)
+	}
+	answers, err := answer.Resolve(m, given, false)
+	if err != nil {
+		t.Fatalf("the answers %q: %v", texts, err)
+	}
+	return answers
+}
+
 func TestOpenReadsTheManifestOnTheRootBranch(t *testing.T) {
 	tpl := open(t, acme())
 	if tpl.Name != "../acme" || tpl.Root() != "main" || !slices.Equal(tpl.Manifest.StackNames(), []string{"sh", "py"}) {
@@ -152,7 +165,7 @@ func TestOpenRefusesAManifestNamingEveryProblemAndTheRootBranch(t *testing.T) {
 func TestRenderMergesTheBranchesReplacesTheLiteralsAndRecordsEveryCommit(t *testing.T) {
 	tpl := open(t, acme())
 	w, d, g := writer()
-	p, err := tpl.Render(combination(t, tpl, "sh", "extra"), answers, project.Folder{Path: "made", New: true}, nil, w)
+	p, err := tpl.Render(combination(t, tpl, "sh", "extra"), taken(t, tpl.Manifest, answers), project.Folder{Path: "made", New: true}, nil, w)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -183,12 +196,12 @@ func TestRenderMergesTheBranchesReplacesTheLiteralsAndRecordsEveryCommit(t *test
 // write, the same files and record, with nothing written and no check run.
 func TestBaselineIsWhatRenderWouldWriteWithNothingWritten(t *testing.T) {
 	tpl := open(t, acme())
-	files, record, err := tpl.Baseline(combination(t, tpl, "sh", "extra"), answers)
+	files, record, err := tpl.Baseline(combination(t, tpl, "sh", "extra"), taken(t, tpl.Manifest, answers))
 	if err != nil {
 		t.Fatal(err)
 	}
 	w, d, _ := writer()
-	p, err := tpl.Render(combination(t, tpl, "sh", "extra"), answers, project.Folder{Path: "made", New: true}, nil, w)
+	p, err := tpl.Render(combination(t, tpl, "sh", "extra"), taken(t, tpl.Manifest, answers), project.Folder{Path: "made", New: true}, nil, w)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -205,7 +218,8 @@ func TestBaselineIsWhatRenderWouldWriteWithNothingWritten(t *testing.T) {
 	if !equalRecords(record, p.Record) {
 		t.Errorf("the baseline's record is %+v, the render's %+v", record, p.Record)
 	}
-	if _, _, err := open(t, acme()).Baseline(manifest.Combination{Stack: manifest.Stack{Name: "nosuch"}}, answers); !errors.As(err, new(*NoBranch)) {
+	fresh := open(t, acme())
+	if _, _, err := fresh.Baseline(manifest.Combination{Stack: manifest.Stack{Name: "nosuch"}}, taken(t, fresh.Manifest, answers)); !errors.As(err, new(*NoBranch)) {
 		t.Errorf("a baseline of a branch the template lacks gave %v", err)
 	}
 }
@@ -222,7 +236,7 @@ func TestRenderCommitsAsTheIdentityGiven(t *testing.T) {
 	w, _, g := writer()
 	g.Who = nil
 	by := port.Identity{Name: "check", Email: "check@localhost"}
-	p, err := tpl.Render(combination(t, tpl, "sh"), answers, project.Folder{Path: "tmp"}, &by, w)
+	p, err := tpl.Render(combination(t, tpl, "sh"), taken(t, tpl.Manifest, answers), project.Folder{Path: "tmp"}, &by, w)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -245,7 +259,7 @@ const firstCommit = "version: 4\nfirst_commit: \"chore: start acme-widget\\n\\nM
 func TestRenderCommitsTheManifestsFirstCommitItsLiteralsReplaced(t *testing.T) {
 	tpl := open(t, withManifest(acme(), strings.Replace(manifestText, "version: 2\n", firstCommit, 1)))
 	w, _, g := writer()
-	if _, err := tpl.Render(combination(t, tpl, "sh"), answers, project.Folder{Path: "made", New: true}, nil, w); err != nil {
+	if _, err := tpl.Render(combination(t, tpl, "sh"), taken(t, tpl.Manifest, answers), project.Folder{Path: "made", New: true}, nil, w); err != nil {
 		t.Fatal(err)
 	}
 	want := "chore: start blue-fox\n\nMade for Blue Corp, BLUE_FOX.\r\n\nTask: T-1\n"
@@ -253,7 +267,7 @@ func TestRenderCommitsTheManifestsFirstCommitItsLiteralsReplaced(t *testing.T) {
 		t.Errorf("the first commit's message is %q, not %q", got, want)
 	}
 	tpl = open(t, acme())
-	if _, err := tpl.Render(combination(t, tpl, "sh"), answers, project.Folder{Path: "other", New: true}, nil, w); err != nil {
+	if _, err := tpl.Render(combination(t, tpl, "sh"), taken(t, tpl.Manifest, answers), project.Folder{Path: "other", New: true}, nil, w); err != nil {
 		t.Fatal(err)
 	}
 	if got := g.Commits["other"].Message; !strings.HasPrefix(got, "chore: make the project from its template\n") {
@@ -267,7 +281,7 @@ func TestRenderRefusesABranchTheManifestImpliesAndTheTemplateLacks(t *testing.T)
 	c := combination(t, tpl, "sh", "extra")
 	delete(repo.Branches, "sh/extra")
 	w, d, _ := writer()
-	_, err := tpl.Render(c, answers, project.Folder{Path: "made", New: true}, nil, w)
+	_, err := tpl.Render(c, taken(t, tpl.Manifest, answers), project.Folder{Path: "made", New: true}, nil, w)
 	var none *NoBranch
 	if !errors.As(err, &none) || none.Branch != "sh/extra" {
 		t.Fatalf("Render = %v", err)
@@ -282,7 +296,7 @@ func TestRenderRefusesBranchesThatDoNotMergeCleanlyNamingThem(t *testing.T) {
 	repo.Branches["sh/more"]["extra.txt"] = &fstest.MapFile{Data: []byte("changed\n")}
 	tpl := open(t, repo)
 	w, d, _ := writer()
-	_, err := tpl.Render(combination(t, tpl, "sh", "extra", "more"), answers, project.Folder{Path: "made", New: true}, nil, w)
+	_, err := tpl.Render(combination(t, tpl, "sh", "extra", "more"), taken(t, tpl.Manifest, answers), project.Folder{Path: "made", New: true}, nil, w)
 	var conflict *MergeConflict
 	if !errors.As(err, &conflict) || conflict.Branch != "sh/more" || !slices.Equal(conflict.Into, []string{"stack/sh", "sh/extra"}) || !slices.Equal(conflict.Paths, []string{"extra.txt"}) {
 		t.Fatalf("Render = %v", err)
@@ -297,7 +311,7 @@ func TestRenderRefusesATemplateHoldingTheRecordsFile(t *testing.T) {
 	repo.Branches["stack/sh"][project.RecordFile] = &fstest.MapFile{Data: []byte("x\n")}
 	tpl := open(t, repo)
 	w, d, _ := writer()
-	_, err := tpl.Render(combination(t, tpl, "sh"), answers, project.Folder{Path: "made", New: true}, nil, w)
+	_, err := tpl.Render(combination(t, tpl, "sh"), taken(t, tpl.Manifest, answers), project.Folder{Path: "made", New: true}, nil, w)
 	var holds *HoldsRecord
 	if !errors.As(err, &holds) || holds.File != project.RecordFile {
 		t.Fatalf("Render = %v", err)
@@ -313,7 +327,7 @@ func TestRenderRefusesAnAnswerThatMakesTwoFilesOneWithoutWriting(t *testing.T) {
 	repo.Branches["stack/sh"]["blue-fox.txt"] = &fstest.MapFile{Data: []byte("two\n")}
 	tpl := open(t, repo)
 	w, d, _ := writer()
-	_, err := tpl.Render(combination(t, tpl, "sh"), answers, project.Folder{Path: "made", New: true}, nil, w)
+	_, err := tpl.Render(combination(t, tpl, "sh"), taken(t, tpl.Manifest, answers), project.Folder{Path: "made", New: true}, nil, w)
 	var same *render.SameName
 	if !errors.As(err, &same) || same.To != "blue-fox.txt" {
 		t.Fatalf("Render = %v", err)
@@ -327,7 +341,7 @@ func TestRenderRefusesBeforeWritingWhenGitKnowsNoOne(t *testing.T) {
 	tpl := open(t, acme())
 	w, d, g := writer()
 	g.Who = nil
-	if _, err := tpl.Render(combination(t, tpl, "sh"), answers, project.Folder{Path: "made", New: true}, nil, w); !errors.Is(err, porttest.ErrNoIdentity) {
+	if _, err := tpl.Render(combination(t, tpl, "sh"), taken(t, tpl.Manifest, answers), project.Folder{Path: "made", New: true}, nil, w); !errors.Is(err, porttest.ErrNoIdentity) {
 		t.Fatalf("Render = %v", err)
 	}
 	if len(d.Folders) != 0 {

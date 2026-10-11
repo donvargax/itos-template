@@ -44,7 +44,8 @@ func TestRenderedIsTheRecordsCommitsAsNewRenderedThem(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want, _, err := open(t, acme()).Baseline(combination(t, open(t, acme()), "sh", "extra"), answers)
+	heads := open(t, acme())
+	want, _, err := heads.Baseline(combination(t, heads, "sh", "extra"), taken(t, heads.Manifest, answers))
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -22,7 +22,7 @@ func checked(t *testing.T, tpl *Template, setup func(*porttest.Disk, *porttest.G
 		setup(d, g, folders)
 	}
 	var results []Result
-	err := tpl.Check(answers, folders, w, porttest.Programs{"has": porttest.Has(d)}, func(r Result) error {
+	err := tpl.Check(taken(t, tpl.Manifest, answers), folders, w, porttest.Programs{"has": porttest.Has(d)}, func(r Result) error {
 		results = append(results, r)
 		return nil
 	})
@@ -175,7 +175,8 @@ func TestCheckStopsAtAnErrorEachReturns(t *testing.T) {
 	w, d, _ := writer()
 	stop := errors.New("the report cannot be written")
 	n := 0
-	err := open(t, acme()).Check(answers, &porttest.Folders{Disk: d}, w, porttest.Programs{"has": porttest.Has(d)}, func(Result) error {
+	tpl := open(t, acme())
+	err := tpl.Check(taken(t, tpl.Manifest, answers), &porttest.Folders{Disk: d}, w, porttest.Programs{"has": porttest.Has(d)}, func(Result) error {
 		n++
 		return stop
 	})
@@ -245,7 +246,7 @@ func TestSetupIsTheCombinationsStepsTheAnswersInPlace(t *testing.T) {
 	text = strings.Replace(text, "    checks: [[has, extra.txt]]\n", "    checks: [[has, extra.txt]]\n    setup: [[echo, acmeWidget, ACME_WIDGET]]\n", 1)
 	tpl := open(t, withManifest(acme(), text))
 	var got []string
-	for _, step := range tpl.Setup(combination(t, tpl, "sh", "extra"), answers) {
+	for _, step := range tpl.Setup(combination(t, tpl, "sh", "extra"), taken(t, tpl.Manifest, answers)) {
 		got = append(got, step.Shell())
 	}
 	want := []string{
@@ -256,11 +257,11 @@ func TestSetupIsTheCombinationsStepsTheAnswersInPlace(t *testing.T) {
 	if !slices.Equal(got, want) {
 		t.Errorf("the setup steps are\n%s", strings.Join(got, "\n"))
 	}
-	if steps := tpl.Setup(combination(t, tpl, "py"), answers); len(steps) != 1 {
+	if steps := tpl.Setup(combination(t, tpl, "py"), taken(t, tpl.Manifest, answers)); len(steps) != 1 {
 		t.Errorf("py's setup steps are %q, the root's alone", steps)
 	}
 	plain := open(t, acme())
-	if steps := plain.Setup(combination(t, plain, "sh", "extra"), answers); steps != nil {
+	if steps := plain.Setup(combination(t, plain, "sh", "extra"), taken(t, plain.Manifest, answers)); steps != nil {
 		t.Errorf("a template with no setup lists %q", steps)
 	}
 }

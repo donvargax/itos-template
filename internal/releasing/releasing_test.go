@@ -83,6 +83,16 @@ func here(t *testing.T, r port.Tagger, version string) *Here {
 	return h
 }
 
+// blueFox is the answer blue-fox to tpl's one question, name.
+func blueFox(t *testing.T, tpl *template.Template) manifest.Answers {
+	t.Helper()
+	answers, err := answer.Resolve(tpl.Manifest, answer.Given{"name=blue-fox"}, false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return answers
+}
+
 // cut plans and cuts the release version of tpl in r with the fakes, its
 // feature's check passing, and gives the release, each combination's name
 // and whether it passed, and the error.
@@ -95,7 +105,7 @@ func cut(t *testing.T, tpl *template.Template, r *porttest.Tagger, version strin
 	d := porttest.NewDisk()
 	w := project.Writer{Disk: d, Git: porttest.NewGit(d)}
 	var results []string
-	rel, err := p.Cut(tpl, answer.Set{"name": "blue-fox"}, &porttest.Folders{Disk: d}, w, porttest.Programs{"has": porttest.Has(d)}, func(r template.Result) error {
+	rel, err := p.Cut(tpl, blueFox(t, tpl), &porttest.Folders{Disk: d}, w, porttest.Programs{"has": porttest.Has(d)}, func(r template.Result) error {
 		results = append(results, r.Combination.Name()+map[bool]string{true: " passed", false: " failed"}[r.Passed()])
 		return nil
 	})
@@ -335,7 +345,7 @@ func TestCutStopsWhereEachDoes(t *testing.T) {
 	stop := errors.New("cannot write the report")
 	d := porttest.NewDisk()
 	w := project.Writer{Disk: d, Git: porttest.NewGit(d)}
-	rel, err := p.Cut(tpl, answer.Set{"name": "blue-fox"}, &porttest.Folders{Disk: d}, w, porttest.Programs{"has": porttest.Has(d)}, func(template.Result) error { return stop })
+	rel, err := p.Cut(tpl, blueFox(t, tpl), &porttest.Folders{Disk: d}, w, porttest.Programs{"has": porttest.Has(d)}, func(template.Result) error { return stop })
 	if rel != nil || !errors.Is(err, stop) || len(r.Tags) != 0 {
 		t.Errorf("each stopping gives %+v, %v, the tags %v", rel, err, r.Tags)
 	}

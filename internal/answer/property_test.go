@@ -39,7 +39,7 @@ func question(t *rapid.T, i int) manifest.Question {
 }
 
 // takes is whether q takes answer, worked out here from what
-// docs/manifest.md says, apart from Question.Check: never empty, the
+// docs/manifest.md says, apart from Question.Take: never empty, the
 // pattern matched whole, and with case forms lowercase words joined by
 // dashes.
 func takes(q manifest.Question, answer string) bool {
@@ -83,11 +83,11 @@ func TestADefaultIsAlwaysAnAnswerItsQuestionTakes(t *testing.T) {
 			if q.Default == nil {
 				continue
 			}
-			if err := q.Check(*q.Default); err != nil {
+			if _, err := q.Take(*q.Default); err != nil {
 				t.Fatalf("%s does not take its default %q: %v", q.Name, *q.Default, err)
 			}
-			if answers[q.Name] != *q.Default {
-				t.Fatalf("%s is answered %q, not its default %q", q.Name, answers[q.Name], *q.Default)
+			if answers.Texts()[q.Name] != *q.Default {
+				t.Fatalf("%s is answered %q, not its default %q", q.Name, answers.Texts()[q.Name], *q.Default)
 			}
 		}
 		for _, p := range problems {

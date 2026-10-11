@@ -22,7 +22,7 @@ var branch = rapid.StringMatching(`[a-z0-9][a-z0-9._-]{0,6}(/[a-z0-9][a-z0-9._-]
 // stack, its features (none given as nil or as empty), each branch's
 // commit, and the paths it declines, nil for none. An answer is any text
 // a question with no pattern takes
-// (manifest.Question.Check); the template, any text template.CheckName
+// (manifest.Question.Take); the template, any text template.CheckName
 // takes, which is manifest.Refused: package template imports this one, so
 // its test cannot call CheckName by its name. Each is drawn as any text,
 // then cut of what the check refuses (free) and filtered by the check, so
@@ -43,7 +43,8 @@ var records = rapid.Custom(func(t *rapid.T) Record {
 		Stack:    branch.Draw(t, "stack"),
 		Features: rapid.SliceOfNDistinct(branch, 0, 3, rapid.ID[string]).Draw(t, "features"),
 		Answers: answer.Set(rapid.MapOfN(rapid.StringMatching(`[a-z][a-z0-9_-]{0,5}`), rapid.Map(rapid.StringN(1, 12, -1), free).Filter(func(a string) bool {
-			return (&manifest.Question{}).Check(a) == nil
+			_, err := (&manifest.Question{}).Take(a)
+			return err == nil
 		}), 0, 4).Draw(t, "answers")),
 		Commits: rapid.MapOfN(branch, rapid.StringMatching(`[0-9a-f]{40}`), 1, 4).Draw(t, "commits"),
 	}

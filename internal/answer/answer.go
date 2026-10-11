@@ -1,7 +1,8 @@
 // Package answer reads the answers to a template's questions given on a
-// command line, each name=answer, against its manifest: each checked by its
-// question, a missing one's default taken when asked to (--defaults), and
-// what is still missing either returned to be asked on a terminal or
+// command line, each name=answer, against its manifest: each taken by its
+// question into a manifest.Answer, checked once there and trusted after
+// (decision 41), a missing one's default taken when asked to (--defaults),
+// and what is still missing either returned to be asked on a terminal or
 // refused (decision 11). It is domain, and does no I/O.
 //
 // Every problem is an Error of its own, all returned together, so one run
@@ -20,53 +21,60 @@ import (
 // Given are the answers as a command line gives them, each name=answer.
 type Given []string
 
-// Set is the answers by their questions' names, each one its question
-// takes.
+// Set is the answers as text by their questions' names, as a made
+// project's record keeps them (decision 10). Read takes them into a
+// manifest.Answers, which a render replaces the literals with.
 type Set map[string]string
 
 // Resolve is the answers to m's questions, never asked: those given, and
 // with defaults a missing one's default. Every problem is returned, joined
 // (errors.Join): a malformed or unknown answer, one given twice, one its
 // question does not take, and each missing one.
-func Resolve(m *manifest.Manifest, given Given, defaults bool) (Set, error) {
+func Resolve(m *manifest.Manifest, given Given, defaults bool) (manifest.Answers, error) {
 	answers, _, problems := Read(m, given, defaults, false)
 	if len(problems) > 0 {
-		return nil, errors.Join(problems...)
+		return manifest.Answers{}, errors.Join(problems...)
 	}
 	return answers, nil
 }
 
-// Read reads the answers given against m's questions, takes a missing one's
+// Read takes the answers given by m's questions, takes a missing one's
 // default with defaults, and returns the questions still missing to ask
 // them when ask; without ask each missing one is a problem. Every problem
-// is an Error.
-func Read(m *manifest.Manifest, given Given, defaults, ask bool) (Set, []*manifest.Question, []error) {
+// is an Error. An answer its question does not take is a problem, and its
+// question is answered all the same: it is neither missing nor asked.
+func Read(m *manifest.Manifest, given Given, defaults, ask bool) (manifest.Answers, []*manifest.Question, []error) {
 	var problems []error
-	answers := Set{}
+	var answers manifest.Answers
+	answered := map[string]bool{}
 	for _, kv := range given {
-		name, answer, ok := strings.Cut(kv, "=")
+		name, text, ok := strings.Cut(kv, "=")
 		q, known := m.Question(name)
 		switch {
 		case !ok:
 			problems = append(problems, &Malformed{Given: kv})
 		case !known:
 			problems = append(problems, &Unknown{Name: name, Questions: m.QuestionNames()})
-		case hasKey(answers, name):
+		case answered[name]:
 			problems = append(problems, &Twice{Name: name})
 		default:
-			if err := q.Check(answer); err != nil {
-				problems = append(problems, &NotTaken{Name: name, Answer: answer, Reason: err})
+			answered[name] = true
+			taken, err := q.Take(text)
+			if err != nil {
+				problems = append(problems, &NotTaken{Name: name, Answer: text, Reason: err})
+				continue
 			}
-			answers[name] = answer
+			answers.Add(taken)
 		}
 	}
 	var missing []*manifest.Question
 	for i := range m.Questions {
 		q := &m.Questions[i]
+		def, hasDefault := q.DefaultAnswer()
 		switch {
-		case hasKey(answers, q.Name):
-		case defaults && q.Default != nil:
-			answers[q.Name] = *q.Default
+		case answered[q.Name]:
+		case defaults && hasDefault:
+			answers.Add(def)
 		case ask:
 			missing = append(missing, q)
 		default:
@@ -74,11 +82,6 @@ func Read(m *manifest.Manifest, given Given, defaults, ask bool) (Set, []*manife
 		}
 	}
 	return answers, missing, problems
-}
-
-func hasKey(m Set, k string) bool {
-	_, ok := m[k]
-	return ok
 }
 
 // Error is an answer that cannot be taken, a sealed set (decision 17):

@@ -32,6 +32,12 @@ func parse(t *testing.T) *manifest.Manifest {
 	return m
 }
 
+// refusal is why q does not take answer.
+func refusal(q manifest.Question, answer string) string {
+	_, err := q.Take(answer)
+	return err.Error()
+}
+
 func TestResolveNamesEveryMissingOneAndNeverAsks(t *testing.T) {
 	m := parse(t)
 	_, err := Resolve(m, nil, false)
@@ -46,7 +52,7 @@ func TestResolveNamesEveryMissingOneAndNeverAsks(t *testing.T) {
 		}
 	}
 	got, err := Resolve(m, Given{"name=blue-fox"}, true)
-	if err != nil || got["name"] != "blue-fox" || got["owner"] != "Nobody" {
+	if err != nil || got.Texts()["name"] != "blue-fox" || got.Texts()["owner"] != "Nobody" {
 		t.Errorf("Resolve = %v, %v", got, err)
 	}
 }
@@ -73,8 +79,8 @@ func TestReadReturnsTheMissingQuestionsToAsk(t *testing.T) {
 	if !errors.As(problems[2], &unknown) || unknown.Name != "who" || len(unknown.Questions) != 2 {
 		t.Errorf("problem 2 is %v", problems[2])
 	}
-	if answers["name"] != "blue-fox" {
-		t.Errorf("answers %v", answers)
+	if answers.Texts()["name"] != "blue-fox" {
+		t.Errorf("answers %v", answers.Texts())
 	}
 	_, _, problems = Read(m, Given{"name=Blue"}, true, false)
 	if len(problems) != 1 || !errors.As(problems[0], &notTaken) || notTaken.Answer != "Blue" || notTaken.Reason == nil {
@@ -85,8 +91,8 @@ func TestReadReturnsTheMissingQuestionsToAsk(t *testing.T) {
 func TestReadTakesADefaultOnlyWhenAskedTo(t *testing.T) {
 	m := parse(t)
 	answers, missing, problems := Read(m, Given{"name=blue-fox"}, true, true)
-	if len(problems) != 0 || len(missing) != 0 || answers["owner"] != "Nobody" {
-		t.Errorf("Read = %v, %v, %v", answers, missing, problems)
+	if len(problems) != 0 || len(missing) != 0 || answers.Texts()["owner"] != "Nobody" {
+		t.Errorf("Read = %v, %v, %v", answers.Texts(), missing, problems)
 	}
 	_, _, problems = Read(m, Given{"name=blue-fox"}, false, false)
 	var missingOwner *Missing
@@ -102,11 +108,11 @@ func TestReadTakesADefaultOnlyWhenAskedTo(t *testing.T) {
 func TestReadKeepsAnAnswerAsGivenAndQuotesARefusedOneEscaped(t *testing.T) {
 	m := parse(t)
 	answers, _, problems := Read(m, Given{"name=blue-fox", "owner=Cafe\u0301"}, false, false)
-	if len(problems) != 0 || answers["owner"] != "Cafe\u0301" {
-		t.Errorf("Read = %+q, %v", answers, problems)
+	if len(problems) != 0 || answers.Texts()["owner"] != "Cafe\u0301" {
+		t.Errorf("Read = %+q, %v", answers.Texts(), problems)
 	}
 	_, _, problems = Read(m, Given{"name=blue-fox", "owner=Blue\u3164Fox"}, false, false)
-	want := `the answer to owner, "Blue\u3164Fox": ` + m.Questions[1].Check("Blue\u3164Fox").Error()
+	want := `the answer to owner, "Blue\u3164Fox": ` + refusal(m.Questions[1], "Blue\u3164Fox")
 	if len(problems) != 1 || problems[0].Error() != want {
 		t.Errorf("problems %+q, not %q", problems, want)
 	}
@@ -121,7 +127,7 @@ func TestResolvesErrorReadsAsEveryProblemALineEach(t *testing.T) {
 	_, err := Resolve(m, Given{"nope", "who=x", "name=Blue", "name=red"}, false)
 	want := `the answer "nope" has no =
 no question "who"
-the answer to name, "Blue": ` + m.Questions[0].Check("Blue").Error() + `
+the answer to name, "Blue": ` + refusal(m.Questions[0], "Blue") + `
 the answer to name twice
 no answer to owner`
 	if err == nil || err.Error() != want {

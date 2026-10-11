@@ -30,7 +30,7 @@ import (
 	"errors"
 	"slices"
 
-	"github.com/donvargax/itos-template/internal/answer"
+	"github.com/donvargax/itos-template/internal/manifest"
 	"github.com/donvargax/itos-template/internal/project"
 	"github.com/donvargax/itos-template/internal/template"
 	"github.com/donvargax/itos-template/internal/template/port"
@@ -174,7 +174,7 @@ func (r *Release) Push() []string {
 // failed is a *Failed, and no tag is made. A tag the repository refuses is a
 // *Refused, each tag made before it deleted first; one that cannot be is
 // named in it. An error each returns stops the check and is returned.
-func (p *Plan) Cut(t *template.Template, answers answer.Set, folders port.Folders, w project.Writer, run port.Runner, each func(template.Result) error) (*Release, error) {
+func (p *Plan) Cut(t *template.Template, answers manifest.Answers, folders port.Folders, w project.Writer, run port.Runner, each func(template.Result) error) (*Release, error) {
 	failed, all := 0, 0
 	err := t.Check(answers, folders, w, run, func(r template.Result) error {
 		all++

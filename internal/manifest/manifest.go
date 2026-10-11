@@ -187,6 +187,7 @@ type Question struct {
 
 	pattern *regexp.Regexp
 	words   caseform.Words
+	def     *Answer // the default as Take took it, when it gives one
 }
 
 // Invalid is a manifest that cannot be used, every problem found in it.
@@ -305,8 +306,10 @@ func (m *Manifest) check() []string {
 			literals[form] = q.Name
 		}
 		if q.Default != nil && (q.pattern != nil || q.Pattern == "") {
-			if err := q.Check(*q.Default); err != nil {
+			if def, err := q.Take(*q.Default); err != nil {
 				add("the question %s's default %+q is not an answer it takes: %v", q.Name, *q.Default, err)
+			} else {
+				q.def = &def
 			}
 		}
 	}
@@ -445,33 +448,45 @@ func (m *Manifest) Scans(what string) bool {
 	return slices.ContainsFunc(checks, func(c Check) bool { return slices.Contains(c.Scans, what) })
 }
 
-// Check is whether answer is an answer q takes: never empty, free text
-// PRECIS takes, the pattern matched whole when there is one, and with case
-// forms, lowercase words joined by dashes. new, check and adopt read every
-// answer through it, given, typed or a default, and an answer lands in
-// file contents, file names, the record and the setup steps new prints, so
-// a question with no pattern still refuses what would print as something
+// Take is answer as an Answer q took, or why q does not take it: it is
+// never empty, free text PRECIS takes, the pattern matched whole when there
+// is one, and with case forms, lowercase words joined by dashes, kept as
+// the words they are. new, check, adopt and update read every answer
+// through it, given, typed or a default, and an answer lands in file
+// contents, file names, the record and the setup steps new prints, so a
+// question with no pattern still refuses what would print as something
 // else. The character refused is named by its code point, never shown.
-func (q *Question) Check(answer string) error {
+func (q *Question) Take(answer string) (Answer, error) {
 	if answer == "" {
-		return fmt.Errorf("it is empty")
+		return Answer{}, fmt.Errorf("it is empty")
 	}
 	if r, refused := Refused(answer); refused {
-		return fmt.Errorf("it holds %U, a control character, or one that prints as nothing or moves the text around it where no script spells with it, so give it without", r)
+		return Answer{}, fmt.Errorf("it holds %U, a control character, or one that prints as nothing or moves the text around it where no script spells with it, so give it without", r)
 	}
 	if q.pattern != nil && !q.pattern.MatchString(answer) {
-		return fmt.Errorf("it does not match the pattern %s", q.Pattern)
+		return Answer{}, fmt.Errorf("it does not match the pattern %s", q.Pattern)
 	}
+	var words caseform.Words
 	if q.CaseForms {
-		if _, err := caseform.Parse(answer); err != nil {
-			return err
+		var err error
+		if words, err = caseform.Parse(answer); err != nil {
+			return Answer{}, err
 		}
 	}
-	return nil
+	return Answer{question: q.Name, text: answer, words: words}, nil
+}
+
+// DefaultAnswer is q's default as the manifest took it when Parse read it,
+// and whether q has one.
+func (q *Question) DefaultAnswer() (Answer, bool) {
+	if q.def == nil {
+		return Answer{}, false
+	}
+	return *q.def, true
 }
 
 // Refused is the first character of text that free text may not hold, by
-// freeform's rule, and whether text holds one: an answer (Check), and the
+// freeform's rule, and whether text holds one: an answer (Take), and the
 // template as the person named it, which new, check and adopt judge by the
 // same rule before cloning it (bug-6), as the record, the line new prints
 // and the first commit's message hold it. text is judged, never changed.
@@ -594,23 +609,21 @@ func (m *Manifest) Ordered(chosen []Feature) []Feature {
 // Replacements are the pairs a render replaces, each literal's form and the
 // answer's form in it, the longest literal first, so where one literal
 // holds another the longer is replaced whole (strings.NewReplacer takes the
-// first pair that matches at a position). answers must hold an answer to
-// every question, each one Check took.
-func (m *Manifest) Replacements(answers map[string]string) []string {
+// first pair that matches at a position). Each answer is one its question
+// took, its words split already, so nothing here can fail (decision 41); a
+// question answers holds no answer to has its literal replaced by nothing.
+func (m *Manifest) Replacements(answers Answers) []string {
 	type pair struct{ old, new string }
 	var pairs []pair
 	for _, q := range m.Questions {
-		answer := answers[q.Name]
+		answer := answers.taken[q.Name]
 		if !q.CaseForms {
-			pairs = append(pairs, pair{q.Literal, answer})
+			pairs = append(pairs, pair{q.Literal, answer.text})
 			continue
 		}
-		words, err := caseform.Parse(answer)
-		if err != nil {
-			panic("manifest: an answer Check did not take: " + err.Error())
-		}
+		forms := answer.words.Forms()
 		for i, form := range q.words.Forms() {
-			pairs = append(pairs, pair{form, words.Forms()[i]})
+			pairs = append(pairs, pair{form, forms[i]})
 		}
 	}
 	sort.SliceStable(pairs, func(i, j int) bool { return len(pairs[i].old) > len(pairs[j].old) })

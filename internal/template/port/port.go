@@ -296,7 +296,8 @@ type Asker interface {
 
 // Question is what is asked, a sealed set: the choice of a stack, or an
 // answer to one of the manifest's questions. The Asker asks again until
-// the question's check takes the answer, saying why it did not.
+// the question's check takes the answer, saying why it did not, and
+// returns that answer, the last its check took.
 //
 //sumtype:decl
 type Question interface{ question() }

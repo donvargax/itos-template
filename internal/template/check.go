@@ -3,7 +3,6 @@ package template
 import (
 	"strings"
 
-	"github.com/donvargax/itos-template/internal/answer"
 	"github.com/donvargax/itos-template/internal/caseform"
 	"github.com/donvargax/itos-template/internal/manifest"
 	"github.com/donvargax/itos-template/internal/project"
@@ -85,7 +84,7 @@ const (
 //
 // A check's words have the literals replaced by the answers as a text
 // file's contents do, so a check can name a file the answers renamed.
-func (t *Template) Check(answers answer.Set, folders port.Folders, w project.Writer, run port.Runner, each func(Result) error) error {
+func (t *Template) Check(answers manifest.Answers, folders port.Folders, w project.Writer, run port.Runner, each func(Result) error) error {
 	replacer := render.NewReplacer(t.Manifest.Replacements(answers))
 	scan := t.Scan()
 	for _, c := range t.Manifest.Combinations() {
@@ -112,7 +111,7 @@ func (t *Template) Scan() *render.Scan {
 	return render.NewScan(words, written)
 }
 
-func (t *Template) checkCombination(c manifest.Combination, answers answer.Set, r *render.Replacer, scan *render.Scan, folders port.Folders, w project.Writer, run port.Runner) Result {
+func (t *Template) checkCombination(c manifest.Combination, answers manifest.Answers, r *render.Replacer, scan *render.Scan, folders port.Folders, w project.Writer, run port.Runner) Result {
 	result := Result{Combination: c}
 	dir, err := folders.Make()
 	if err != nil {
@@ -147,7 +146,7 @@ func (t *Template) checkCombination(c manifest.Combination, answers answer.Set, 
 // run (manifest.SetupOf), each word with the literals replaced by answers
 // as a check's words are, so a step names the project's own paths. new
 // prints them for the person to run; nothing here runs one.
-func (t *Template) Setup(c manifest.Combination, answers answer.Set) []manifest.Words {
+func (t *Template) Setup(c manifest.Combination, answers manifest.Answers) []manifest.Words {
 	r := render.NewReplacer(t.Manifest.Replacements(answers))
 	var steps []manifest.Words
 	for _, step := range t.Manifest.SetupOf(c) {

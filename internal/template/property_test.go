@@ -113,7 +113,7 @@ func renderOf(t *rapid.T, repo *porttest.Repository, c manifest.Combination, ans
 		t.Fatalf("Open = %v", err)
 	}
 	w, _, g := writer()
-	p, err := tpl.Render(c, answers, project.Folder{Path: "made", New: true}, nil, w)
+	p, err := tpl.Render(c, taken(t, tpl.Manifest, answers), project.Folder{Path: "made", New: true}, nil, w)
 	return rendered{p, g.Commits["made"], err}
 }
 

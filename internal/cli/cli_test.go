@@ -148,8 +148,8 @@ questions:
 	var stderr strings.Builder
 	ui := &UI{In: strings.NewReader("rust\ngo\n\n"), Stderr: &stderr, Terminal: true}
 	c, answers, err := template.Choose(m, manifest.Choice{}, nil, false, ui.Asker())
-	if err != nil || c.Name() != "go" || answers["owner"] != "Nobody" {
-		t.Fatalf("Choose = %s, %v, %v", c.Name(), answers, err)
+	if err != nil || c.Name() != "go" || answers.Texts()["owner"] != "Nobody" {
+		t.Fatalf("Choose = %s, %v, %v", c.Name(), answers.Texts(), err)
 	}
 	want := "Which stack (go, python)? " +
 		"  \"rust\" is not an answer it takes: the stacks are go, python\n" +

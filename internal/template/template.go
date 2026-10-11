@@ -79,13 +79,13 @@ func (t *Template) Root() string { return t.root }
 // The commit is by by when it is given, an identity for a render no one
 // keeps; without it the commit is the person's and git must know who they
 // are.
-func (t *Template) Render(c manifest.Combination, answers answer.Set, into project.Folder, by *port.Identity, w project.Writer) (*project.Project, error) {
+func (t *Template) Render(c manifest.Combination, answers manifest.Answers, into project.Folder, by *port.Identity, w project.Writer) (*project.Project, error) {
 	p, _, err := t.render(c, answers, into, by, w)
 	return p, err
 }
 
 // render is Render, giving the files it wrote as well.
-func (t *Template) render(c manifest.Combination, answers answer.Set, into project.Folder, by *port.Identity, w project.Writer) (*project.Project, []port.File, error) {
+func (t *Template) render(c manifest.Combination, answers manifest.Answers, into project.Folder, by *port.Identity, w project.Writer) (*project.Project, []port.File, error) {
 	files, record, message, err := t.plan(c, answers)
 	if err != nil {
 		return nil, nil, err
@@ -99,7 +99,7 @@ func (t *Template) render(c manifest.Combination, answers answer.Set, into proje
 // write beside it, with nothing written: what adopt compares an existing
 // project to and records. Every check Render runs before it writes runs
 // here, and no check of the manifest's.
-func (t *Template) Baseline(c manifest.Combination, answers answer.Set) ([]port.File, project.Record, error) {
+func (t *Template) Baseline(c manifest.Combination, answers manifest.Answers) ([]port.File, project.Record, error) {
 	files, record, _, err := t.plan(c, answers)
 	return files, record, err
 }
@@ -151,7 +151,7 @@ func featureBranches(c manifest.Combination) []string {
 // plan is what a render of c with answers writes: its files, its record
 // and its first commit's message, the manifest's first_commit rendered, ""
 // when it gives none.
-func (t *Template) plan(c manifest.Combination, answers answer.Set) ([]port.File, project.Record, string, error) {
+func (t *Template) plan(c manifest.Combination, answers manifest.Answers) ([]port.File, project.Record, string, error) {
 	m := t.Manifest
 	commits := map[string]string{t.root: t.rootCommit}
 	branches := append([]string{c.Stack.Branch()}, featureBranches(c)...)
@@ -195,7 +195,7 @@ func (t *Template) plan(c manifest.Combination, answers answer.Set) ([]port.File
 		Release:  t.Release(),
 		Stack:    c.Stack.Name,
 		Features: features,
-		Answers:  answers,
+		Answers:  answers.Texts(),
 		Commits:  commits,
 	}, message, nil
 }

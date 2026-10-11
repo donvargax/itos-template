@@ -12,7 +12,7 @@ import (
 	"github.com/donvargax/itos-template/internal/template/port/porttest"
 )
 
-func choose(t *testing.T, choice manifest.Choice, given answer.Given, defaults bool, terminal *porttest.Terminal) (manifest.Combination, answer.Set, error) {
+func choose(t *testing.T, choice manifest.Choice, given answer.Given, defaults bool, terminal *porttest.Terminal) (manifest.Combination, manifest.Answers, error) {
 	t.Helper()
 	m := open(t, acme()).Manifest
 	if terminal == nil {
@@ -47,8 +47,8 @@ func TestChooseAsksOnATerminalForWhatTheCommandLineLeftOut(t *testing.T) {
 	if !isName || name.Text != "Name?" || name.Default != nil || !isOwner || owner.Text != "Owner?" || owner.Default == nil || *owner.Default != "Nobody" {
 		t.Errorf("then asked %+v and %+v, not the manifest's questions", terminal.Asked[1], terminal.Asked[2])
 	}
-	if c.Name() != "sh" || answers["name"] != "blue-fox" || answers["owner"] != "Nobody" {
-		t.Errorf("chose %s, %v", c.Name(), answers)
+	if c.Name() != "sh" || answers.Texts()["name"] != "blue-fox" || answers.Texts()["owner"] != "Nobody" {
+		t.Errorf("chose %s, %v", c.Name(), answers.Texts())
 	}
 }
 
