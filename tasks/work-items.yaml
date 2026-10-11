@@ -1424,3 +1424,33 @@ items:
     status: done
     depends_on: []
     kind: task
+  - id: T-48
+    title: Kill or except internal/git's 17 survivors, its OS branches taking the OS as a value
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: task
+    why: >
+      T-43 left 17 survivors in internal/git under the whole suite (docs/mutation-baseline.md,
+      T-43's list, its lines as of 487ab3f; internal/git has not changed since): commit.go 28:10 in
+      Committer#Identity and 55:22, 55:24 in Committer#Commit; git.go 98:18 in names, 115:33,
+      115:50, 115:63, 115:91, 115:94 in executable, and 197:10 in exitCode; repo.go 178:10 in
+      Repo#files, 214:18, 218:27, 233:24, 233:31, 233:42 in Repo#blobs, and 245:22 in readBlob.
+      Decision 40 has a survivor of the whole suite get a test or an exception, and while they stand
+      they fail the nightly when drawn. Kill each with a test that asserts an outcome, or, for one
+      truly equivalent, except it with itos-cc mutation except and its reason, for the person's
+      review. The six in names and executable sit in runtime.GOOS branches a Linux run never takes,
+      which decision 26 forbids: those functions take the OS as a value (and names PATHEXT's value
+      too), the caller passing runtime.GOOS at the edge, so a unit test can give them windows; that
+      is a refactor commit of its own, its behaviour unchanged. exitCode's -1 looks equivalent to 0,
+      since every caller compares the result with 1 or 128; check that before excepting it. Decision
+      19: a test outside the domain exists only for what a scenario cannot reach, saying so in a
+      comment; internal/git's tests are of that kind (another OS's branch, a git output no scenario
+      makes). A survivor that shows behaviour a scenario should hold is not this task's: stop and
+      propose the scenario. Judge the kills with two full runs over the three files, own tests then
+      the whole suite, which reuses the first's kills (tools/bin/pinned itos-cc mutation run
+      --fail-uncovered=lines --since <the parent of the task's first commit> --no-annotate
+      internal/git/commit.go internal/git/git.go internal/git/repo.go, then the same with
+      --all-tests): both exit 0, and the report gives each survivor's fate. Then the push's proof
+      once, as AGENTS.md's Finishing says.
