@@ -1,13 +1,19 @@
 package git
 
 import (
+	"bufio"
 	"errors"
+	"fmt"
+	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
+	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/donvargax/itos-template/internal/template/port"
 )
@@ -21,7 +27,10 @@ import (
 // a symbolic link read from a template waits for the idea
 // template-special-files. A merge keeping a CRLF file's line endings, and
 // a commit by the identity check gives, a scenario could reach but none
-// reads yet: the idea outside-test-gaps.
+// reads yet: the idea outside-test-gaps. Nor does a scenario reach another
+// OS's branch on the OS it runs on, which decision 26 has a test reach by
+// handing the OS in as a value, or a git output no real git writes, which a
+// stub git writes here (stubGit) (T-48).
 
 func TestIsItosFollowsLinksToAFileNamedItos(t *testing.T) {
 	if runtime.GOOS == "windows" {
@@ -308,5 +317,242 @@ func TestDefaultBranchIsTheBranchOriginsHeadNames(t *testing.T) {
 	git(t, dir, "remote", "set-url", "origin", filepath.Join(t.TempDir(), "gone.git"))
 	if b, ok := g.DefaultBranch(); b != "" || ok {
 		t.Errorf("DefaultBranch of an origin that cannot be reached = %q, %v", b, ok)
+	}
+}
+
+// The stub git: this test binary, run with stubOut set, writes its value,
+// unquoted as a Go string, and exits 0, or 2 with stubFails set too.
+const (
+	stubOut   = "ITOS_TEMPLATE_TEST_STUB_GIT_OUT"
+	stubFails = "ITOS_TEMPLATE_TEST_STUB_GIT_FAILS"
+)
+
+// TestMain runs the tests, or runs as the stub git: it reads its input, as
+// git cat-file --batch does, writes what it was given, and exits 0, or 2
+// to fail.
+func TestMain(m *testing.M) {
+	out, ok := os.LookupEnv(stubOut)
+	if !ok {
+		os.Exit(m.Run())
+	}
+	_, _ = io.Copy(io.Discard, os.Stdin)
+	out, err := strconv.Unquote(out)
+	if err != nil {
+		_, _ = os.Stderr.WriteString(err.Error() + "\n")
+		os.Exit(3)
+	}
+	_, _ = os.Stdout.WriteString(out)
+	if os.Getenv(stubFails) != "" {
+		os.Exit(2)
+	}
+	os.Exit(0)
+}
+
+// useGit has the package run the program at p as git for the rest of the
+// test.
+func useGit(t *testing.T, p string) {
+	t.Helper()
+	was := Bin
+	Bin = func() string { return p }
+	t.Cleanup(func() { Bin = was })
+}
+
+// stubGit has the package run the stub git for the rest of the test, every
+// command writing out, and failing with exit 2 when fails.
+func stubGit(t *testing.T, out string, fails bool) {
+	t.Helper()
+	exe, err := os.Executable()
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv(stubOut, strconv.Quote(out)) // a variable holds no NUL
+	// A test binary built for coverage writes it where GOCOVERDIR says, and
+	// the stub's, of another counter mode, must not join the coverage a
+	// whole-suite mutation run collects there from itos-template's own
+	// binary.
+	t.Setenv("GOCOVERDIR", t.TempDir())
+	if fails {
+		t.Setenv(stubFails, "1")
+	}
+	useGit(t, exe)
+}
+
+// A run on one OS never takes another's branch, nor do the scenarios on it:
+// names takes the OS and PATHEXT as values (decision 26) so that every OS's
+// names are read on any.
+func TestNamesAreGitOrOnWindowsGitWithEachExtension(t *testing.T) {
+	for _, c := range []struct {
+		goos, pathext string
+		want          []string
+	}{
+		{"linux", ".EXE", []string{"git"}},
+		{"darwin", "", []string{"git"}},
+		{"windows", "", []string{"git.com", "git.exe", "git.bat", "git.cmd"}},
+		{"windows", ".EXE;;.Cmd;", []string{"git.exe", "git.cmd"}},
+	} {
+		if got := names(c.goos, c.pathext); !slices.Equal(got, c.want) {
+			t.Errorf("names(%q, %q) = %q, want %q", c.goos, c.pathext, got, c.want)
+		}
+	}
+}
+
+// bin is itos's rule for the real git (its bug 45). No scenario reaches
+// its choices: the harness hides ITOS_GIT and every itos of the caller's
+// (features/README.md), and runs with a PATH of absolute folders, each git
+// on it a program.
+func TestBinIsItosGitElseTheFirstProgramNamedGitInAnAbsolutePathFolder(t *testing.T) {
+	goos := runtime.GOOS // a real OS, its files stat-ed as they are
+	t.Setenv("PATHEXT", ".exe")
+	name := names(goos, ".exe")[0]
+	top := t.TempDir()
+	t.Chdir(top)
+	for _, dir := range []string{"relative", "absolute"} {
+		write(t, top, dir+"/"+name, "#!/bin/sh\n", 0o755)
+	}
+	if err := os.MkdirAll(filepath.Join(top, "folder", name), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	t.Setenv("PATH", strings.Join([]string{
+		"", "relative", filepath.Join(top, "none"), filepath.Join(top, "folder"), filepath.Join(top, "absolute"),
+	}, string(os.PathListSeparator)))
+	t.Setenv("ITOS_GIT", "")
+	if got, want := bin(goos), filepath.Join(top, "absolute", name); got != want {
+		t.Errorf("bin on the PATH = %s, want %s", got, want)
+	}
+	chosen := filepath.Join(top, "chosen")
+	t.Setenv("ITOS_GIT", chosen)
+	if got := bin(goos); got != chosen {
+		t.Errorf("bin with ITOS_GIT = %s, want %s", got, chosen)
+	}
+}
+
+// fileInfo is a stub of a file's os.FileInfo, of its mode alone.
+type fileInfo struct{ mode fs.FileMode }
+
+func (f fileInfo) Name() string       { return "git" }
+func (f fileInfo) Size() int64        { return 0 }
+func (f fileInfo) Mode() fs.FileMode  { return f.mode }
+func (f fileInfo) ModTime() time.Time { return time.Time{} }
+func (f fileInfo) IsDir() bool        { return f.mode.IsDir() }
+func (f fileInfo) Sys() any           { return nil }
+
+// As names: executable takes the OS as a value (decision 26), so windows,
+// which keeps no execute bit, is read on any OS.
+func TestExecutableIsARegularFileWithAnExecuteBitOrOnWindowsAny(t *testing.T) {
+	for _, c := range []struct {
+		goos string
+		mode fs.FileMode
+		want bool
+	}{
+		{"linux", 0o755, true},
+		{"linux", 0o100, true},
+		{"linux", 0o644, false},
+		{"linux", fs.ModeDir | 0o755, false},
+		{"windows", 0o644, true},
+		{"windows", fs.ModeDir | 0o755, false},
+	} {
+		if got := executable(c.goos, fileInfo{c.mode}); got != c.want {
+			t.Errorf("executable(%q, %v) = %v", c.goos, c.mode, got)
+		}
+	}
+}
+
+// No scenario makes Identity's git fail to run: a git missing fails new's
+// clone before it, and a missing temporary folder fails new's own folder
+// for the clone. A folder git cannot start in is one here.
+func TestIdentityGivesTheErrorOfAGitThatCannotRun(t *testing.T) {
+	gone := filepath.Join(t.TempDir(), "gone")
+	for _, v := range []string{"TMPDIR", "TMP", "TEMP"} {
+		t.Setenv(v, gone)
+	}
+	var missing *Missing
+	if err := (Committer{}).Identity(); !errors.As(err, &missing) {
+		t.Errorf("Identity where git cannot run = %v, not a *Missing", err)
+	}
+}
+
+// The scenarios run where the file system keeps the execute bit a render
+// writes but on windows, so only there does git take it from the
+// executables Commit is given; a file written without its bit is that case
+// on any OS.
+func TestCommitRecordsAnExecutableWrittenWithoutItsBit(t *testing.T) {
+	isolate(t)
+	dir := t.TempDir()
+	write(t, dir, "run.sh", "#!/bin/sh\n", 0o644)
+	if _, err := (Committer{}).Commit(dir, "chore: make it\n", []string{"run.sh"}, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := git(t, dir, "ls-files", "--stage", "--", "run.sh"); !strings.HasPrefix(got, "100755 ") {
+		t.Errorf("run.sh is recorded %q, not executable", got)
+	}
+}
+
+// git ls-tree writes every record as its mode, type and object, a tab and
+// the path; a record of another shape is no real git's, so a stub's.
+func TestFilesRefusesATreeRecordOfAnotherShape(t *testing.T) {
+	for _, record := range []string{"100644 blob 0123", "100644 blob\tREADME.md"} {
+		t.Run(record, func(t *testing.T) {
+			stubGit(t, record+"\x00", false)
+			files, err := (&Repo{dir: t.TempDir()}).files("HEAD")
+			if want := fmt.Sprintf("git ls-tree wrote %q", record); err == nil || !strings.Contains(err.Error(), want) || files != nil {
+				t.Errorf("files = %v, %v, not %s", files, err, want)
+			}
+		})
+	}
+}
+
+// A git cat-file that wrote every object and then failed, or that wrote
+// something other than a blob, is no real git's: a stub's.
+func TestBlobsGivesGitsFailureOnlyOnceEveryObjectIsRead(t *testing.T) {
+	read := func() ([]string, error) {
+		var got []string
+		err := (&Repo{dir: t.TempDir()}).blobs([]string{"0123"}, func(_ int, data []byte) error {
+			got = append(got, string(data))
+			return nil
+		})
+		return got, err
+	}
+	t.Run("every object read", func(t *testing.T) {
+		stubGit(t, "0123 blob 1\nx\n", true)
+		got, err := read()
+		var failed *Failed
+		if !errors.As(err, &failed) || failed.Code != 2 || !slices.Equal(got, []string{"x"}) {
+			t.Errorf("blobs = %q, %v, not x and git's exit 2", got, err)
+		}
+	})
+	t.Run("an object not read", func(t *testing.T) {
+		stubGit(t, "0123 tree 1\nx\n", true)
+		got, err := read()
+		var failed *Failed
+		if errors.As(err, &failed) || err == nil || !strings.Contains(err.Error(), "git cat-file wrote") || got != nil {
+			t.Errorf("blobs = %q, %v, not the object it could not read", got, err)
+		}
+	})
+}
+
+// Every tree a scenario renders or reads holds a file, a template its
+// manifest at least; blobs of none runs no git, so it reads none where git
+// cannot run.
+func TestBlobsOfNoObjectRunsNoGit(t *testing.T) {
+	useGit(t, filepath.Join(t.TempDir(), "no-git"))
+	err := (&Repo{dir: t.TempDir()}).blobs(nil, func(int, []byte) error {
+		t.Error("blobs of no object gave one")
+		return nil
+	})
+	if err != nil {
+		t.Errorf("blobs of no object = %v", err)
+	}
+}
+
+// git cat-file --batch writes a blob of every object here; any other type
+// is no real git's.
+func TestReadBlobRefusesAnObjectNotABlob(t *testing.T) {
+	r := bufio.NewReader(strings.NewReader("0123 tree 3\nabc\n"))
+	err := readBlob(r, "0123", func([]byte) error {
+		t.Error("readBlob gave a tree's contents")
+		return nil
+	})
+	if err == nil || !strings.Contains(err.Error(), `git cat-file wrote "0123 tree 3"`) {
+		t.Errorf("readBlob of a tree = %v", err)
 	}
 }
