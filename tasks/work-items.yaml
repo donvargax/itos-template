@@ -1286,21 +1286,9 @@ items:
     title: release takes origin's default branch as the root, whatever branch the checkout is on
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: bug
-    why: >
-      Was the idea release-root-branch. release copies the repository as check does (git.CloneHere),
-      whose root is the branch the checkout's HEAD names. Run with a listed branch checked out
-      (stack/go), release planned that tag twice and main's never: git refused the second, release
-      took back the first, and it exited 1 with git saying the tag exists, naming no cause (seen by
-      hand 2026-10-10). On an unlisted branch pushed to origin it would tag that branch as the root
-      and leave main untagged, an incomplete release new would skip. A release is for origin, and
-      the root is the template's default branch (docs/manifest.md, decision 36), so release reads it
-      from origin whatever is checked out: origin's HEAD as git clone recorded it, else as origin
-      says it (git ls-remote --symref), as check reads a detached checkout's. An origin naming no
-      default branch is refused as check refuses one. check keeps its rule; whether it shares the
-      flaw is the idea check-root-branch. The person's call, 2026-10-10.
   - id: check-root-branch
     title: check reads the root from origin's default branch when the checkout is on another branch, if it shares release's flaw
     phase: 1
