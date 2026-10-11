@@ -1405,3 +1405,18 @@ items:
     status: dropped
     depends_on: []
     kind: task
+  - id: template-contents-mutation
+    title: docs/template-contents.md's code-quality design says what decision 40 chose
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      docs/template-contents.md's Code quality section, written before decision 40, gives a made
+      project a mutation cache: the commit hook checks itos-cc's recorded results for the staged
+      code and CI re-runs a sample of them. Decision 40 (T-45, 2026-10-11) settled this repository
+      otherwise, as itos does: no cache, the code proof one fresh counted site a push over the
+      changed functions with changed-line coverage, and twenty sites a night. Decision 27 says a
+      template's projects carry the same gate, so the document says which one a made project gets
+      before first-template carries it.
