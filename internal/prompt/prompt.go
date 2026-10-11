@@ -74,5 +74,12 @@ func (l *Lines) Ask(text string, def *string, check func(answer string) error) (
 // Terminal is whether stdin and stdout are both terminals, the only case a
 // question is asked in.
 func Terminal() bool {
-	return term.IsTerminal(int(os.Stdin.Fd())) && term.IsTerminal(int(os.Stdout.Fd()))
+	return terminals(term.IsTerminal, int(os.Stdin.Fd()), int(os.Stdout.Fd()))
+}
+
+// terminals is whether in and out are both terminals, as isTerminal tells
+// of a file descriptor: a test hands it one of its own, as no test runs on
+// a terminal.
+func terminals(isTerminal func(fd int) bool, in, out int) bool {
+	return isTerminal(in) && isTerminal(out)
 }

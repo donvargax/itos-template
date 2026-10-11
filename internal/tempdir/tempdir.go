@@ -43,11 +43,15 @@ func Make(prefix string) (string, error) {
 // Remove removes dir and everything in it: a dir that does not exist is
 // removed already. On a failure it makes what is left writable and tries
 // again, waiting a little longer each time, and returns the last error.
-func Remove(dir string) error {
+func Remove(dir string) error { return remove(dir, time.Sleep) }
+
+// remove is Remove, waiting with sleep: a test hands it a clock of its own,
+// so it reads how long Remove waits without waiting.
+func remove(dir string, sleep func(time.Duration)) error {
 	err := os.RemoveAll(dir)
 	for wait := 50 * time.Millisecond; err != nil && wait <= 800*time.Millisecond; wait *= 2 {
 		writable(dir)
-		time.Sleep(wait)
+		sleep(wait)
 		err = os.RemoveAll(dir)
 	}
 	return err
