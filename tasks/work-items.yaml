@@ -1432,7 +1432,7 @@ items:
     phase: 1
     owner: null
     status: todo
-    depends_on: []
+    depends_on: [T-49]
     kind: task
     why: >
       T-43 left 17 survivors in internal/git under the whole suite (docs/mutation-baseline.md,
