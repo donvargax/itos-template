@@ -1664,3 +1664,19 @@ items:
       lookup without the IsValid gate. Fix: a Version value object, semver-validated by its one
       constructor (Cuttable or a looser taker), used where a version is handled. Smaller than the
       record, but it threads through new, update, check and release.
+  - id: p1-tree-path-value
+    title: Carry a tree path as a checked value across template_only, declined and covers
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Edge: the command line (adopt --decline), the project record (declined), and the template
+      manifest (template_only). Input: a tree path. manifest.IsTreePath refuses one that is not
+      relative, cleaned and under the top (project.Decline, project.declinedProblems,
+      manifest.check), but the path is then carried as a raw string or []string through
+      manifest.Covers, Record.Declines and Record.Keep, which match prefixes without re-vetting.
+      Nothing in the type proves the IsTreePath check ran (decision 41). What could go wrong: a path
+      reaching Covers that no edge vetted, so a prefix match behaves unexpectedly. Fix: a TreePath
+      value object whose one constructor is IsTreePath, carried where a tree path is matched.
