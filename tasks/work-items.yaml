@@ -844,6 +844,10 @@ items:
       itos-cc#36 and #37 no longer touch this repository since T-45 (decision 40, 2026-10-11):
       nothing is recorded, a counted run judges HEAD's tracked files in a private copy, and
       tools/bin/pinned no longer sets GOTOOLCHAIN. Whenever they land, nothing here changes.
+
+      itos#45 (2026-10-11, found by T-45): itos ci run --help says the code proof reads recorded
+      results and runs none of its own, while a counted proof runs coverage, a baseline and a mutant
+      (about 70 s here). Nothing changes here when it is fixed.
     tags: [ci]
   - id: T-24
     title: Upgrade the Go toolchain to clear the standard-library security failures
