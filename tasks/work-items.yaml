@@ -10,8 +10,7 @@
 #     depends_on: []
 phases:
   1: donvargax # the ledger's phase 1: a handle, or null
-queue:
-  - mutation-suite-repeats
+queue: []
 items:
   - id: T-2
     title: License itos-template under the AGPL-3.0, as itos is
@@ -1114,17 +1113,9 @@ items:
     title: Whole-suite mutation outcomes repeat from one run to the next
     phase: 1
     owner: null
-    status: todo
+    status: dropped
     depends_on: []
     kind: idea
-    why: >
-      T-39's baseline (docs/mutation-baseline.md, 2026-10-10) reran every mutant of 18 files with
-      the scope its outcome was recorded under: all 412 own-tests outcomes repeated, but 20 of 168
-      decided with --all-tests did not (18 survivors killed, 2 kills survived), and one more flipped
-      in a second sample; none was a timeout, and the unmutated suite passed 8 of 8 runs four at a
-      time. Until the cause is known (our tests sharing something across itos-cc's workers, or
-      itos-cc itself), a survivor or a kill only the whole suite decides is not a fact, and mutation
-      sample can fail a push on a record that was honest.
   - id: pin-itos-7
     title: Pin itos 7.0.0, the release after the 7.0.0-rc.3 this repository runs
     phase: 1
