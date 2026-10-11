@@ -51,3 +51,48 @@ mutation:
       replacement: "0"
       reason: 'Equivalent: done takes one send, from the goroutine once git has ended and pw is closed, and one receive, after blobs'' loop, on every path through blobs. Unbuffered, the send waits for that receive, which always comes after the loop has stopped reading, so nothing blocks for good and blobs returns the same; only a return between them would leave the goroutine waiting, and blobs has none.'
       line_text: done := make(chan error, 1)
+    - file: internal/manifest/decode.go
+      function: github.com/donvargax/itos-template/internal/manifest#strict
+      hash: cf124f0ea83e6750
+      line_in_function: 14
+      column: 17
+      original: "1"
+      replacement: "0"
+      reason: 'Equivalent: strict walks only nodes yaml.v3 parsed, Decode being its one caller, and yaml.v3 parses a mapping by appending each key with its value (parser.mapping), so a mapping node holds an even count of nodes. With i even, i < len(n.Content) and i+1 < len(n.Content) stop at the same i.'
+      line_text: for i := 0; i+1 < len(n.Content); i += 2 {
+    - file: internal/manifest/decode.go
+      function: github.com/donvargax/itos-template/internal/manifest#strict
+      hash: cf124f0ea83e6750
+      line_in_function: 14
+      column: 19
+      original: <
+      replacement: <=
+      reason: 'Equivalent: strict walks only nodes yaml.v3 parsed, Decode being its one caller, and yaml.v3 parses a mapping by appending each key with its value (parser.mapping), so a mapping node holds an even count of nodes. With i even, i+1 is odd and never equals that count, so i+1 <= len(n.Content) stops where i+1 < len(n.Content) does.'
+      line_text: for i := 0; i+1 < len(n.Content); i += 2 {
+    - file: internal/manifest/manifest.go
+      function: github.com/donvargax/itos-template/internal/manifest.Check#UnmarshalYAML
+      hash: db4453a98993d2c4
+      line_in_function: 16
+      column: 16
+      original: "1"
+      replacement: "0"
+      reason: 'Equivalent: yaml.v3 hands UnmarshalYAML only nodes it parsed from a manifest Decode reads, and it parses a mapping by appending each key with its value (parser.mapping), so a long-form check holds an even count of nodes. With i even, i < len(n.Content) and i+1 < len(n.Content) stop at the same i.'
+      line_text: for i := 0; i+1 < len(n.Content); i += 2 {
+    - file: internal/manifest/manifest.go
+      function: github.com/donvargax/itos-template/internal/manifest.Check#UnmarshalYAML
+      hash: db4453a98993d2c4
+      line_in_function: 16
+      column: 18
+      original: <
+      replacement: <=
+      reason: 'Equivalent: yaml.v3 hands UnmarshalYAML only nodes it parsed from a manifest Decode reads, and it parses a mapping by appending each key with its value (parser.mapping), so a long-form check holds an even count of nodes. With i even, i+1 is odd and never equals that count, so i+1 <= len(n.Content) stops where i+1 < len(n.Content) does.'
+      line_text: for i := 0; i+1 < len(n.Content); i += 2 {
+    - file: internal/manifest/manifest.go
+      function: github.com/donvargax/itos-template/internal/manifest#collidingForms
+      hash: 0b6e2794a0210771
+      line_in_function: 19
+      column: 19
+      original: '>'
+      replacement: '>='
+      reason: 'Equivalent: the switch tests len(names) == 2 first, so its case len(names) > 2 is reached only when len(names) is not 2, where >= 2 and > 2 are the same.'
+      line_text: 'case len(names) > 2:'
