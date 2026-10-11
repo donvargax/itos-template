@@ -252,3 +252,25 @@ func TestARefusedAdoptionCountsItsDifferences(t *testing.T) {
 		t.Errorf("Report gave %+v, %d", problems, code)
 	}
 }
+
+// --json writes <, > and & as they are, not escaped for HTML as Go's
+// encoder would, so a person reading the line sees the message a usage
+// error or a template's URL gives. A scenario decodes --json as a script
+// does, where < and < are one, so none can read the difference; a
+// value that cannot be encoded is a line on stderr, which no command's
+// object makes.
+func TestJSONWritesItsTextUnescapedAndAFailureOnStderr(t *testing.T) {
+	var stdout, stderr strings.Builder
+	ui := &UI{Stdout: &stdout, Stderr: &stderr}
+	ui.JSON(struct {
+		Message string `json:"message"`
+	}{`expected "<template>" & "<folder>"`})
+	if got, want := stdout.String(), `{"message":"expected \"<template>\" & \"<folder>\""}`+"\n"; got != want {
+		t.Errorf("JSON wrote\n%s, not\n%s", got, want)
+	}
+	stdout.Reset()
+	ui.JSON(func() {})
+	if stdout.String() != "" || !strings.HasPrefix(stderr.String(), "itos-template: json: unsupported type: func()") {
+		t.Errorf("JSON of a func wrote %q on stdout and %q on stderr", stdout.String(), stderr.String())
+	}
+}

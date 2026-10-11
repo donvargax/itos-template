@@ -37,6 +37,10 @@ func TestTypeAndBreaking(t *testing.T) {
 	}
 }
 
+// The newest release by its numbers, each compared as a number, the
+// patch's too; two spellings of one version go to the shorter, then the
+// later by name, whichever is listed first. tools/bin/release-version and
+// release-notes read it, which no scenario runs.
 func TestNewest(t *testing.T) {
 	cases := []struct {
 		tags []string
@@ -56,6 +60,11 @@ func TestNewest(t *testing.T) {
 		{[]string{"v01.0.0", "v1.0.0", "v001.0.0"}, "v1.0.0"},
 		{[]string{"v1.0.0", "v01.0.0"}, "v1.0.0"},
 		{[]string{"v99999999999999999999.0.0", "v9.0.0"}, "v99999999999999999999.0.0"},
+		{[]string{"v1.0.9", "v1.0.10"}, "v1.0.10"},
+		{[]string{"v1.0.10", "v1.0.9"}, "v1.0.10"},
+		{[]string{"v1.0.0", "v1.00.0"}, "v1.0.0"},
+		{[]string{"v01.0.0", "v1.00.0"}, "v1.00.0"},
+		{[]string{"v1.00.0", "v01.0.0"}, "v1.00.0"},
 	}
 	for _, c := range cases {
 		if got := Newest(c.tags); got != c.want {

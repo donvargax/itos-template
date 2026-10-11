@@ -207,6 +207,8 @@ func TestAReleaseIsJudgedAndRenderedByItsOwnManifest(t *testing.T) {
 	}
 }
 
+// A release whose root holds no manifest, or one it cannot read, is
+// refused, and UseNewest refusing it says it uses no release.
 func TestUseReleaseRefusesAReleaseWhoseRootHoldsNoManifestItReads(t *testing.T) {
 	repo := released("v1.0.0")
 	delete(repo.Tagged["main/v1.0.0"].Tree, manifest.File)
@@ -217,8 +219,8 @@ func TestUseReleaseRefusesAReleaseWhoseRootHoldsNoManifestItReads(t *testing.T) 
 	repo = released("v1.0.0")
 	repo.Tagged["main/v1.0.0"].Tree[manifest.File] = &fstest.MapFile{Data: []byte("version: 6\nstacks: []\n")}
 	var invalid *ManifestInvalid
-	if _, err := open(t, repo).UseNewest(); !errors.As(err, &invalid) || invalid.Root != "main/v1.0.0" {
-		t.Errorf("UseNewest = %v", err)
+	if ok, err := open(t, repo).UseNewest(); ok || !errors.As(err, &invalid) || invalid.Root != "main/v1.0.0" {
+		t.Errorf("UseNewest = %v, %v", ok, err)
 	}
 }
 

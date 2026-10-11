@@ -47,3 +47,20 @@ func TestARenderOfTheFiveFormsHasNoLeftover(t *testing.T) {
 		t.Errorf("Leftovers = %v", got)
 	}
 }
+
+// Literals found on one line come in the order they start, whichever the
+// manifest lists first and wherever each ends: a literal written inside
+// another's text comes after it.
+func TestLeftoversOnALineComeInTheOrderTheyStart(t *testing.T) {
+	scan := NewScan([]caseform.Words{{"acme", "widget"}}, []string{"The Acme Widget Company", "Acme Corp"})
+	files := []port.File{{Path: "README.md", Mode: 0o644, Data: []byte("Acme Corp makes The Acme Widget Company's acme-widget\n")}}
+	want := []Leftover{
+		{"README.md", 1, "Acme Corp"},
+		{"README.md", 1, "The Acme Widget Company"},
+		{"README.md", 1, "Acme Widget"},
+		{"README.md", 1, "acme-widget"},
+	}
+	if got := scan.Leftovers(files); !slices.Equal(got, want) {
+		t.Errorf("Leftovers =\n%v\nnot\n%v", got, want)
+	}
+}

@@ -29,6 +29,40 @@ func TestRepositoryAnswersAsGitDoes(t *testing.T) {
 	}
 }
 
+// A release's tags are told complete by the fake's ancestry, which the
+// domain's tests of releases rely on: a tag is an ancestor of the head of
+// the branch it is on alone, and a tag on no branch of no head.
+func TestRepositoryTellsATagOnABranchFromOneOnAnother(t *testing.T) {
+	r := &Repository{
+		Root:     "main",
+		Branches: map[string]fstest.MapFS{"main": {}, "py": {}},
+		Tagged:   map[string]Tag{"py/v1": {Tree: fstest.MapFS{}, On: "py"}, "loose": {Tree: fstest.MapFS{}}},
+	}
+	for _, c := range [][2]string{{"tag py/v1", "commit of main"}, {"tag loose", "commit of main"}, {"tag loose", "commit of py"}} {
+		if is, err := r.IsAncestor(c[0], c[1]); err != nil || is {
+			t.Errorf("IsAncestor(%s, %s) = %v, %v", c[0], c[1], is, err)
+		}
+	}
+	if is, err := r.IsAncestor("tag py/v1", "commit of py"); err != nil || !is {
+		t.Errorf("a tag on py is not an ancestor of py's head: %v, %v", is, err)
+	}
+}
+
+// What new and adopt are told of a project's folder, which the domain's
+// tests of a folder they refuse rely on: a file, nothing, an empty folder
+// or one with files in it.
+func TestDiskLooksAtAFolder(t *testing.T) {
+	d := NewDisk()
+	d.Files["file"] = true
+	d.Folders["empty"] = map[string]port.File{}
+	d.Folders["full"] = map[string]port.File{"a": {Path: "a"}}
+	for folder, want := range map[string]port.Contents{"file": port.NotFolder, "gone": port.Missing, "empty": port.Empty, "full": port.Full} {
+		if got, err := d.Look(folder); err != nil || got != want {
+			t.Errorf("Look(%s) = %v, %v, want %v", folder, got, err, want)
+		}
+	}
+}
+
 func files(pairs ...string) []port.File {
 	var list []port.File
 	for i := 0; i+1 < len(pairs); i += 2 {
@@ -120,5 +154,8 @@ func TestTaggerFailsAsToldTo(t *testing.T) {
 	tg.Fails = nil
 	if is, err := tg.IsAncestor("a", "b"); !is || err != nil {
 		t.Errorf("IsAncestor(a, b) = %v, %v", is, err)
+	}
+	if is, err := tg.IsAncestor("b", "a"); is || err != nil {
+		t.Errorf("IsAncestor(b, a) = %v, %v: a child is no ancestor", is, err)
 	}
 }
