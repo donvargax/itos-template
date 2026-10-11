@@ -1511,3 +1511,17 @@ items:
       fakes test that; update still calls git.Supports in its Handle, outside the domain, where no
       test reaches its refusal. Asking p.CanMerge from updating.Open would put both commands' check
       in one place.
+  - id: slice-18
+    title: "Declined paths: a project turns template paths down in its record, and every later update leaves them out of both renders"
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [slice-17]
+    kind: slice
+    why: >
+      GitHub issue #3, part 2, after slice-17 (adopt --merge). A file the project lacks or keeps its
+      own way conflicts again on every release that changes it. The person's calls (2026-10-11):
+      declined paths are written as the manifest's template_only paths are, a file or a folder
+      covering what is under it, no globs and no library; adopt takes them as --decline with --merge
+      or --force; the record keeps them; update leaves them out of the old and the new render alike.
+    tags: [update]
