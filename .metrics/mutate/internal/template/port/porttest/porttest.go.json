@@ -5,7 +5,7 @@
   "tests": {
     "internal/adoption/adoption_test.go": "3984fe6ea1035dc0f837402661d3371b0b1b3adcdc870fabdf06c8e753a3017a",
     "internal/project/project_test.go": "3679ff6b6d37931f1a9f9619f443331afd736fd21df61604da287b437b5c9f37",
-    "internal/releasing/releasing_test.go": "2222b6814db74d1ab7f083e7ecfa557830d2473c73ec01f1f6a1b1ec7048d7b4",
+    "internal/releasing/releasing_test.go": "80428281ee7b309c87c65159bf25c7b5409ed4897692cf5e00bfd42fcf8f1f9a",
     "internal/render/leftover_test.go": "5e22aa539bf017872037d34d4bbc876d897295b19e181f3dfd4ae6d8c4fc13d7",
     "internal/render/render_test.go": "9c8ec4cdc9bd18735acd36803a81cf3162dbd507c26c6b02c0720b11964c5a3c",
     "internal/template/check_test.go": "6b408881490821ea2726f0e2820f1b3479116d53e8f91c91860f6778dff0b0f1",
@@ -883,7 +883,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/template/port/porttest.Tagger",
@@ -895,7 +896,30 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/template/port/porttest.Tagger",
+      "name": "DefaultBranch",
+      "hash": "8f49be4e9ab2bc03",
+      "start_line": 600,
+      "end_line": 600,
+      "killed": 1,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 1,
+      "mutants": [
+        {
+          "line": 600,
+          "column": 79,
+          "offset": 78,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
+      ]
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/template/port/porttest.Tagger",
@@ -907,7 +931,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/template/port/porttest.Tagger",
@@ -974,7 +999,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/template/port/porttest.Tagger",
@@ -1005,7 +1031,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/template/port/porttest.Tagger",
@@ -1027,7 +1054,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     }
   ]
 }

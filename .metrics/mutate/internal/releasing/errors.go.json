@@ -7,61 +7,13 @@
     "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
     "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
     "internal/cli/report_test.go": "5a6ae76b5c3ad6839ce48f02b848b2a8e6d65404f60dcfe83f2e1300e1b593ab",
-    "internal/releasing/releasing_test.go": "2222b6814db74d1ab7f083e7ecfa557830d2473c73ec01f1f6a1b1ec7048d7b4"
+    "internal/releasing/releasing_test.go": "80428281ee7b309c87c65159bf25c7b5409ed4897692cf5e00bfd42fcf8f1f9a"
   },
   "units": [
     {
       "namespace": "github.com/donvargax/itos-template/internal/releasing.BadVersion",
       "name": "releasingError",
-      "hash": "11c4375e29b96aad",
-      "start_line": 60,
-      "end_line": 60,
-      "killed": 0,
-      "survived": 0,
-      "uncovered": 0,
-      "sites": 0,
-      "mutants": []
-    },
-    {
-      "namespace": "github.com/donvargax/itos-template/internal/releasing.NotRepository",
-      "name": "releasingError",
-      "hash": "f10037a6f2eac9a7",
-      "start_line": 61,
-      "end_line": 61,
-      "killed": 0,
-      "survived": 0,
-      "uncovered": 0,
-      "sites": 0,
-      "mutants": []
-    },
-    {
-      "namespace": "github.com/donvargax/itos-template/internal/releasing.NoOrigin",
-      "name": "releasingError",
-      "hash": "b1acfa376ffb354b",
-      "start_line": 62,
-      "end_line": 62,
-      "killed": 0,
-      "survived": 0,
-      "uncovered": 0,
-      "sites": 0,
-      "mutants": []
-    },
-    {
-      "namespace": "github.com/donvargax/itos-template/internal/releasing.Used",
-      "name": "releasingError",
-      "hash": "f1903569ff9cc53e",
-      "start_line": 63,
-      "end_line": 63,
-      "killed": 0,
-      "survived": 0,
-      "uncovered": 0,
-      "sites": 0,
-      "mutants": []
-    },
-    {
-      "namespace": "github.com/donvargax/itos-template/internal/releasing.Unsynced",
-      "name": "releasingError",
-      "hash": "53a83a226e5b5bcb",
+      "hash": "f247315e53003f5e",
       "start_line": 64,
       "end_line": 64,
       "killed": 0,
@@ -71,9 +23,9 @@
       "mutants": []
     },
     {
-      "namespace": "github.com/donvargax/itos-template/internal/releasing.Failed",
+      "namespace": "github.com/donvargax/itos-template/internal/releasing.NotRepository",
       "name": "releasingError",
-      "hash": "feecfe44a4aa7c9d",
+      "hash": "3ed11e999f4bdbce",
       "start_line": 65,
       "end_line": 65,
       "killed": 0,
@@ -83,11 +35,71 @@
       "mutants": []
     },
     {
-      "namespace": "github.com/donvargax/itos-template/internal/releasing.Refused",
+      "namespace": "github.com/donvargax/itos-template/internal/releasing.NoOrigin",
       "name": "releasingError",
-      "hash": "ba9710a7107c49f1",
+      "hash": "2c6ed7998ba100bf",
       "start_line": 66,
       "end_line": 66,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/releasing.NoDefaultBranch",
+      "name": "releasingError",
+      "hash": "aaf7e9918012c242",
+      "start_line": 67,
+      "end_line": 67,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/releasing.Used",
+      "name": "releasingError",
+      "hash": "4e9a5103392a7c58",
+      "start_line": 68,
+      "end_line": 68,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/releasing.Unsynced",
+      "name": "releasingError",
+      "hash": "f186417de5078e48",
+      "start_line": 69,
+      "end_line": 69,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/releasing.Failed",
+      "name": "releasingError",
+      "hash": "e25647aeca7f9ef3",
+      "start_line": 70,
+      "end_line": 70,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/releasing.Refused",
+      "name": "releasingError",
+      "hash": "5eae646eabbc25dd",
+      "start_line": 71,
+      "end_line": 71,
       "killed": 0,
       "survived": 0,
       "uncovered": 0,
@@ -114,7 +126,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/releasing.NotRepository",
@@ -136,7 +149,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/releasing.NoOrigin",
@@ -144,6 +158,19 @@
       "hash": "6e9fc67676c0e8ea",
       "start_line": 70,
       "end_line": 70,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": [],
+      "stale": true
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/releasing.NoDefaultBranch",
+      "name": "Error",
+      "hash": "7e7d3dd2ac6fa183",
+      "start_line": 76,
+      "end_line": 76,
       "killed": 0,
       "survived": 0,
       "uncovered": 0,
@@ -179,7 +206,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/releasing.Unsynced",
@@ -219,7 +247,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/releasing.Failed",
@@ -259,7 +288,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/releasing.Refused",
@@ -299,7 +329,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/releasing.Refused",
@@ -311,7 +342,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     }
   ]
 }

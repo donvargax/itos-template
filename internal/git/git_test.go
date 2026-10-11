@@ -278,3 +278,35 @@ func TestHasOriginReadsTheRemoteOriginsURL(t *testing.T) {
 		t.Errorf("HasOrigin with an origin = %v, %v", ok, err)
 	}
 }
+
+// Release's root is the branch origin's HEAD names (bug-7). No scenario
+// releases from a clone that recorded none and whose origin, asked, names
+// one (check's ID-CHECK-18 asks it, but check reads no bool); and an origin
+// naming none read as one naming "" would leave the copy rootless, refused
+// with exit 2 saying it has no default branch as ID-RELEASE-17 is: no
+// scenario tells them apart.
+func TestDefaultBranchIsTheBranchOriginsHeadNames(t *testing.T) {
+	origin := template(t)
+	dir := filepath.Join(t.TempDir(), "clone")
+	git(t, "", "clone", "-q", "--", origin, dir)
+	git(t, dir, "checkout", "-q", "stack/go")
+	g := OpenTagger(dir)
+	if _, err := g.Top(); err != nil {
+		t.Fatal(err)
+	}
+	if b, ok := g.DefaultBranch(); b != "main" || !ok {
+		t.Errorf("DefaultBranch as git clone recorded it = %q, %v", b, ok)
+	}
+	git(t, dir, "remote", "set-head", "origin", "-d")
+	if b, ok := g.DefaultBranch(); b != "main" || !ok {
+		t.Errorf("DefaultBranch as origin says it = %q, %v", b, ok)
+	}
+	git(t, origin, "checkout", "-q", "--detach")
+	if b, ok := g.DefaultBranch(); b != "" || ok {
+		t.Errorf("DefaultBranch of an origin whose HEAD names no branch = %q, %v", b, ok)
+	}
+	git(t, dir, "remote", "set-url", "origin", filepath.Join(t.TempDir(), "gone.git"))
+	if b, ok := g.DefaultBranch(); b != "" || ok {
+		t.Errorf("DefaultBranch of an origin that cannot be reached = %q, %v", b, ok)
+	}
+}

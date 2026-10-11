@@ -7,22 +7,22 @@
     "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
     "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
     "internal/cli/report_test.go": "5a6ae76b5c3ad6839ce48f02b848b2a8e6d65404f60dcfe83f2e1300e1b593ab",
-    "internal/releasing/releasing_test.go": "2222b6814db74d1ab7f083e7ecfa557830d2473c73ec01f1f6a1b1ec7048d7b4"
+    "internal/releasing/releasing_test.go": "80428281ee7b309c87c65159bf25c7b5409ed4897692cf5e00bfd42fcf8f1f9a"
   },
   "units": [
     {
       "namespace": "github.com/donvargax/itos-template/internal/releasing",
       "name": "Open",
-      "hash": "243723396d4afb1e",
-      "start_line": 48,
-      "end_line": 68,
-      "killed": 4,
+      "hash": "f4cd63b7e7d397fa",
+      "start_line": 54,
+      "end_line": 78,
+      "killed": 5,
       "survived": 0,
       "uncovered": 0,
-      "sites": 4,
+      "sites": 5,
       "mutants": [
         {
-          "line": 49,
+          "line": 55,
           "column": 5,
           "offset": 62,
           "original": "!",
@@ -31,7 +31,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 57,
+          "line": 63,
           "column": 9,
           "offset": 272,
           "original": "!=",
@@ -40,7 +40,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 61,
+          "line": 67,
           "column": 9,
           "offset": 340,
           "original": "!=",
@@ -49,9 +49,18 @@
           "scope": "all-tests"
         },
         {
-          "line": 64,
+          "line": 70,
           "column": 5,
           "offset": 374,
+          "original": "!",
+          "replacement": "",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 74,
+          "column": 5,
+          "offset": 448,
           "original": "!",
           "replacement": "",
           "outcome": "killed",
@@ -169,7 +178,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/releasing.Here",
@@ -227,7 +237,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/releasing.Release",
@@ -249,7 +260,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/releasing.Plan",
@@ -343,7 +355,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     }
   ]
 }

@@ -8,7 +8,7 @@
     "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
     "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
     "internal/cli/report_test.go": "5a6ae76b5c3ad6839ce48f02b848b2a8e6d65404f60dcfe83f2e1300e1b593ab",
-    "internal/git/git_test.go": "0fd9520a4ef7a414d6df2b728578d2d0d0d7181092d15fdadb0e4681e1f04411",
+    "internal/git/git_test.go": "e91ca11567a68a259ee639448e48344ec84681a7999e0cb4498f373642e450e1",
     "internal/git/project_test.go": "2055fdbacff2f84778205c88ad65696b136f810cbe3c2d2aad175c4622e74be8",
     "internal/git/worktree_test.go": "dfe8ab36d1bb0befc9ce7152f4ce4462291ee5263a594ea780c85bb97f0eecca",
     "internal/newproject/newproject_test.go": "0cb6019a3fbedc92035018cf3f5adb58ff800545c763533bf6d07c3d57e12f44"
@@ -17,70 +17,69 @@
     {
       "namespace": "github.com/donvargax/itos-template/internal/git",
       "name": "CloneHere",
-      "hash": "f5c32cb2796ae97d",
-      "start_line": 26,
-      "end_line": 50,
+      "hash": "d3b4c0e0a0c71243",
+      "start_line": 25,
+      "end_line": 48,
       "killed": 6,
       "survived": 0,
       "uncovered": 0,
       "sites": 6,
       "mutants": [
         {
-          "line": 27,
+          "line": 26,
           "column": 62,
-          "offset": 110,
+          "offset": 116,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 37,
+          "line": 36,
           "column": 36,
-          "offset": 526,
+          "offset": 532,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 42,
-          "column": 5,
-          "offset": 609,
-          "original": "!",
-          "replacement": "",
+          "line": 40,
+          "column": 10,
+          "offset": 595,
+          "original": "==",
+          "replacement": "!=",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 43,
+          "line": 41,
           "column": 14,
-          "offset": 628,
+          "offset": 616,
           "original": "true",
           "replacement": "false",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 46,
+          "line": 44,
           "column": 58,
-          "offset": 709,
+          "offset": 697,
           "original": "+",
           "replacement": "-",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 46,
+          "line": 44,
           "column": 70,
-          "offset": 721,
+          "offset": 709,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ],
-      "stale": true
+      ]
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/git",
@@ -102,7 +101,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/git",
@@ -133,102 +133,106 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
+      ],
+      "stale": true
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/git",
+      "name": "RootHere",
+      "hash": "f4c2c0e31a791a21",
+      "start_line": 79,
+      "end_line": 87,
+      "killed": 1,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 1,
+      "mutants": [
+        {
+          "line": 80,
+          "column": 66,
+          "offset": 100,
+          "original": "==",
+          "replacement": "!=",
+          "outcome": "killed",
+          "scope": "all-tests"
+        }
       ]
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/git",
-      "name": "rootOf",
-      "hash": "1720d54feb51aed5",
-      "start_line": 71,
-      "end_line": 97,
-      "killed": 9,
+      "name": "originsHead",
+      "hash": "22ff2003dad71f85",
+      "start_line": 93,
+      "end_line": 114,
+      "killed": 7,
       "survived": 0,
       "uncovered": 0,
-      "sites": 9,
+      "sites": 7,
       "mutants": [
         {
-          "line": 72,
-          "column": 66,
-          "offset": 106,
-          "original": "==",
-          "replacement": "!=",
-          "outcome": "killed",
-          "scope": "all-tests"
-        },
-        {
-          "line": 74,
-          "column": 14,
-          "offset": 213,
-          "original": "true",
-          "replacement": "false",
-          "outcome": "killed",
-          "scope": "all-tests"
-        },
-        {
-          "line": 77,
+          "line": 94,
           "column": 86,
-          "offset": 310,
+          "offset": 131,
           "original": "==",
           "replacement": "!=",
-          "outcome": "killed",
-          "scope": "all-tests"
-        },
-        {
-          "line": 79,
-          "column": 14,
-          "offset": 426,
-          "original": "true",
-          "replacement": "false",
-          "outcome": "killed",
-          "scope": "all-tests"
-        },
-        {
-          "line": 84,
-          "column": 9,
-          "offset": 638,
-          "original": "!=",
-          "replacement": "==",
-          "outcome": "killed",
-          "scope": "all-tests"
-        },
-        {
-          "line": 85,
-          "column": 14,
-          "offset": 660,
-          "original": "false",
-          "replacement": "true",
-          "outcome": "killed",
-          "scope": "all-tests"
-        },
-        {
-          "line": 89,
-          "column": 11,
-          "offset": 797,
-          "original": "!=",
-          "replacement": "==",
-          "outcome": "killed",
-          "scope": "all-tests"
-        },
-        {
-          "line": 93,
-          "column": 14,
-          "offset": 901,
-          "original": "true",
-          "replacement": "false",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
           "line": 96,
+          "column": 14,
+          "offset": 247,
+          "original": "true",
+          "replacement": "false",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 101,
+          "column": 9,
+          "offset": 459,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 102,
+          "column": 14,
+          "offset": 481,
+          "original": "false",
+          "replacement": "true",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 106,
+          "column": 11,
+          "offset": 618,
+          "original": "!=",
+          "replacement": "==",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 110,
+          "column": 14,
+          "offset": 722,
+          "original": "true",
+          "replacement": "false",
+          "outcome": "killed",
+          "scope": "all-tests"
+        },
+        {
+          "line": 113,
           "column": 13,
-          "offset": 925,
+          "offset": 746,
           "original": "false",
           "replacement": "true",
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ],
-      "stale": true
+      ]
     }
   ]
 }

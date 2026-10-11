@@ -8,7 +8,7 @@
     "internal/cli/completion_test.go": "05a5047ede29c16c53ada4b3186c729b6d47ee09f30b4cfb92294e272b82e785",
     "internal/cli/flags_test.go": "f9806e7697832c8210e7640f420b195513cba71223022b85e68ccbe8bb3cb098",
     "internal/cli/report_test.go": "5a6ae76b5c3ad6839ce48f02b848b2a8e6d65404f60dcfe83f2e1300e1b593ab",
-    "internal/git/git_test.go": "0fd9520a4ef7a414d6df2b728578d2d0d0d7181092d15fdadb0e4681e1f04411",
+    "internal/git/git_test.go": "e91ca11567a68a259ee639448e48344ec84681a7999e0cb4498f373642e450e1",
     "internal/git/project_test.go": "2055fdbacff2f84778205c88ad65696b136f810cbe3c2d2aad175c4622e74be8",
     "internal/git/worktree_test.go": "dfe8ab36d1bb0befc9ce7152f4ce4462291ee5263a594ea780c85bb97f0eecca",
     "internal/newproject/newproject_test.go": "0cb6019a3fbedc92035018cf3f5adb58ff800545c763533bf6d07c3d57e12f44"
@@ -24,7 +24,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/git.Tagger",
@@ -36,7 +37,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/git.Tagger",
@@ -85,7 +87,20 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
+    },
+    {
+      "namespace": "github.com/donvargax/itos-template/internal/git.Tagger",
+      "name": "DefaultBranch",
+      "hash": "39bc1556c4d93617",
+      "start_line": 47,
+      "end_line": 47,
+      "killed": 0,
+      "survived": 0,
+      "uncovered": 0,
+      "sites": 0,
+      "mutants": []
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/git.Tagger",
@@ -161,7 +176,8 @@
           "outcome": "killed",
           "scope": "all-tests"
         }
-      ]
+      ],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/git.Tagger",
@@ -173,7 +189,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/git.Tagger",
@@ -185,7 +202,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     },
     {
       "namespace": "github.com/donvargax/itos-template/internal/git.Tagger",
@@ -197,7 +215,8 @@
       "survived": 0,
       "uncovered": 0,
       "sites": 0,
-      "mutants": []
+      "mutants": [],
+      "stale": true
     }
   ]
 }

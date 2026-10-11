@@ -314,27 +314,27 @@
     {
       "namespace": "github.com/donvargax/itos-template/internal/cli",
       "name": "releasingProblem",
-      "hash": "42a558fc04eee9a7",
+      "hash": "147ece8e210b241b",
       "start_line": 254,
-      "end_line": 284,
+      "end_line": 287,
       "killed": 2,
       "survived": 0,
       "uncovered": 0,
       "sites": 2,
       "mutants": [
         {
-          "line": 275,
+          "line": 278,
           "column": 18,
-          "offset": 1636,
+          "offset": 2053,
           "original": "==",
           "replacement": "!=",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 275,
+          "line": 278,
           "column": 21,
-          "offset": 1639,
+          "offset": 2056,
           "original": "0",
           "replacement": "1",
           "outcome": "killed",
@@ -346,15 +346,15 @@
       "namespace": "github.com/donvargax/itos-template/internal/cli",
       "name": "unsynced",
       "hash": "4941ba0099abc79c",
-      "start_line": 288,
-      "end_line": 301,
+      "start_line": 291,
+      "end_line": 304,
       "killed": 2,
       "survived": 0,
       "uncovered": 0,
       "sites": 2,
       "mutants": [
         {
-          "line": 295,
+          "line": 298,
           "column": 25,
           "offset": 374,
           "original": "+",
@@ -363,7 +363,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 296,
+          "line": 299,
           "column": 11,
           "offset": 398,
           "original": "==",

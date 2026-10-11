@@ -9,7 +9,7 @@
     {
       "namespace": "github.com/donvargax/itos-template/internal/cutrelease.CLI",
       "name": "Help",
-      "hash": "0810698e53f9284d",
+      "hash": "7fe6a5af6efd079a",
       "start_line": 51,
       "end_line": 71,
       "killed": 0,
@@ -230,16 +230,16 @@
     {
       "namespace": "github.com/donvargax/itos-template/internal/cutrelease",
       "name": "Handle",
-      "hash": "ed019d449d2a2332",
-      "start_line": 207,
-      "end_line": 238,
+      "hash": "168a91ba9012fc96",
+      "start_line": 208,
+      "end_line": 239,
       "killed": 6,
       "survived": 0,
       "uncovered": 0,
       "sites": 6,
       "mutants": [
         {
-          "line": 210,
+          "line": 211,
           "column": 9,
           "offset": 202,
           "original": "!=",
@@ -248,7 +248,7 @@
           "scope": "all-tests"
         },
         {
-          "line": 214,
+          "line": 215,
           "column": 9,
           "offset": 292,
           "original": "!=",
@@ -257,36 +257,36 @@
           "scope": "all-tests"
         },
         {
-          "line": 219,
+          "line": 220,
           "column": 9,
-          "offset": 434,
+          "offset": 445,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 223,
+          "line": 224,
           "column": 9,
-          "offset": 515,
+          "offset": 526,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 228,
+          "line": 229,
           "column": 9,
-          "offset": 664,
+          "offset": 675,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",
           "scope": "all-tests"
         },
         {
-          "line": 232,
+          "line": 233,
           "column": 9,
-          "offset": 769,
+          "offset": 780,
           "original": "!=",
           "replacement": "==",
           "outcome": "killed",
