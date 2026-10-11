@@ -1461,15 +1461,9 @@ items:
     title: "adopt --merge brings a grown project onto a release: the render merged in over an empty base, staged with the record, nothing committed"
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: slice
-    why: >
-      GitHub issue #3, part 1. adopt only links a project that already matches a release; a project
-      that grew on its own cannot take the template in, since --force writes the record and nothing
-      else and every file it lacks then conflicts on update. The person split #3 into this slice and
-      declined paths after it (2026-10-11): the merge, its scenarios in features/adopt.feature, and
-      adopt's help corrected.
   - id: T-49
     title: golangci-lint holds every code design rule a linter can decide, and docs/design-rules.md says how each rule is held
     phase: 1
