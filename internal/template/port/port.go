@@ -227,6 +227,10 @@ type Tagger interface {
 	Top() (string, error)
 	// HasOrigin is whether the repository has a remote named origin.
 	HasOrigin() (bool, error)
+	// DefaultBranch is the branch origin's HEAD names, the template's
+	// default branch, whatever branch is checked out: as git clone recorded
+	// it, else as origin says it; false when neither names one.
+	DefaultBranch() (string, bool)
 	// Heads are the commit the branch's local head is at and the one
 	// origin's remote-tracking branch of that name is at, each "" when there
 	// is none.

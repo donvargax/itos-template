@@ -13,7 +13,10 @@
 //
 // A release is for others to fetch, so the repository must have an origin,
 // and every listed branch it holds a local head of must be at origin's head
-// of it (q-53): a branch held only as origin's is origin's already. Each
+// of it (q-53): a branch held only as origin's is origin's already. For the
+// same reason its root is the template's default branch as origin names it,
+// whatever branch the checkout is on (bug-7): the copy check reads is made
+// with that root (Here.Root), never with the branch checked out. Each
 // refusal comes before check runs, and a failing check makes no tag.
 // Nothing is half-made: a tag git refuses midway takes back those made
 // before it.
@@ -34,17 +37,20 @@ import (
 )
 
 // Here is the repository a release of version is cut in, looked at: its
-// top, which the template is copied from.
+// top, which the template is copied from, and its root, the branch origin's
+// HEAD names, which the copy's HEAD names.
 type Here struct {
 	Top     string
+	Root    string
 	version string
 	repo    port.Tagger
 }
 
 // Open judges version, refusing one that is not vX.Y.Z with an optional
 // pre-release (*BadVersion), then looks at the repository r was opened in,
-// refusing a folder in no repository (*NotRepository) and a repository with
-// no origin (*NoOrigin), before anything of it is read.
+// refusing a folder in no repository (*NotRepository), a repository with no
+// origin (*NoOrigin) and one whose origin names no default branch
+// (*NoDefaultBranch), before anything of it is read.
 func Open(r port.Tagger, version string) (*Here, error) {
 	if !template.Cuttable(version) {
 		return nil, &BadVersion{Version: version}
@@ -64,7 +70,11 @@ func Open(r port.Tagger, version string) (*Here, error) {
 	if !origin {
 		return nil, &NoOrigin{}
 	}
-	return &Here{Top: top, version: version, repo: r}, nil
+	root, ok := r.DefaultBranch()
+	if !ok {
+		return nil, &NoDefaultBranch{}
+	}
+	return &Here{Top: top, Root: root, version: version, repo: r}, nil
 }
 
 // Tag is a tag of a release: its name, the branch it is on and the commit

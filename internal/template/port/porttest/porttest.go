@@ -567,6 +567,7 @@ func (t *Terminal) Ask(q port.Question) (string, error) {
 type Tagger struct {
 	Folder  string // its top; "" for a folder in no repository
 	Remote  bool   // whether it has an origin
+	Default string // the branch origin's HEAD names; "" for none
 	Local   map[string]string
 	Origin  map[string]string
 	Parents map[string]string // each commit's parent
@@ -594,6 +595,9 @@ func (t *Tagger) Top() (string, error) {
 
 // HasOrigin is Remote.
 func (t *Tagger) HasOrigin() (bool, error) { return t.Remote, t.Fails["HasOrigin"] }
+
+// DefaultBranch is Default, and false when it is "".
+func (t *Tagger) DefaultBranch() (string, bool) { return t.Default, t.Default != "" }
 
 // Heads are the branch's commits in Local and Origin.
 func (t *Tagger) Heads(branch string) (string, string, error) {

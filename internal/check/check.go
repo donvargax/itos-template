@@ -138,7 +138,7 @@ func Handle(q Query, opened func(*manifest.Manifest), each func(template.Result)
 	if name == "" {
 		name = git.Here
 		if from, err = git.Top(); err == nil {
-			repo, err = git.CloneHere(from, into)
+			repo, err = git.CloneHere(from, into, git.RootHere(from))
 		}
 	} else if from, err = os.Getwd(); err == nil {
 		repo, err = git.Clone(name, into)

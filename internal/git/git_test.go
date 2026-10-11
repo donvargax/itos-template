@@ -229,7 +229,7 @@ func TestTagsGiveTheCommitEachNamesAndIsAncestorReadsAHistory(t *testing.T) {
 func TestCloneHereCopiesTheTags(t *testing.T) {
 	dir := template(t)
 	git(t, dir, "tag", "main/v1.0.0", "main")
-	r, err := CloneHere(dir, filepath.Join(t.TempDir(), "copy"))
+	r, err := CloneHere(dir, filepath.Join(t.TempDir(), "copy"), "main")
 	if err != nil {
 		t.Fatal(err)
 	}

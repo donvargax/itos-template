@@ -42,6 +42,10 @@ func (g *Tagger) HasOrigin() (bool, error) {
 	return err == nil, err
 }
 
+// DefaultBranch is the branch origin's HEAD names, whatever is checked out
+// (originsHead): release's root.
+func (g *Tagger) DefaultBranch() (string, bool) { return originsHead(g.top) }
+
 // Heads are the commits refs/heads/<branch> and refs/remotes/origin/<branch>
 // name, each "" when there is no such ref.
 func (g *Tagger) Heads(branch string) (string, string, error) {

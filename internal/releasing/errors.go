@@ -23,6 +23,10 @@ type NotRepository struct{ Why string }
 // NoOrigin is a repository with no remote named origin to publish to.
 type NoOrigin struct{}
 
+// NoDefaultBranch is a repository whose origin names no default branch, the
+// root a release tags, neither as git clone recorded it nor when asked.
+type NoDefaultBranch struct{}
+
 // Used is a version the branches the manifest lists carry already, Tags
 // each such tag.
 type Used struct{ Tags []string }
@@ -57,17 +61,19 @@ type Refused struct {
 	Left []string
 }
 
-func (*BadVersion) releasingError()    {}
-func (*NotRepository) releasingError() {}
-func (*NoOrigin) releasingError()      {}
-func (*Used) releasingError()          {}
-func (*Unsynced) releasingError()      {}
-func (*Failed) releasingError()        {}
-func (*Refused) releasingError()       {}
+func (*BadVersion) releasingError()      {}
+func (*NotRepository) releasingError()   {}
+func (*NoOrigin) releasingError()        {}
+func (*NoDefaultBranch) releasingError() {}
+func (*Used) releasingError()            {}
+func (*Unsynced) releasingError()        {}
+func (*Failed) releasingError()          {}
+func (*Refused) releasingError()         {}
 
 func (e *BadVersion) Error() string    { return "the version " + strconv.Quote(e.Version) }
 func (e *NotRepository) Error() string { return "in no git repository: " + e.Why }
 func (*NoOrigin) Error() string        { return "no remote origin" }
+func (*NoDefaultBranch) Error() string { return "origin names no default branch" }
 func (e *Used) Error() string          { return "the tags " + strings.Join(e.Tags, ", ") + " exist" }
 func (e *Unsynced) Error() string      { return e.Branch + " is " + string(e.How) + " origin's" }
 func (e *Failed) Error() string {

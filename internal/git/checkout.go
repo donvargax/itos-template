@@ -15,15 +15,14 @@ const Here = "."
 // Its tags are copied too, so a release (check --ref) is read from the tags
 // the checkout holds.
 //
-// The root branch, the copy's HEAD, is the branch the checkout's HEAD names;
-// a detached HEAD (actions/checkout on a pull request) names none, so it is
-// the branch origin's HEAD names, as git clone records it, else as origin
-// says it, asked with git ls-remote, since actions/checkout records none.
-// When none of them names one, the copy has no root (DefaultBranch fails).
+// The root branch, the copy's HEAD, is root, which the caller chooses by its
+// rule: check's is RootHere's, the branch checked out, else origin's;
+// release's is origin's alone (Tagger.DefaultBranch). When root is "", the
+// copy has no root (DefaultBranch fails).
 //
 // A failure is an *Unreachable naming Here, or a *Missing when git cannot be
 // run.
-func CloneHere(top, dir string) (*Repo, error) {
+func CloneHere(top, dir, root string) (*Repo, error) {
 	if _, err := run("", "init", "--bare", "--quiet", dir); err != nil {
 		return nil, err
 	}
@@ -38,8 +37,7 @@ func CloneHere(top, dir string) (*Repo, error) {
 			return nil, unreachable(Here, err)
 		}
 	}
-	root, ok := rootOf(top)
-	if !ok {
+	if root == "" {
 		r.noRoot = true
 		return r, nil
 	}
@@ -74,15 +72,25 @@ func topIn(dir string) (string, error) {
 	return strings.TrimSpace(string(out)), nil
 }
 
-// rootOf is the root branch of the repository at top: the branch its HEAD
-// names, else the one origin's HEAD names, recorded or asked of origin; and
-// false when none names one.
-func rootOf(top string) (string, bool) {
+// RootHere is check's root branch of the repository at top, the template
+// check reads when none is named: the branch the checkout's HEAD names; a
+// detached HEAD (actions/checkout on a pull request) names none, so the one
+// origin's HEAD names (originsHead). "" when none of them names one.
+func RootHere(top string) string {
 	if ref, err := run(top, "symbolic-ref", "--quiet", "HEAD"); err == nil {
 		if b, ok := strings.CutPrefix(strings.TrimSpace(string(ref)), "refs/heads/"); ok {
-			return b, true
+			return b
 		}
 	}
+	b, _ := originsHead(top)
+	return b
+}
+
+// originsHead is the branch origin's HEAD names for the repository at top,
+// as git clone records it, else as origin says it, asked with git
+// ls-remote, since actions/checkout records none; false when neither names
+// one.
+func originsHead(top string) (string, bool) {
 	if ref, err := run(top, "symbolic-ref", "--quiet", "refs/remotes/origin/HEAD"); err == nil {
 		if b, ok := strings.CutPrefix(strings.TrimSpace(string(ref)), "refs/remotes/origin/"); ok {
 			return b, true

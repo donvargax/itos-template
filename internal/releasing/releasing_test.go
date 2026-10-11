@@ -54,14 +54,15 @@ func acme(checked string) *porttest.Repository {
 
 var listed = []string{"main", "stack/sh", "sh/extra"}
 
-// published is a repository at /home/you/acme with an origin, every listed
-// branch's local head at origin's, as the copy of it reads them.
+// published is a repository at /home/you/acme with an origin whose HEAD
+// names main, every listed branch's local head at origin's, as the copy of
+// it reads them.
 func published() *porttest.Tagger {
 	heads := map[string]string{}
 	for _, b := range listed {
 		heads[b] = "commit of " + b
 	}
-	return &porttest.Tagger{Folder: "/home/you/acme", Remote: true, Local: heads, Origin: maps.Clone(heads)}
+	return &porttest.Tagger{Folder: "/home/you/acme", Remote: true, Default: "main", Local: heads, Origin: maps.Clone(heads)}
 }
 
 func opened(t *testing.T, repo *porttest.Repository) *template.Template {
@@ -109,7 +110,7 @@ func TestOpenJudgesTheVersionBeforeTheRepository(t *testing.T) {
 		}
 	}
 	for _, v := range []string{"v1.0.0", "v0.0.1", "v1.3.0-rc.1", "v2.0.0-alpha"} {
-		if h, err := Open(published(), v); err != nil || h.Top != "/home/you/acme" {
+		if h, err := Open(published(), v); err != nil || h.Top != "/home/you/acme" || h.Root != "main" {
 			t.Errorf("Open(%q) = %+v, %v", v, h, err)
 		}
 	}
@@ -131,6 +132,21 @@ func TestOpenRefusesNoRepositoryAndNoOrigin(t *testing.T) {
 		if h, err := Open(r, "v1.0.0"); h != nil || !errors.Is(err, broken) {
 			t.Errorf("%s failing gives %+v, %v", method, h, err)
 		}
+	}
+}
+
+// The root is the branch origin's HEAD names, whatever is checked out
+// (bug-7): an origin naming none is refused before anything is read.
+func TestOpenTakesTheRootFromOrigin(t *testing.T) {
+	r := published()
+	r.Default = "trunk"
+	if h, err := Open(r, "v1.0.0"); err != nil || h.Root != "trunk" {
+		t.Errorf("an origin whose HEAD names trunk gives %+v, %v", h, err)
+	}
+	r.Default = ""
+	var none *NoDefaultBranch
+	if h, err := Open(r, "v1.0.0"); h != nil || !errors.As(err, &none) {
+		t.Errorf("an origin naming no default branch gives %+v, %v", h, err)
 	}
 }
 

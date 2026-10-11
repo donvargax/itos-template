@@ -53,7 +53,7 @@ func (c *CLI) Help() string {
 
 It tags the heads check reads, each listed branch's local head, else origin's, and only once check passes over them: it runs check's own work, every combination rendered and its checks run with the answers given, its report on stdout as check prints it. A combination that fails is check's report and exit 1, no tag made. It tags commits, never the working tree, which it neither renders nor judges.
 
-A release is for others to fetch: the repository needs a remote origin, and every listed branch it holds a local head of must be at origin's head of it. A branch ahead of, behind or diverged from origin's, or not on origin, is refused, naming it, before check runs.
+A release is for others to fetch: the repository needs a remote origin, and every listed branch it holds a local head of must be at origin's head of it. A branch ahead of, behind or diverged from origin's, or not on origin, is refused, naming it, before check runs. The root, the template's default branch, is the one origin's HEAD names, as git clone recorded it, else as origin says it, whatever branch is checked out; an origin naming none is refused.
 
 The version is vX.Y.Z, with an optional pre-release (v1.3.0-rc.1). A version any listed branch carries a tag of already, a partial release's included, is refused, naming the tag. A version lower than the newest is a backport, and is cut; a pre-release too. Neither becomes the release new renders by default, the highest stable complete one.
 
@@ -61,7 +61,7 @@ The tags are annotated, each message naming the version, and made in this reposi
 
 --json prints {"schema":1,"ok","version","tags":[{"name","branch","commit"}],"push":["git","push","--atomic","origin","refs/tags/<tag>",…],"report":[{"combination","passed","leftovers":[{"text","path","line"}],"checks":[{"run":[words],"status":"passed|failed|skipped"}],"problems":[{"rule","message","fix"}]}],"problems":[{"rule","message","fix"}]}; tags and push are empty unless ok, and report holds each combination checked, none when release stopped before check. A script reads it and the exit code, never the plain output, nor a problem's message or fix.
 
-Exit codes: 0 every combination passed and every listed branch tagged; 1 refused: a render, a scan or a check failed, a listed branch carries the version's tag already, a listed branch is ahead of, behind or diverged from origin's or not on origin, the repository has no origin, git refused a tag; 2 a usage or manifest error: a version that is not vX.Y.Z with an optional pre-release, an answer missing or not one its question takes, a manifest refused; 3 the folder is in no git repository, git cannot run, or a render could not be written; 70 an internal error.
+Exit codes: 0 every combination passed and every listed branch tagged; 1 refused: a render, a scan or a check failed, a listed branch carries the version's tag already, a listed branch is ahead of, behind or diverged from origin's or not on origin, the repository has no origin, git refused a tag; 2 a usage or manifest error: a version that is not vX.Y.Z with an optional pre-release, an answer missing or not one its question takes, a manifest refused, an origin naming no default branch; 3 the folder is in no git repository, git cannot run, or a render could not be written; 70 an internal error.
 
 Examples:
   itos-template release v1.2.0 --answer name=blue-fox --defaults
@@ -199,8 +199,9 @@ type Command struct {
 // The version and the repository are judged first (releasing.Open), before
 // anything of it is read. The template is the repository copied bare from
 // its top into a temporary folder removed when release ends, each branch
-// its local one or else origin's, as check copies it (git.CloneHere), and
-// recorded in each render by the top's absolute path, as check records it.
+// its local one or else origin's, as check copies it (git.CloneHere), its
+// root the branch origin's HEAD names (releasing.Here.Root), never the one
+// checked out, and recorded in each render by the top's absolute path, as check records it.
 // The release is planned on that copy (releasing.Here.Plan), refusing a
 // version used or a branch off origin's, before the answers are resolved
 // and check runs; the tags are made in the repository itself.
@@ -215,7 +216,7 @@ func Handle(c Command, opened func(*manifest.Manifest), each func(template.Resul
 		return nil, err
 	}
 	defer tempdir.Discard(tmp)
-	copied, err := git.CloneHere(here.Top, filepath.Join(tmp, "template.git"))
+	copied, err := git.CloneHere(here.Top, filepath.Join(tmp, "template.git"), here.Root)
 	if err != nil {
 		return nil, err
 	}

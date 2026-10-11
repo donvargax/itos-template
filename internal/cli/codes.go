@@ -263,6 +263,9 @@ func releasingProblem(err releasing.Error) (code int, problems []Problem) {
 	case *releasing.NoOrigin:
 		code, problems = CodeRefused, fixed("origin-missing", "add the remote people fetch the template from as origin (git remote add origin <url>), fetch it, then release",
 			"the template's repository has no remote origin: a release is for others to fetch, so release tags only commits origin has and prints the push that publishes the tags there")
+	case *releasing.NoDefaultBranch:
+		code, problems = CodeUsage, fixed("default-branch-missing", "point origin's HEAD at the template's default branch, or record it here with git remote set-head origin <branch>, then release",
+			"origin names no default branch, neither as git clone recorded it nor when asked: release tags the template's root, its default branch as origin names it, whatever branch is checked out")
 	case *releasing.Used:
 		code, problems = CodeRefused, fixed("release-exists", "cut another version; a tag no one has fetched yet can be deleted with git tag -d",
 			"the template carries %s already: a version is released once, a partial release's tags included", strings.Join(e.Tags, ", "))
