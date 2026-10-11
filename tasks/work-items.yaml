@@ -1539,3 +1539,15 @@ items:
       committing it. A command (itos-template decline <path>, or update --decline) would judge the
       path as adopt does, against the recorded render, and write the record, so a typo is caught
       there too.
+  - id: new-decline
+    title: new --decline leaves template paths out of a made project from the start and records them
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      GitHub issue #3 names a made project declining a template sample app or starter README the
+      same way adopt does. slice-18 gives adopt --decline only, so new renders those paths and the
+      person deletes them, and the record must then be edited by hand, or the first update that
+      touches them conflicts.
