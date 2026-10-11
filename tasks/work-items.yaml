@@ -1360,8 +1360,8 @@ items:
   - id: T-45
     title: Mutation runs without a cache, one fresh mutant a push and twenty a night, as itos does (decision 40)
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: [T-43]
     kind: task
     why: >
