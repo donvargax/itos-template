@@ -1142,6 +1142,9 @@ items:
 
       It waits on slice-14 too: go-template-itos is released with itos-template release, which
       slice-14 builds (2026-10-10).
+    deferred: >
+      The person's call, 2026-10-10: hold off the self-test for a while; lifted with itos work
+      resume self-adopt.
   - id: update-preview
     title: itos-template update --dry-run previews what an update would change and where it would conflict, writing nothing
     phase: 1
