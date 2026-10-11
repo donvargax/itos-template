@@ -1648,3 +1648,19 @@ items:
       plan the only constructors, the yaml and json shapes kept through marshalling methods. Larger
       than this task: the record is read, written, printed as --json and reached across several
       packages.
+  - id: p1-version-value
+    title: Carry a release version as a semver-checked value
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Edge: the command line (new --ref, update --to). Input: the release version. template.find
+      refuses one semver.IsValid rejects (a *NoRelease), but the version is carried as a raw string
+      through UseRelease and TagOf, which build tag names from it. Nothing in the type proves the
+      semver check ran, so a new path that forms a tag name or compares versions from an unchecked
+      string would pass (decision 41). What could go wrong: a version reaching TagOf or the tag
+      lookup without the IsValid gate. Fix: a Version value object, semver-validated by its one
+      constructor (Cuttable or a looser taker), used where a version is handled. Smaller than the
+      record, but it threads through new, update, check and release.
