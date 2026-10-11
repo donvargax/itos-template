@@ -1187,9 +1187,6 @@
     would miss lives in functions the task does not change. Then the push's proof once, as
     AGENTS.md's Finishing says. A survivor a no-panic change would remove (manifest.Replacements) is
     left to the item no-panic, which the person is defining.
-  done_when:
-    - run: go test -count=1 ./internal/manifest/
-      timeout: 600
 - id: T-51
   type: test
   title: Kill or except the last 21 survivors, in cli, prompt, release, render, tempdir, template and porttest

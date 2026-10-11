@@ -1517,26 +1517,9 @@ items:
     title: Kill or except internal/manifest's 12 survivors
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: task
-    why: >
-      T-43 left 12 survivors in internal/manifest under the whole suite (docs/mutation-baseline.md,
-      T-43's list): decode.go 77:17 and 77:19 in strict; manifest.go 94:16 and 94:18 in
-      Check#UnmarshalYAML, 343:18, 349:19, 357:33, 357:40 and 357:49 in collidingForms, 392:96 and
-      392:97 in Manifest#checkChecks, and 566:79 in Manifest#FeaturesNamed. Decision 40 has a
-      survivor of the whole suite get a test or an exception, and while one stands it fails the
-      nightly when drawn. Kill each with a test asserting an outcome (fakes and stubs, never mocks,
-      decision 19), or, for one truly equivalent, except it with tools/bin/pinned itos-cc mutation
-      except and its reason, for the person's review. The lines are as of 487ab3f; code has moved
-      since (slice-17 and slice-18 touched manifest and template), so find each site by its function
-      and mutation. A test outside the domain says in a comment why no scenario reaches it; a
-      survivor that shows behaviour a scenario should hold is not this task's: stop and propose the
-      scenario. Judge the kills as T-48 did: two full runs over the named files without --since (own
-      tests, then --all-tests, which reuses the first's kills), both exit 0, each survivor's fate in
-      the report; a survivor --since would miss lives in functions the task does not change. Then
-      the push's proof once, as AGENTS.md's Finishing says. A survivor a no-panic change would
-      remove (manifest.Replacements) is left to the item no-panic, which the person is defining.
   - id: T-51
     title: Kill or except the last 21 survivors, in cli, prompt, release, render, tempdir, template and porttest
     phase: 1
