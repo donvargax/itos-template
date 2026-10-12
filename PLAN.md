@@ -66,9 +66,10 @@ languages. itos-template keeps the update story and drops the template language.
 - `itos-template update [--to <tag>]`: brings a project to a newer template release.
 - `itos-template check`: in a template repository, renders every allowed combination and runs
   its checks (the template's CI step).
-- `itos-template sync [--status]`: in a template's clone, merges into the branch checked out the
+- `itos-template branch sync`: in a template's clone, merges into the branch checked out the
   branch it descends from (the root into a stack, a stack into its features), staged for the
-  person to commit, a branch at a time down the tree; `--status` lists the branches that lag.
+  person to commit, a branch at a time down the tree. `itos-template branch list` lists the
+  branches that lag.
 
 ## Order of work
 
