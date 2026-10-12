@@ -276,3 +276,36 @@ Feature: sync merges a template branch's upkeep down from the branch it descends
     Then it exits with code 1
     And its standard output says "stack/go"
     And its standard output says "missing"
+
+  # slice-21 (q-60): sync's --status selected a read-only report instead of a
+  # merge, which docs/CLI.md rule 18 forbids, so both actions move into the
+  # noun group branch (rules 3 and 4), each a verb: sync becomes branch sync,
+  # sync --status becomes branch list. The feat commit renames the command in
+  # every scenario above, given or run: "sync" to "branch sync", "sync --json"
+  # to "branch sync --json", "sync --status" to "branch list", "sync --status
+  # --json" to "branch list --json"; it renames the steps "its sync JSON" to
+  # "its branch sync JSON" and "its sync status JSON" to "its branch list
+  # JSON"; it moves this file to features/branch.feature and says branch sync
+  # and branch list throughout the feature's title and description. The
+  # scenario IDs stay ID-SYNC-NN, and nothing else a scenario checks changes.
+  # The group alone runs no action (rule 7): it names its subcommands, exit 2
+  # (rule 13).
+  @ID-SYNC-19 @slice-21 @wip
+  Scenario: branch with no subcommand is a usage error naming sync and list
+    When itos-template runs with "branch"
+    Then it exits with code 2
+    And its error output says "sync"
+    And its error output says "list"
+
+  # An old name exits 2 naming the new one, and keeps no code to run it (rule
+  # 41).
+  @ID-SYNC-20 @slice-21 @wip
+  Scenario Outline: the old sync and its --status exit 2 naming the command that replaced them
+    When itos-template runs with "<old>"
+    Then it exits with code 2
+    And its error output says "<new>"
+
+    Examples:
+      | old                  | new         |
+      | sync                 | branch sync |
+      | sync --status        | branch list |
