@@ -1722,8 +1722,8 @@ items:
   - id: slice-21
     title: "sync and sync --status move into the noun group branch: branch sync and branch list, as docs/CLI.md's command grammar asks"
     phase: 1
-    owner: null
-    status: todo
+    owner: donvargax
+    status: doing
     depends_on: []
     kind: slice
     why: >
