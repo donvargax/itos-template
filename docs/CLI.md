@@ -167,8 +167,10 @@ there first.
 
 40. A rename of a command or a flag, or a change to an exit code, is a breaking change. Put the
     breaking changes that are ready into one major release together.
-41. Do not keep code to stay compatible with an old interface: an old name exits 2 naming the new
-    one. Only the previous-release check judges compatibility, against the contract above.
+41. Do not keep code to stay compatible with an old interface. Before v1, drop an old command or
+    flag outright, with nothing left in its place. From v1, an old name dropped in a new major
+    exits 2 naming the new one. Only the previous-release check judges compatibility, against the
+    contract above.
 
 ### Shell completion
 
