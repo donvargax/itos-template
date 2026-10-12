@@ -68,12 +68,9 @@ items:
     title: itos-template sync merges into a template branch the branch it descends from, leaving the merge staged
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: [slice-1]
     kind: slice
-    why: >
-      Was template-sync.
-      PLAN.md, order of work 5: the upkeep the branch model costs (decision 2), never a rebase.
     tags: [sync]
   - id: T-31
     title: Prove the first template end to end and say it is ready
