@@ -266,3 +266,6 @@ questions:
     question: "What does sync do with a path each template branch keeps its own (its itos registry), which conflicts whenever the root's copy changes? Recommended: git's merge decides, a conflict the person resolves as today, with no new manifest key. Or: a manifest key listing paths each branch keeps its own, merged keeping the branch's side."
     answer: "git's merge decides: a conflict the person resolves, no new manifest key; a list of kept paths can come later, once it is clear which paths every template keeps. The person's call, 2026-10-11."
     decision: none
+  - id: q-60
+    item: "slice-21"
+    question: "sync --status selects a read-only report instead of a merge, which docs/CLI.md rule 18 forbids (a flag changes an action, never selects another). What do the two commands become? Offered: an exception to rule 18 for a read-only report (the coordinator's recommendation, to save the rename), or a noun group, branch, holding both as verbs (rules 3, 4, 7, 13), the old names exiting 2 naming the new (rule 41); and within the group, branch sync or branch merge for the merge (rule 6: update merges too), branch list for the report (status is a noun, rule 3)."
