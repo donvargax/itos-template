@@ -12,6 +12,8 @@ phases:
   1: donvargax # the ledger's phase 1: a handle, or null
 queue:
   - bug-11
+  - slice-19
+  - slice-20
 items:
   - id: T-2
     title: License itos-template under the AGPL-3.0, as itos is
