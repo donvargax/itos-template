@@ -1716,3 +1716,14 @@ items:
       that refusal, @wip in features/new.feature, and its fix commit cuts v0.30.2. The fix changes
       no product code, unless the scenario finds a gap. Security work: the person runs it from their
       own session, as bug-8 and bug-9.
+  - id: slice-20
+    title: itos-template sync --status lists every template branch that lacks commits of a branch it descends from
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [slice-19]
+    kind: slice
+    why: >
+      The person's call (q below, 2026-10-11): a report beside sync's merge, so a template's author,
+      or its CI, sees which branches wait for a sync, writing nothing. Specified in
+      features/sync.feature.
