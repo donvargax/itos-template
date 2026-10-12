@@ -108,6 +108,10 @@ func TestEachKindNoScenarioReadsHasItsCodeRuleAndSentence(t *testing.T) {
 		{&syncing.NoWorkTree{}, 3, "git-work-tree-missing", "this is a bare git repository, or a .git folder, with no working tree to merge into; run sync in a checkout of the template, a clone of its repository"},
 		{&syncing.NoCommit{Top: "/acme"}, 1, "git-commit-missing", "the repository at /acme has no commit, so no branch of the template to sync; clone the template, or commit its root first"},
 		{&syncing.NoOrigin{}, 1, "origin-missing", "the template's repository has no remote origin: sync reads the root, the template's default branch, from origin's HEAD; add the remote the template is fetched from as origin (git remote add origin <url>), fetch it, then sync"},
+		// sync --status's problems, whose words the scenarios read only for
+		// a branch missing locally, by its name.
+		{&syncing.Lagging{Branch: "stack/go", Lacks: []string{"main"}}, 1, "branch-behind", "the template's branch stack/go lacks commits of main, which it descends from; check it out with git switch stack/go and run itos-template sync, once every branch above it is in step"},
+		{&syncing.Missing{Branch: "go/cli"}, 1, "branch-missing", "the template's branch go/cli is not a local branch here, so what it lacks is unknown: sync --status reads only local branches, fetching nothing; make it from origin's with git branch --track go/cli origin/go/cli, then run sync --status again"},
 		// An error no switch classifies: a defect.
 		{fmt.Errorf("cannot write the report: %w", cause), 70, "internal", "cannot write the report: cause"},
 	}

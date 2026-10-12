@@ -51,6 +51,17 @@ type Behind struct {
 	Lacks  []string
 }
 
+// Lagging is a branch sync --status found lacking commits of the branches
+// it descends from Lacks names.
+type Lagging struct {
+	Branch string
+	Lacks  []string
+}
+
+// Missing is a branch the manifest names that sync --status found no local
+// branch of.
+type Missing struct{ Branch string }
+
 // Merging is a clone with a merge in progress already.
 type Merging struct{}
 
@@ -74,6 +85,8 @@ func (*NotLocal) syncingError()        {}
 func (*Detached) syncingError()        {}
 func (*Unnamed) syncingError()         {}
 func (*Behind) syncingError()          {}
+func (*Lagging) syncingError()         {}
+func (*Missing) syncingError()         {}
 func (*Merging) syncingError()         {}
 func (*Dirty) syncingError()           {}
 func (*Conflicted) syncingError()      {}
@@ -87,6 +100,8 @@ func (e *NotLocal) Error() string      { return "no local branch " + e.Branch }
 func (*Detached) Error() string        { return "HEAD names no branch" }
 func (e *Unnamed) Error() string       { return "the manifest names no branch " + e.Branch }
 func (e *Behind) Error() string        { return e.Branch + " lacks " + strings.Join(e.Lacks, ", ") }
+func (e *Lagging) Error() string       { return e.Branch + " lacks " + strings.Join(e.Lacks, ", ") }
+func (e *Missing) Error() string       { return "no local branch " + e.Branch }
 func (*Merging) Error() string         { return "a merge is in progress" }
 func (e *Dirty) Error() string         { return "changes from HEAD in " + strings.Join(e.Paths, ", ") }
 func (e *Conflicted) Error() string    { return "conflicts in " + strings.Join(e.Paths, ", ") }

@@ -351,10 +351,12 @@ func TestErrorsSayWhatTheyAre(t *testing.T) {
 		&NotLocal{Branch: "stack/go"}: "no local branch stack/go",
 		&Detached{}:                   "HEAD names no branch",
 		&Unnamed{Branch: "topic"}:     "the manifest names no branch topic",
-		&Behind{Branch: "go/web", Lacks: []string{"a", "b"}}: "go/web lacks a, b",
-		&Merging{}:                             "a merge is in progress",
-		&Dirty{Paths: []string{"a", "b"}}:      "changes from HEAD in a, b",
-		&Conflicted{Paths: []string{"a", "b"}}: "conflicts in a, b",
+		&Behind{Branch: "go/web", Lacks: []string{"a", "b"}}:  "go/web lacks a, b",
+		&Lagging{Branch: "go/web", Lacks: []string{"a", "b"}}: "go/web lacks a, b",
+		&Missing{Branch: "go/web"}:                            "no local branch go/web",
+		&Merging{}:                                            "a merge is in progress",
+		&Dirty{Paths: []string{"a", "b"}}:                     "changes from HEAD in a, b",
+		&Conflicted{Paths: []string{"a", "b"}}:                "conflicts in a, b",
 	} {
 		if got := err.Error(); got != want {
 			t.Errorf("%T says %q, not %q", err, got, want)

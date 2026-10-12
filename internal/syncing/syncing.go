@@ -56,15 +56,11 @@ type Sync struct {
 // (*Dirty). A merge that leaves conflicts is a *Conflicted, the Sync given
 // with it. Once the branch is known, a refusal gives the Sync found so far.
 func Run(c port.Clone) (*Sync, error) {
-	state, err := c.Look()
-	switch {
-	case err != nil:
+	state, err := look(c)
+	if err != nil {
 		return nil, err
-	case !state.Repository:
-		return nil, &NotRepository{Why: state.Why}
-	case !state.WorkTree:
-		return nil, &NoWorkTree{}
-	case !state.Committed:
+	}
+	if !state.Committed {
 		return nil, &NoCommit{Top: state.Top}
 	}
 	m, root, err := manifestOf(c, state.Top)
@@ -91,16 +87,27 @@ func Run(c port.Clone) (*Sync, error) {
 	if err := behind(c, m, root, branch, heads); err != nil {
 		return s, err
 	}
-	for _, p := range from {
-		has, err := c.IsAncestor(heads[p], heads[branch])
-		if err != nil {
-			return s, err
-		}
-		if !has {
-			return s, s.merge(c, state, p)
-		}
+	lacks, _, err := lacking(c, from, heads, branch)
+	if err != nil || len(lacks) == 0 {
+		return s, err
 	}
-	return s, nil
+	return s, s.merge(c, state, lacks[0])
+}
+
+// look is what the folder the clone c was opened in is: a *NotRepository
+// for a folder in no repository, a *NoWorkTree for one with no working
+// tree.
+func look(c port.Clone) (port.CheckoutState, error) {
+	state, err := c.Look()
+	switch {
+	case err != nil:
+		return state, err
+	case !state.Repository:
+		return state, &NotRepository{Why: state.Why}
+	case !state.WorkTree:
+		return state, &NoWorkTree{}
+	}
+	return state, nil
 }
 
 // manifestOf is the manifest of the clone c, at top, and its root: origin's
@@ -132,20 +139,14 @@ func manifestOf(c port.Clone, top string) (*manifest.Manifest, string, error) {
 // those it descends from and theirs, up to the root, by name: a *NotLocal
 // for each that is not local, joined, in the manifest's order.
 func headsAbove(c port.Clone, m *manifest.Manifest, root, branch string) (map[string]string, error) {
-	above := map[string]bool{branch: true}
-	for walk := []string{branch}; len(walk) > 0; walk = walk[1:] {
-		parents, _ := m.Parents(root, walk[0])
-		for _, p := range parents {
-			if !above[p] {
-				above[p] = true
-				walk = append(walk, p)
-			}
-		}
-	}
+	upward := above(branch, func(b string) []string {
+		parents, _ := m.Parents(root, b)
+		return parents
+	})
 	heads := map[string]string{}
 	var missing []error
 	for _, b := range m.Branches(root) {
-		if !above[b] {
+		if !upward[b] {
 			continue
 		}
 		head, ok, err := c.Head(b)
@@ -154,10 +155,47 @@ func headsAbove(c port.Clone, m *manifest.Manifest, root, branch string) (map[st
 		}
 		if !ok {
 			missing = append(missing, &NotLocal{Branch: b})
+			continue
 		}
 		heads[b] = head
 	}
 	return heads, errors.Join(missing...)
+}
+
+// above is branch and every branch above it, those it descends from and
+// theirs, up to the root, parents giving the branches each descends from.
+func above(branch string, parents func(string) []string) map[string]bool {
+	seen := map[string]bool{branch: true}
+	for walk := []string{branch}; len(walk) > 0; walk = walk[1:] {
+		for _, p := range parents(walk[0]) {
+			if !seen[p] {
+				seen[p] = true
+				walk = append(walk, p)
+			}
+		}
+	}
+	return seen
+}
+
+// lacking are the branches of parents, those b descends from, whose
+// commits b lacks, and those of them it cannot be judged against because
+// heads, the local heads by name, holds none of them; in parents' order.
+func lacking(c port.Clone, parents []string, heads map[string]string, b string) (lacks, unknown []string, err error) {
+	for _, p := range parents {
+		head, ok := heads[p]
+		if !ok {
+			unknown = append(unknown, p)
+			continue
+		}
+		has, err := c.IsAncestor(head, heads[b])
+		if err != nil {
+			return nil, nil, err
+		}
+		if !has {
+			lacks = append(lacks, p)
+		}
+	}
+	return lacks, unknown, nil
 }
 
 // behind is a *Behind for each branch of heads but branch, the one checked
@@ -166,20 +204,13 @@ func headsAbove(c port.Clone, m *manifest.Manifest, root, branch string) (map[st
 func behind(c port.Clone, m *manifest.Manifest, root, branch string, heads map[string]string) error {
 	var lagging []error
 	for _, b := range m.Branches(root) {
-		head, above := heads[b]
-		if !above || b == branch {
+		if _, ok := heads[b]; !ok || b == branch {
 			continue
 		}
 		parents, _ := m.Parents(root, b)
-		var lacks []string
-		for _, p := range parents {
-			has, err := c.IsAncestor(heads[p], head)
-			if err != nil {
-				return err
-			}
-			if !has {
-				lacks = append(lacks, p)
-			}
+		lacks, _, err := lacking(c, parents, heads, b)
+		if err != nil {
+			return err
 		}
 		if len(lacks) > 0 {
 			lagging = append(lagging, &Behind{Branch: b, Lacks: lacks})

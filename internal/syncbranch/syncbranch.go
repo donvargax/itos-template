@@ -1,8 +1,9 @@
 // Package syncbranch is the slice of itos-template sync (decisions 2 and
-// 42, q-59), in two thin layers over the domain, which does the work:
+// 42, q-58, q-59), in two thin layers over the domain, which does the work:
 // package syncing reads the branch tree from the manifest, judges the clone
 // and its branches, and merges into the branch checked out the branch it
-// descends from, leaving the merge staged.
+// descends from, leaving the merge staged; or, with --status, says where
+// every branch stands, writing nothing.
 //
 // Its UI is CLI, its flag as kong reads it, and Run, which hands the
 // command to Handle and shows what comes back: the branch merged and what
@@ -22,9 +23,12 @@ import (
 
 // ── UI ──
 
-// CLI is itos-template sync as kong reads it (decision 4): its flag.
+// CLI is itos-template sync as kong reads it (decision 4): its flags. Both
+// a merge and --status take --json, and no flag is a merge's alone, so none
+// clashes with --status.
 type CLI struct {
-	JSON bool `name:"json" help:"Print the result as one JSON object on stdout." negatable:"" env:"ITOS_TEMPLATE_JSON"`
+	JSON   bool `name:"json" help:"Print the result as one JSON object on stdout." negatable:"" env:"ITOS_TEMPLATE_JSON"`
+	Status bool `name:"status" help:"List every branch the manifest names with the branches it descends from whose commits it lacks, writing nothing."`
 }
 
 // Help is sync's detail in its --help: its JSON and its exit codes
@@ -36,15 +40,18 @@ sync merges the first branch it descends from whose commits the branch checked o
 
 A branch that lacks nothing of the branches it descends from is up to date, and so is the root, which descends from none: nothing is written. A branch above the one checked out that lacks commits of its own parents is refused, naming it, to be synced first.
 
+sync --status merges nothing and writes nothing: it lists every branch the manifest names, in its order, the root first, with the branches it descends from whose commits it lacks, a branch missing locally as missing, and the branch to sync next. It reads the local branches alone, so it runs on any checkout, a detached HEAD, an unclean one or one with a merge in progress, and in a template's CI, to hold every branch in step.
+
 sync needs a git repository with a working tree and a commit, a remote origin naming its default branch, the root and every branch above the one checked out local, and the branch checked out one the manifest names; and, to merge, a clean index and working tree, untracked files git does not ignore included, and no merge in progress.
 
---json prints {"schema":1,"ok","branch","merged","staged":[{"path"}],"conflicts":[{"path"}],"problems":[{"rule","message","fix"}]}; branch is the branch checked out and merged the branch merged into it, each null when there is none: merged is null when nothing was merged. A conflicted merge is ok false with the problem merge-conflict. A script reads it and the exit code, never the plain output, nor a problem's message or fix.
+--json prints {"schema":1,"ok","branch","merged","staged":[{"path"}],"conflicts":[{"path"}],"problems":[{"rule","message","fix"}]}; branch is the branch checked out and merged the branch merged into it, each null when there is none: merged is null when nothing was merged. A conflicted merge is ok false with the problem merge-conflict. With --status, --json prints {"schema":1,"ok","branches":[{"branch","from":[],"lacks":[],"missing"}],"problems":[{"rule","message","fix"}]}: each branch the manifest names, in its order, from the branches it descends from, lacks those whose commits it lacks, and missing whether it is not a local branch; ok is false, with the problem branch-behind or branch-missing, when one lacks any or is missing. A script reads it and the exit code, never the plain output, nor a problem's message or fix.
 
-Exit codes: 0 the merge staged, or the branch up to date, the root included; 1 refused: the merge left conflicts, the index or working tree is not clean, a merge is in progress, a branch above the one checked out lacks commits of its own parents or is not local, the root is not local, the repository has no commit or no origin; 2 a usage or manifest error: a detached HEAD or a branch the manifest does not name, the error naming the branches sync merges into, an origin naming no default branch, as release refuses one, a manifest missing or refused; 3 the folder is in no git repository or has no working tree, or git cannot run; 70 an internal error.
+Exit codes: 0 the merge staged, or the branch up to date, the root included; with --status, every branch local and lacking no commit of a branch it descends from; 1 refused: the merge left conflicts, the index or working tree is not clean, a merge is in progress, a branch above the one checked out lacks commits of its own parents or is not local, the root is not local, the repository has no commit or no origin; with --status, a branch lacks commits of a branch it descends from or is missing locally, the root not local, or no origin; 2 a usage or manifest error: a detached HEAD or a branch the manifest does not name, the error naming the branches sync merges into, an origin naming no default branch, as release refuses one, a manifest missing or refused; 3 the folder is in no git repository or has no working tree, or git cannot run; 70 an internal error.
 
 Examples:
   itos-template sync
   itos-template sync --json
+  itos-template sync --status
 
 Report issues at https://github.com/donvargax/itos-template/issues.`
 }
@@ -53,6 +60,9 @@ Report issues at https://github.com/donvargax/itos-template/issues.`
 // merged or that it is up to date on stdout, or with --json its object,
 // then each problem on stderr.
 func (c *CLI) Run(ui *cli.UI) int {
+	if c.Status {
+		return c.status(ui)
+	}
 	s, err := Handle()
 	var problems []cli.Problem
 	code := 0
@@ -144,10 +154,109 @@ func paths(count int) string {
 	return "paths"
 }
 
+// status reports where every branch of the template stands and returns
+// sync --status's exit code: a line per branch and the branch to sync next
+// on stdout, or with --json its object, then each problem on stderr.
+func (c *CLI) status(ui *cli.UI) int {
+	t, err := HandleStatus()
+	var problems []cli.Problem
+	code := 0
+	if err != nil {
+		problems, code = cli.Report(err)
+	}
+	if c.JSON {
+		ui.JSON(statusObjectOf(t, err == nil, problems))
+	} else if t != nil {
+		showStatus(ui, t)
+	}
+	for _, p := range problems {
+		ui.Line(p.Message)
+	}
+	return code
+}
+
+// statusObject is sync --status's --json object.
+type statusObject struct {
+	Schema   int           `json:"schema"`
+	OK       bool          `json:"ok"`
+	Branches []standing    `json:"branches"`
+	Problems []cli.Problem `json:"problems"`
+}
+
+// standing is a branch of the --json object's branches.
+type standing struct {
+	Branch  string   `json:"branch"`
+	From    []string `json:"from"`
+	Lacks   []string `json:"lacks"`
+	Missing bool     `json:"missing"`
+}
+
+// statusObjectOf is the object of t, nil when sync --status stopped before
+// it read the branches: each list empty, never null.
+func statusObjectOf(t *syncing.Tree, ok bool, problems []cli.Problem) statusObject {
+	o := statusObject{Schema: 1, OK: ok, Branches: []standing{}, Problems: []cli.Problem{}}
+	if t != nil {
+		for _, s := range t.Branches {
+			o.Branches = append(o.Branches, standing{Branch: s.Branch, From: append([]string{}, s.From...), Lacks: append([]string{}, s.Lacks...), Missing: s.Missing})
+		}
+	}
+	o.Problems = append(o.Problems, problems...)
+	return o
+}
+
+// showStatus writes t on stdout for people: a line per branch, what it
+// lacks, that it is missing or that it is up to date, then the branch to
+// sync next.
+func showStatus(ui *cli.UI, t *syncing.Tree) {
+	out := ui.Stdout
+	inStep := true
+	for _, s := range t.Branches {
+		_, _ = fmt.Fprintf(out, "%s: %s\n", s.Branch, standingOf(s))
+		inStep = inStep && !s.Missing && len(s.Lacks) == 0
+	}
+	switch next := t.Next(); {
+	case next != "":
+		_, _ = fmt.Fprintf(out, "Sync next: %s, checked out with git switch %s, then itos-template sync.\n", next, next)
+	case inStep:
+		_, _ = fmt.Fprintf(out, "Every branch is up to date.\n")
+	default:
+		_, _ = fmt.Fprintf(out, "Nothing can be synced until each missing branch is local.\n")
+	}
+	ui.Line("what sync --status prints is for people: a script reads its --json")
+}
+
+// standingOf is where the branch s stands, in words.
+func standingOf(s syncing.Standing) string {
+	switch {
+	case s.Missing:
+		return "missing, not a local branch"
+	case len(s.From) == 0:
+		return "the root, up to date"
+	}
+	var says []string
+	if len(s.Lacks) > 0 {
+		says = append(says, "lacks "+strings.Join(s.Lacks, " and "))
+	}
+	if len(s.Unknown) > 0 {
+		says = append(says, "cannot be judged against "+strings.Join(s.Unknown, " and ")+", missing")
+	}
+	if len(says) == 0 {
+		return "up to date with " + strings.Join(s.From, " and ")
+	}
+	return strings.Join(says, "; ")
+}
+
 // ── Application ──
 
 // Handle syncs the branch checked out in the clone the working folder is
 // in (syncing.Run), git's own merge doing the merge.
 func Handle() (*syncing.Sync, error) {
 	return syncing.Run(git.OpenLocal(""))
+}
+
+// HandleStatus is where every branch of the template stands, in the clone
+// the working folder is in (syncing.Status), read from git, writing
+// nothing.
+func HandleStatus() (*syncing.Tree, error) {
+	return syncing.Status(git.OpenLocal(""))
 }

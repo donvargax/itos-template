@@ -63,6 +63,10 @@ next branch down:
 git switch stack/go && itos-template sync
 ```
 
+`itos-template sync --status` writes nothing: it lists every branch with the branches it descends
+from whose commits it lacks, and the branch to sync next, exiting 1 while one lags, so a template's
+CI can hold every branch in step.
+
 A template says what it offers in its manifest, `itos-template.yaml` (`docs/manifest.md`).
 `PLAN.md` says what is planned and in what order.
 

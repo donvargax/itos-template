@@ -243,7 +243,7 @@ Feature: sync merges a template branch's upkeep down from the branch it descends
     Then it exits with code 1
     And its sync JSON is not ok, the problem "merge-conflict", conflicts "README.md"
 
-  @ID-SYNC-16 @slice-20 @wip
+  @ID-SYNC-16 @slice-20
   Scenario: --status on a template in step lists every branch, none lacking, and exits 0
     Given the template "acme"
     And a clone "tpl" of the template, every branch local
@@ -253,7 +253,7 @@ Feature: sync merges a template branch's upkeep down from the branch it descends
 
   # main's commit is lacked by the stacks only: the branches below them lack
   # nothing of the branch they descend from until a stack takes it.
-  @ID-SYNC-17 @slice-20 @wip
+  @ID-SYNC-17 @slice-20
   Scenario: --status names each branch that lacks a branch it descends from, writes nothing and exits 1
     Given the template "acme"
     And a clone "tpl" of the template, every branch local
@@ -266,7 +266,7 @@ Feature: sync merges a template branch's upkeep down from the branch it descends
     And its sync status JSON says "go/cli" lacks nothing
     And the snapshot of "tpl" is unchanged
 
-  @ID-SYNC-18 @slice-20 @wip
+  @ID-SYNC-18 @slice-20
   Scenario: --status reports from a detached, unclean checkout and names a branch missing locally
     Given the template "acme"
     And a clone "tpl" of the template, only its default branch local

@@ -356,6 +356,12 @@ func syncingProblem(err syncing.Error) (code int, problems []Problem) {
 	case *syncing.Behind:
 		code, problems = CodeRefused, fixed("branch-behind", "check "+e.Branch+" out and sync it first, commit its merge, then sync this branch again",
 			"the template's branch %s lacks commits of %s, which it descends from: sync goes down the tree a branch at a time", e.Branch, strings.Join(e.Lacks, " and "))
+	case *syncing.Lagging:
+		code, problems = CodeRefused, fixed("branch-behind", "check it out with git switch "+e.Branch+" and run itos-template sync, once every branch above it is in step",
+			"the template's branch %s lacks commits of %s, which it descends from", e.Branch, strings.Join(e.Lacks, " and "))
+	case *syncing.Missing:
+		code, problems = CodeRefused, fixed("branch-missing", "make it from origin's with git branch --track "+e.Branch+" origin/"+e.Branch+", then run sync --status again",
+			"the template's branch %s is not a local branch here, so what it lacks is unknown: sync --status reads only local branches, fetching nothing", e.Branch)
 	case *syncing.Merging:
 		code, problems = CodeRefused, fixed("merge-in-progress", "commit the merge, or undo it with git merge --abort, then sync",
 			"a merge is in progress here already: sync starts a merge only where none is")
