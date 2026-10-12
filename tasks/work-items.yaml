@@ -1692,16 +1692,6 @@ items:
     title: "bug-8's second layer stops at the parent folders: disk.Write follows a symbolic link at the file's own path"
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: bug
-    why: >
-      Found reviewing bug-8 (2026-10-11). disk.Write's guard (throughLink) checks only a file's
-      parent folders; the write itself (os.WriteFile) follows a symbolic link already at the file's
-      path. render.Plan's fold-clash refusal blocks that today, so nothing is open, but the commit
-      says this layer holds even if a name slipped past Plan, and it does not. new writes into an
-      empty folder, so it should never meet an existing file or link at a path: create each file
-      with O_CREATE|O_EXCL (the same on Windows), refusing as a *Through-like disk error, and say so
-      in Write's doc; HFS+'s ignored code points, which the fold does not cover, are then covered
-      for the file too, as throughLink covers them for folders. Security work: the person runs it
-      from their own session, as bug-8.
