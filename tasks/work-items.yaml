@@ -68,7 +68,7 @@ items:
     title: itos-template sync merges into a template branch the branch it descends from, leaving the merge staged
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: [slice-1]
     kind: slice
     why: >
