@@ -850,7 +850,7 @@ Feature: new makes a project from a template
   # render's, so it holds on every platform; the fixture's file reaches the
   # branch even on Windows, whose disk cannot hold the name, and the scenario
   # is never skipped there.
-  @ID-NEW-67 @bug-11 @wip
+  @ID-NEW-67 @bug-11
   Scenario: new refuses an answer that makes a name a file system resolves to .git, writing nothing
     Given the template "acme" whose branch "stack/go" holds the file ".acme-widget./hooks/post-commit" with the line "echo hook"
     When itos-template runs with "new {template} made --stack go --answer name=git --defaults"
