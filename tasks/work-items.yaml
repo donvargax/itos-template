@@ -1704,13 +1704,9 @@ items:
     title: itos-template sync --status lists every template branch that lacks commits of a branch it descends from
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: [slice-19]
     kind: slice
-    why: >
-      The person's call (q below, 2026-10-11): a report beside sync's merge, so a template's author,
-      or its CI, sees which branches wait for a sync, writing nothing. Specified in
-      features/sync.feature.
   - id: p1-sync-other-operations
     title: sync refuses a rebase, cherry-pick or revert in progress as its own refusal
     phase: 1
