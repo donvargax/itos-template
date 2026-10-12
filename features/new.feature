@@ -839,6 +839,25 @@ Feature: new makes a project from a template
     And its error output says "Blue-Fox"
     And the path "made" does not exist
 
+  # bug-11: render.Path refuses an element NTFS, FAT or HFS+ would resolve to
+  # the .git folder (bug-8), and an answer can make one where the template's
+  # own tree holds none. git refuses a .git spelling in a tree it adds or
+  # checks out, but new reads the template without a checkout and builds each
+  # name by replacing literals, so ".acme-widget." with the answer git is
+  # ".git.": Windows drops the trailing period and writes .git, which git init
+  # then keeps, with any hook in it, for new's own commit to run. Nothing is
+  # written: the refusal comes before the folder is made. The refusal is the
+  # render's, so it holds on every platform; the fixture's file reaches the
+  # branch even on Windows, whose disk cannot hold the name, and the scenario
+  # is never skipped there.
+  @ID-NEW-67 @bug-11 @wip
+  Scenario: new refuses an answer that makes a name a file system resolves to .git, writing nothing
+    Given the template "acme" whose branch "stack/go" holds the file ".acme-widget./hooks/post-commit" with the line "echo hook"
+    When itos-template runs with "new {template} made --stack go --answer name=git --defaults"
+    Then it exits with code 2
+    And its error output says ".git."
+    And the path "made" does not exist
+
   # slice-5 (strict-yaml; docs/CONFIG.md rule 1, decision 22): a manifest is
   # JSON data written as YAML, and comes from any template git can clone, so
   # it is read strictly. What JSON cannot say is refused as a manifest
