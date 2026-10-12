@@ -27,6 +27,7 @@ import (
 	"github.com/donvargax/itos-template/internal/prompt"
 	"github.com/donvargax/itos-template/internal/releasing"
 	"github.com/donvargax/itos-template/internal/render"
+	"github.com/donvargax/itos-template/internal/syncing"
 	"github.com/donvargax/itos-template/internal/tempdir"
 	"github.com/donvargax/itos-template/internal/template"
 	"github.com/donvargax/itos-template/internal/template/port"
@@ -211,7 +212,10 @@ func classify(err error) (int, []Problem) {
 	var ad adoption.Error
 	var up updating.Error
 	var rl releasing.Error
+	var sy syncing.Error
 	switch {
+	case errors.As(err, &sy):
+		return syncingProblem(sy)
 	case errors.As(err, &rl):
 		return releasingProblem(rl)
 	case errors.As(err, &ad):

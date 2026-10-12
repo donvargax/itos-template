@@ -265,6 +265,48 @@ type Tagger interface {
 	Untag(name string) error
 }
 
+// Clone is a template's clone, the checkout sync runs in (decisions 2 and
+// 42): its local branches read beside the branch origin's HEAD names, and
+// one of them merged into the branch checked out with git's own merge,
+// left uncommitted. Nothing else of it is changed: HEAD, every ref and
+// every commit are left as they are.
+type Clone interface {
+	// Look says what the folder the clone was opened in is, as a Checkout's
+	// Look says it.
+	Look() (CheckoutState, error)
+	// HasOrigin is whether the repository has a remote named origin.
+	HasOrigin() (bool, error)
+	// DefaultBranch is the branch origin's HEAD names, as Tagger's
+	// DefaultBranch reads it; false when neither names one.
+	DefaultBranch() (string, bool)
+	// Branch is the branch HEAD names, false when HEAD is detached.
+	Branch() (string, bool, error)
+	// Head is the commit the local branch is at, false when there is no
+	// such local branch.
+	Head(branch string) (string, bool, error)
+	// File is a file's contents at a commit, and false when the commit
+	// holds no such file.
+	File(commit, path string) ([]byte, bool, error)
+	// IsAncestor is whether commit is of or one of of's ancestors.
+	IsAncestor(commit, of string) (bool, error)
+	// Merging is whether a merge is in progress, git's MERGE_HEAD there.
+	Merging() (bool, error)
+	// Merge merges the local branch branch into into, the branch checked
+	// out, with git's own merge, left in progress and uncommitted even
+	// where a fast-forward was possible: what merges cleanly is staged, and
+	// a conflict is left as git merge leaves one, marked in the working
+	// tree's file and unmerged in the index. It returns the paths the merge
+	// stages and those it leaves conflicted.
+	Merge(branch, into string) (Staged, error)
+}
+
+// Staged is what a Clone's Merge left: each path it staged, changed from
+// HEAD, and each it left conflicted, each with /, sorted.
+type Staged struct {
+	Paths     []string
+	Conflicts []string
+}
+
 // NoRepository is a folder in no git repository, and why, as git says.
 type NoRepository struct{ Why string }
 

@@ -159,3 +159,13 @@ func TestTaggerFailsAsToldTo(t *testing.T) {
 		t.Errorf("IsAncestor(b, a) = %v, %v: a child is no ancestor", is, err)
 	}
 }
+
+// A Clone that fails to read its history says no commit is an ancestor,
+// as a git that cannot be read answers nothing.
+func TestCloneFailingToReadItsHistoryFindsNoAncestor(t *testing.T) {
+	broken := errors.New("git broke")
+	c := &Clone{Fails: map[string]error{"IsAncestor": broken}}
+	if is, err := c.IsAncestor("a", "a"); is || !errors.Is(err, broken) {
+		t.Errorf("IsAncestor failing = %v, %v", is, err)
+	}
+}

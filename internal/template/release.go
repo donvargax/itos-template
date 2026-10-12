@@ -45,7 +45,7 @@ func TagOf(b, version string) string { return b + "/" + version }
 
 // Branches are the branches t's manifest lists, the root first, then each
 // stack's, then each feature's: those a release of t tags.
-func (t *Template) Branches() []string { return branches(t.root, t.Manifest) }
+func (t *Template) Branches() []string { return t.Manifest.Branches(t.root) }
 
 // Head is the commit t renders the branch b from (commitOf): a *NoBranch
 // when it has none.
@@ -193,7 +193,7 @@ func (t *Template) find(version string, tags map[string]string) (*Release, error
 	r := &Release{Version: version, Commits: map[string]string{}, manifest: m}
 	tagged := false
 	var lacking []string
-	for _, b := range branches(t.root, m) {
+	for _, b := range m.Branches(t.root) {
 		commit, ok := tags[TagOf(b, version)]
 		tagged = tagged || ok
 		on, err := t.onBranch(commit, ok, b)
@@ -228,28 +228,23 @@ func (t *Template) onBranch(commit string, tagged bool, b string) (bool, error) 
 	return t.repo.IsAncestor(commit, head)
 }
 
-// branches are the branches the manifest m lists, the root first, then each
-// stack's, then each feature's, in the manifest's order.
-func branches(root string, m *manifest.Manifest) []string {
-	list := []string{root}
-	for _, s := range m.Stacks {
-		list = append(list, s.Branch())
-	}
-	for _, f := range m.Features {
-		list = append(list, f.Branch())
-	}
-	return list
-}
-
 // manifestAt is the manifest the commit holds, at, its tag or branch, saying
 // where it was read from in an error.
 func (t *Template) manifestAt(commit, at string) (*manifest.Manifest, error) {
-	data, ok, err := t.repo.File(commit, manifest.File)
+	return ReadManifest(t.repo.File, t.Name, commit, at)
+}
+
+// ReadManifest is the manifest the commit of the template name holds, read
+// by file, as a port's File reads one, at its tag or branch, which an error
+// names: a *NoManifest when the commit holds none, a *ManifestInvalid when
+// it cannot be used.
+func ReadManifest(file func(commit, path string) ([]byte, bool, error), name, commit, at string) (*manifest.Manifest, error) {
+	data, ok, err := file(commit, manifest.File)
 	if err != nil {
 		return nil, err
 	}
 	if !ok {
-		return nil, &NoManifest{Template: t.Name, Root: at}
+		return nil, &NoManifest{Template: name, Root: at}
 	}
 	m, err := manifest.Parse(data)
 	if err != nil {

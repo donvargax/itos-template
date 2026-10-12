@@ -9,7 +9,7 @@
 //
 // main only assembles: each command is a slice (decisions 16 and 17), its
 // kong struct and its handler in a package of its own (newproject, adopt,
-// update, check, cutrelease),
+// update, check, cutrelease, syncbranch),
 // and main parses the command line, runs the one it names through the UI
 // the slices share (internal/cli) and exits with the code the slice
 // returns. A usage error, which kong finds before any slice runs, is the
@@ -32,6 +32,7 @@ import (
 	"github.com/donvargax/itos-template/internal/cutrelease"
 	"github.com/donvargax/itos-template/internal/newproject"
 	"github.com/donvargax/itos-template/internal/prompt"
+	"github.com/donvargax/itos-template/internal/syncbranch"
 	"github.com/donvargax/itos-template/internal/update"
 	"github.com/donvargax/itos-template/internal/version"
 )
@@ -47,6 +48,7 @@ type commandLine struct {
 	Update     update.CLI     `cmd:"" help:"Bring a made or adopted project to a newer template release, by a 3-way merge left staged."`
 	Check      check.CLI      `cmd:"" help:"Render every combination a template allows and run its checks."`
 	Release    cutrelease.CLI `cmd:"" help:"Tag every branch of a template with one version once check passes over them."`
+	Sync       syncbranch.CLI `cmd:"" help:"Merge into a template's branch the branch it descends from, left staged."`
 	Completion cli.Completion `cmd:"" help:"Print a shell completion script."`
 	Complete   struct{}       `cmd:"" name:"__complete" hidden:""`
 	// docs/CLI.md, rule 11: version beside --version, printing the same.
@@ -98,6 +100,8 @@ func run(args []string, in io.Reader, stdout, stderr io.Writer, terminal bool) i
 		return c.Check.Run(ui)
 	case "release":
 		return c.Release.Run(ui)
+	case "sync":
+		return c.Sync.Run(ui)
 	case "completion":
 		return c.Completion.Run(ui)
 	case "version":

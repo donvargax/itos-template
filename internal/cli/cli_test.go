@@ -14,6 +14,7 @@ import (
 	"github.com/donvargax/itos-template/internal/project"
 	"github.com/donvargax/itos-template/internal/releasing"
 	"github.com/donvargax/itos-template/internal/render"
+	"github.com/donvargax/itos-template/internal/syncing"
 	"github.com/donvargax/itos-template/internal/tempdir"
 	"github.com/donvargax/itos-template/internal/template"
 	"github.com/donvargax/itos-template/internal/updating"
@@ -102,6 +103,11 @@ func TestEachKindNoScenarioReadsHasItsCodeRuleAndSentence(t *testing.T) {
 		{&releasing.Refused{Tag: "go/cli/v1.0.0", Err: failed}, 1, "tag-refused", "git refused the tag go/cli/v1.0.0 (fatal: no), and release deleted the tags it made before it, so it made none; fix what git says, then release again"},
 		{&releasing.Refused{Tag: "go/cli/v1.0.0", Err: failed, Left: []string{"stack/go/v1.0.0", "main/v1.0.0"}}, 1, "tag-refused", "git refused the tag go/cli/v1.0.0 (fatal: no), and release could not delete stack/go/v1.0.0, main/v1.0.0, which it made before it; delete each with git tag -d, fix what git says, then release again"},
 		{&releasing.Unsynced{Branch: "go/cli", How: releasing.Unpublished}, 1, "branch-unpublished", "the template's branch go/cli is not on origin: a release tags only the heads others can fetch, so every branch the manifest lists must be at origin's head of it; push it to origin, then release"},
+		// sync's refusals no scenario makes: a fixture's clone always has a
+		// working tree, a commit and an origin.
+		{&syncing.NoWorkTree{}, 3, "git-work-tree-missing", "this is a bare git repository, or a .git folder, with no working tree to merge into; run sync in a checkout of the template, a clone of its repository"},
+		{&syncing.NoCommit{Top: "/acme"}, 1, "git-commit-missing", "the repository at /acme has no commit, so no branch of the template to sync; clone the template, or commit its root first"},
+		{&syncing.NoOrigin{}, 1, "origin-missing", "the template's repository has no remote origin: sync reads the root, the template's default branch, from origin's HEAD; add the remote the template is fetched from as origin (git remote add origin <url>), fetch it, then sync"},
 		// An error no switch classifies: a defect.
 		{fmt.Errorf("cannot write the report: %w", cause), 70, "internal", "cannot write the report: cause"},
 	}

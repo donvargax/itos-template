@@ -48,3 +48,7 @@
   scenarios:
     - id: "@ID-RELEASE-01"
       why: release's whole path in one run, the clone's heads checked as check checks them, every listed branch tagged annotated there and nothing pushed, the push printed
+- file: sync.feature
+  scenarios:
+    - id: "@ID-SYNC-01"
+      why: sync's whole path in one run, the root's tree read from the manifest, the branch checked out found lacking its parent's commit and git's merge left staged, uncommitted, HEAD unmoved

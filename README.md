@@ -52,8 +52,19 @@ itos-template update
 itos-template update --to v1.2.0
 ```
 
-A template says what it offers in its manifest, `itos-template.yaml` (`docs/manifest.md`). Syncing a
-template's branches comes next: `PLAN.md` says what is planned and in what order.
+`itos-template sync`, in a clone of a template, takes into the branch checked out the upkeep of the
+branch it descends from, a branch at a time down the tree: the root into a stack, a stack into its
+features, a needed feature into the one needing it. It merges the local branch with git's own merge,
+fetching nothing, and leaves the merge staged for you to commit through the template's own gates; a
+conflict is left as `git merge` leaves one, and `git merge --abort` undoes it. Commit, then sync the
+next branch down:
+
+```sh
+git switch stack/go && itos-template sync
+```
+
+A template says what it offers in its manifest, `itos-template.yaml` (`docs/manifest.md`).
+`PLAN.md` says what is planned and in what order.
 
 ## Working on it
 

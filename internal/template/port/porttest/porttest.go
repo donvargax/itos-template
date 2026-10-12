@@ -665,3 +665,103 @@ const (
 	Link       = fs.ModeSymlink | 0o777
 	Submodule  = fs.ModeIrregular
 )
+
+// Clone is a template's clone held in memory, the checkout sync runs in:
+// its local branches, each at a commit; each commit's parents, a history
+// to tell what a branch lacks; each commit's files; and the merge in
+// progress, which Merge really starts. Merge stages each path the merged
+// branch's commit holds otherwise than the branch checked out's, and leaves
+// conflicted each of those Conflicting names, a stub's fixed result, as a
+// change both sides made would be. A method Fails names by its name fails
+// with that error, as a git that cannot be read does.
+type Clone struct {
+	State       port.CheckoutState
+	Remote      bool   // whether it has an origin
+	Default     string // the branch origin's HEAD names; "" for none
+	HEAD        string // the branch checked out; "" for a detached HEAD
+	Local       map[string]string
+	Parents     map[string][]string     // each commit's parents
+	Trees       map[string]fstest.MapFS // each commit's files
+	Conflicting []string
+	// Fails fails a method by its name: Look, HasOrigin, Branch, Head,
+	// File, IsAncestor, Merging, Merge; Head of one branch alone by "Head
+	// <branch>".
+	Fails map[string]error
+
+	// MergeHead is the commit of the merge in progress, "" for none.
+	MergeHead string
+}
+
+var _ port.Clone = (*Clone)(nil)
+
+// Look is State.
+func (c *Clone) Look() (port.CheckoutState, error) { return c.State, c.Fails["Look"] }
+
+// HasOrigin is Remote.
+func (c *Clone) HasOrigin() (bool, error) { return c.Remote, c.Fails["HasOrigin"] }
+
+// DefaultBranch is Default, and false when it is "".
+func (c *Clone) DefaultBranch() (string, bool) { return c.Default, c.Default != "" }
+
+// Branch is HEAD, and false when it is "".
+func (c *Clone) Branch() (string, bool, error) { return c.HEAD, c.HEAD != "", c.Fails["Branch"] }
+
+// Head is the branch's commit in Local.
+func (c *Clone) Head(branch string) (string, bool, error) {
+	commit, ok := c.Local[branch]
+	return commit, ok, errors.Join(c.Fails["Head"], c.Fails["Head "+branch])
+}
+
+// File is the file path of the commit's tree, false when it holds none.
+func (c *Clone) File(commit, path string) ([]byte, bool, error) {
+	f, ok := c.Trees[commit][path]
+	if !ok {
+		return nil, false, c.Fails["File"]
+	}
+	return f.Data, true, c.Fails["File"]
+}
+
+// IsAncestor is whether commit is of, or found walking of's Parents.
+func (c *Clone) IsAncestor(commit, of string) (bool, error) {
+	if err := c.Fails["IsAncestor"]; err != nil {
+		return false, err
+	}
+	seen := map[string]bool{}
+	for walk := []string{of}; len(walk) > 0; walk = walk[1:] {
+		if walk[0] == commit {
+			return true, nil
+		}
+		if !seen[walk[0]] {
+			seen[walk[0]] = true
+			walk = append(walk, c.Parents[walk[0]]...)
+		}
+	}
+	return false, nil
+}
+
+// Merging is whether MergeHead names a commit.
+func (c *Clone) Merging() (bool, error) { return c.MergeHead != "", c.Fails["Merging"] }
+
+// Merge starts the merge of branch into into: MergeHead its commit, every
+// path its tree holds otherwise than into's staged, or conflicted when
+// Conflicting names it, and each of them a change State lists.
+func (c *Clone) Merge(branch, into string) (port.Staged, error) {
+	if err := c.Fails["Merge"]; err != nil {
+		return port.Staged{}, err
+	}
+	from, to := c.Trees[c.Local[branch]], c.Trees[c.Local[into]]
+	var staged port.Staged
+	for _, p := range slices.Sorted(maps.Keys(from)) {
+		if f, ok := to[p]; ok && string(f.Data) == string(from[p].Data) {
+			continue
+		}
+		if slices.Contains(c.Conflicting, p) {
+			staged.Conflicts = append(staged.Conflicts, p)
+		} else {
+			staged.Paths = append(staged.Paths, p)
+		}
+		c.State.Changed = append(c.State.Changed, p)
+	}
+	c.MergeHead = c.Local[branch]
+	return staged, nil
+}

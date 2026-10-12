@@ -133,15 +133,29 @@ func (w *world) noMergeInProgress(dir string) error {
 
 // syncObject is sync's --json object, as a script reads it.
 type syncObject struct {
-	Schema    int       `json:"schema"`
-	OK        *bool     `json:"ok"`
-	Branch    *string   `json:"branch"`
-	Merged    *string   `json:"merged"`
-	Staged    *[]string `json:"staged"`
-	Conflicts *[]string `json:"conflicts"`
+	Schema    int         `json:"schema"`
+	OK        *bool       `json:"ok"`
+	Branch    *string     `json:"branch"`
+	Merged    *string     `json:"merged"`
+	Staged    *[]syncPath `json:"staged"`
+	Conflicts *[]syncPath `json:"conflicts"`
 	Problems  *[]struct {
 		Rule string `json:"rule"`
 	} `json:"problems"`
+}
+
+// syncPath is a path of the sync object's staged or conflicts.
+type syncPath struct {
+	Path string `json:"path"`
+}
+
+// pathsOf are the paths of list, in its order.
+func pathsOf(list []syncPath) []string {
+	var paths []string
+	for _, p := range list {
+		paths = append(paths, p.Path)
+	}
+	return paths
 }
 
 // syncJSON is standard output read as one sync object, every key a script
@@ -169,7 +183,7 @@ func (w *world) syncJSONMerged(branch, merged, list string) error {
 	if err != nil {
 		return err
 	}
-	staged := slices.Sorted(slices.Values(*o.Staged))
+	staged := slices.Sorted(slices.Values(pathsOf(*o.Staged)))
 	want := slices.Sorted(slices.Values(quotedList(list)))
 	switch {
 	case !*o.OK:
@@ -203,8 +217,8 @@ func (w *world) syncJSONConflicted(rule, list string) error {
 		return fmt.Errorf("the sync object is ok\n%s", w.report())
 	case !slices.Contains(rules, rule):
 		return fmt.Errorf("the sync object's problems are %q, none %q\n%s", rules, rule, w.report())
-	case !slices.Equal(*o.Conflicts, quotedList(list)):
-		return fmt.Errorf("the sync object's conflicts are %q, not %q\n%s", *o.Conflicts, quotedList(list), w.report())
+	case !slices.Equal(pathsOf(*o.Conflicts), quotedList(list)):
+		return fmt.Errorf("the sync object's conflicts are %q, not %q\n%s", pathsOf(*o.Conflicts), quotedList(list), w.report())
 	}
 	return nil
 }

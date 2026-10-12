@@ -113,13 +113,14 @@ linters:
         # Each command is a slice, and a slice imports no other (decision 17):
         # what two share belongs to the domain, in a package named for what it
         # models. Every slice is listed twice, under files and under deny, so
-        # a new slice (update, sync) is added to both; cmd may import them all.
+        # a new slice is added to both; cmd may import them all.
         slices:
           files:
             - "**/internal/adopt/**"
             - "**/internal/check/**"
             - "**/internal/cutrelease/**"
             - "**/internal/newproject/**"
+            - "**/internal/syncbranch/**"
             - "**/internal/update/**"
           deny:
             - pkg: github.com/donvargax/itos-template/internal/adopt$
@@ -129,6 +130,8 @@ linters:
             - pkg: github.com/donvargax/itos-template/internal/cutrelease$
               desc: "a slice imports no other slice (decision 17): move what they share into the domain"
             - pkg: github.com/donvargax/itos-template/internal/newproject$
+              desc: "a slice imports no other slice (decision 17): move what they share into the domain"
+            - pkg: github.com/donvargax/itos-template/internal/syncbranch$
               desc: "a slice imports no other slice (decision 17): move what they share into the domain"
             - pkg: github.com/donvargax/itos-template/internal/update$
               desc: "a slice imports no other slice (decision 17): move what they share into the domain"
@@ -143,6 +146,7 @@ linters:
             - "**/internal/project/**"
             - "**/internal/releasing/**"
             - "**/internal/render/**"
+            - "**/internal/syncing/**"
             - "**/internal/template/**"
             - "**/internal/updating/**"
           deny:
@@ -164,6 +168,8 @@ linters:
               desc: "the domain imports no slice (decision 17)"
             - pkg: github.com/donvargax/itos-template/internal/newproject$
               desc: "the domain imports no slice (decision 17)"
+            - pkg: github.com/donvargax/itos-template/internal/syncbranch$
+              desc: "the domain imports no slice (decision 17)"
             - pkg: github.com/donvargax/itos-template/internal/update$
               desc: "the domain imports no slice (decision 17)"
             - pkg: github.com/donvargax/itos-template/internal/cli$
@@ -181,6 +187,7 @@ linters:
             - "**/internal/project/**"
             - "**/internal/releasing/**"
             - "**/internal/render/**"
+            - "**/internal/syncing/**"
             - "**/internal/template/**"
             - "**/internal/updating/**"
             - "!$test"
@@ -276,6 +283,7 @@ linters:
             - "!**/internal/project/*_test.go"
             - "!**/internal/releasing/*_test.go"
             - "!**/internal/render/*_test.go"
+            - "!**/internal/syncing/*_test.go"
             - "!**/internal/template/*_test.go"
             - "!**/internal/updating/*_test.go"
           deny:
@@ -291,6 +299,7 @@ linters:
             - "!**/internal/check/**"
             - "!**/internal/cutrelease/**"
             - "!**/internal/newproject/**"
+            - "!**/internal/syncbranch/**"
             - "!**/internal/update/**"
           deny:
             - pkg: github.com/alecthomas/kong

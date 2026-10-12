@@ -1,7 +1,9 @@
 // Package git is the infra that runs the real git (decision 17): it clones
 // a template, or copies the checkout it runs in, its branches its own or
 // else origin's (CloneHere), and merges its branches (Repo,
-// port.Repository), and makes a
+// port.Repository); merges into the branch a template's clone has checked
+// out a branch it descends from, with git merge itself (Local, port.Clone);
+// and makes a
 // project's folder a repository and commits it (Committer, port.Committer).
 // It imports no package of ours but the ports it implements. Reading git's
 // output and exit codes, and turning them into the ports' terms (a merge's

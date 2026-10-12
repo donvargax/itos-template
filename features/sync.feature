@@ -33,13 +33,14 @@ Feature: sync merges a template branch's upkeep down from the branch it descends
   Merging requires a git repository (else exit 3); a branch checked out that
   the manifest names (else exit 2: a detached HEAD, or a branch of none,
   the error naming the branches sync can merge into); an origin naming its
-  default branch, each branch it descends from local, a clean index and
-  working tree, non-ignored untracked files included, and no merge in
-  progress (else exit 1, nothing written).
+  default branch (else exit 2, as release refuses one); an origin, each
+  branch it descends from local, a clean index and working tree,
+  non-ignored untracked files included, and no merge in progress (else
+  exit 1, nothing written).
 
   With --json, stdout is one object with schema: 1 and ok, branch, merged
-  (the branch merged, or null when nothing was), staged (paths), conflicts
-  (paths) and problems. A conflicted merge is ok: false with the problem
+  (the branch merged, or null when nothing was), staged and conflicts, each
+  an object with path, and problems. A conflicted merge is ok: false with the problem
   "merge-conflict". The human message and fix fields are not a machine
   contract (docs/CLI.md).
 
@@ -56,7 +57,7 @@ Feature: sync merges a template branch's upkeep down from the branch it descends
   # builds each branch off the one it descends from. A scenario gives a
   # branch a commit to make another lack it.
 
-  @ID-SYNC-01 @slice-19 @wip
+  @ID-SYNC-01 @slice-19
   Scenario: a stack takes the root's new commit as a staged merge, HEAD unchanged
     Given the template "acme"
     And a clone "tpl" of the template, every branch local
@@ -70,7 +71,7 @@ Feature: sync merges a template branch's upkeep down from the branch it descends
     And the HEAD of "tpl" is unchanged
     And its standard output says "main"
 
-  @ID-SYNC-02 @slice-19 @wip
+  @ID-SYNC-02 @slice-19
   Scenario: a feature takes its stack's new commit
     Given the template "acme"
     And a clone "tpl" of the template, every branch local
@@ -83,7 +84,7 @@ Feature: sync merges a template branch's upkeep down from the branch it descends
 
   # web needs cli in the fixture's manifest, so go/web descends from go/cli,
   # which carries the stack, not from stack/go.
-  @ID-SYNC-03 @slice-19 @wip
+  @ID-SYNC-03 @slice-19
   Scenario: a feature that needs another takes that feature's new commit, not the stack's
     Given the template "acme"
     And a clone "tpl" of the template, every branch local
@@ -94,7 +95,7 @@ Feature: sync merges a template branch's upkeep down from the branch it descends
     And in "tpl" a merge of "go/cli" is in progress
     And "tpl" has staged changes to "cli-shared.txt" only, and nothing unstaged
 
-  @ID-SYNC-04 @slice-19 @wip
+  @ID-SYNC-04 @slice-19
   Scenario Outline: a branch that lacks nothing, or the root, is up to date and nothing changes
     Given the template "acme"
     And a clone "tpl" of the template, every branch local
@@ -112,7 +113,7 @@ Feature: sync merges a template branch's upkeep down from the branch it descends
       | stack/go |
       | go/web   |
 
-  @ID-SYNC-05 @slice-19 @wip
+  @ID-SYNC-05 @slice-19
   Scenario: a branch's change to lines the root changes is left conflicted as git merge leaves it
     Given the template "acme"
     And a clone "tpl" of the template, every branch local
@@ -130,7 +131,7 @@ Feature: sync merges a template branch's upkeep down from the branch it descends
 
   # sync goes down the tree a branch at a time: go/cli would take main's
   # commit only through stack/go, which lacks it.
-  @ID-SYNC-06 @slice-19 @wip
+  @ID-SYNC-06 @slice-19
   Scenario: a branch whose own parent lacks a commit above it is refused, naming the parent to sync first
     Given the template "acme"
     And a clone "tpl" of the template, every branch local
@@ -143,7 +144,7 @@ Feature: sync merges a template branch's upkeep down from the branch it descends
     And in "tpl" no merge is in progress
     And the snapshot of "tpl" is unchanged
 
-  @ID-SYNC-07 @slice-19 @wip
+  @ID-SYNC-07 @slice-19
   Scenario Outline: an unclean checkout is refused and nothing changes
     Given the template "acme"
     And a clone "tpl" of the template, every branch local
@@ -162,7 +163,7 @@ Feature: sync merges a template branch's upkeep down from the branch it descends
       | a staged tracked change      |
       | a non-ignored untracked file |
 
-  @ID-SYNC-08 @slice-19 @wip
+  @ID-SYNC-08 @slice-19
   Scenario: a merge already in progress is refused, so a second run never stacks on the first
     Given the template "acme"
     And a clone "tpl" of the template, every branch local
@@ -174,7 +175,7 @@ Feature: sync merges a template branch's upkeep down from the branch it descends
     And its error output says "merge"
     And in "tpl" a merge of "main" is in progress
 
-  @ID-SYNC-09 @slice-19 @wip
+  @ID-SYNC-09 @slice-19
   Scenario: a detached HEAD is a usage error naming the branches sync can merge into
     Given the template "acme"
     And a clone "tpl" of the template, every branch local
@@ -183,7 +184,7 @@ Feature: sync merges a template branch's upkeep down from the branch it descends
     Then it exits with code 2
     And its error output says "stack/go"
 
-  @ID-SYNC-10 @slice-19 @wip
+  @ID-SYNC-10 @slice-19
   Scenario: a branch the manifest does not name is a usage error naming the branches sync can merge into
     Given the template "acme"
     And a clone "tpl" of the template, every branch local
@@ -193,7 +194,7 @@ Feature: sync merges a template branch's upkeep down from the branch it descends
     And its error output says "topic"
     And its error output says "go/cli"
 
-  @ID-SYNC-11 @slice-19 @wip
+  @ID-SYNC-11 @slice-19
   Scenario: a branch it descends from that is not local is refused, naming it
     Given the template "acme"
     And a clone "tpl" of the template, only its default branch local
@@ -203,24 +204,25 @@ Feature: sync merges a template branch's upkeep down from the branch it descends
     And its error output says "stack/go"
     And in "tpl" no merge is in progress
 
-  @ID-SYNC-12 @slice-19 @wip
+  @ID-SYNC-12 @slice-19
   Scenario: a clone whose origin names no default branch is refused, as release refuses it
     Given the template "acme"
     And a clone "tpl" of the template, every branch local
     And in "tpl" the branch "stack/go" is checked out
+    And the clone "tpl" has no record of origin's HEAD
     And the clone "tpl" has an origin whose HEAD names no branch
     When itos-template runs in the folder "tpl" with "sync"
-    Then it exits with code 1
-    And its error output says "origin"
+    Then it exits with code 2
+    And its error output says "no default branch"
     And in "tpl" no merge is in progress
 
-  @ID-SYNC-13 @slice-19 @wip
+  @ID-SYNC-13 @slice-19
   Scenario: a folder outside any git repository is refused with exit 3
     Given "elsewhere" is a folder outside any git repository
     When itos-template runs in the folder "elsewhere" with "sync"
     Then it exits with code 3
 
-  @ID-SYNC-14 @slice-19 @wip
+  @ID-SYNC-14 @slice-19
   Scenario: a merge with --json is one object naming the branch merged and the paths staged
     Given the template "acme"
     And a clone "tpl" of the template, every branch local
@@ -230,7 +232,7 @@ Feature: sync merges a template branch's upkeep down from the branch it descends
     Then it exits with code 0
     And its sync JSON is ok, branch "stack/go", merged "main", staged "shared.txt" and no conflict
 
-  @ID-SYNC-15 @slice-19 @wip
+  @ID-SYNC-15 @slice-19
   Scenario: a conflicted merge with --json is one object naming the conflict
     Given the template "acme"
     And a clone "tpl" of the template, every branch local
