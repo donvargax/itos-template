@@ -1746,3 +1746,15 @@ items:
       routine (q-60), so before v1 a breaking change should bump the minor, and v1.0.0 come only
       when the person cuts it on purpose. Until then a breaking commit here carries no marker, only
       its Upgrading footer. itos may share the rule: check what it does first.
+  - id: work-tag-branch
+    title: The work tag sync names a command that is now branch sync and branch list
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      itos.yaml's work.tags names the command an item changes, and slice-21 moved sync into the noun
+      group branch; the tag sync, and the items carrying it, still say the old name. Renaming the
+      tag to branch touches the config and every item tagged sync, so it was left out of slice-21's
+      feat.
