@@ -269,3 +269,4 @@ questions:
   - id: q-60
     item: "slice-21"
     question: "sync --status selects a read-only report instead of a merge, which docs/CLI.md rule 18 forbids (a flag changes an action, never selects another). What do the two commands become? Offered: an exception to rule 18 for a read-only report (the coordinator's recommendation, to save the rename), or a noun group, branch, holding both as verbs (rules 3, 4, 7, 13), the old names exiting 2 naming the new (rule 41); and within the group, branch sync or branch merge for the merge (rule 6: update merges too), branch list for the report (status is a noun, rule 3)."
+    answer: "The noun group branch: branch sync merges, branch list reports, sync exits 2 naming them. Pre-v1, breaking changes are no concern and this is the time to get the interface right; a rule is never bent to save work. The person's call, 2026-10-11."
