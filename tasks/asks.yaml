@@ -258,6 +258,7 @@ questions:
   - id: q-58
     item: "slice-20"
     question: "Does sync also report where the whole tree stands? Recommended: sync --status lists every branch the manifest implies that lacks commits of a branch it descends from, writing nothing, as a second slice. Or: leave it as an idea."
+    answer: "Yes: sync --status, a second slice after the merge. The person's call, 2026-10-11."
   - id: q-59
     item: "slice-19"
     question: "What does sync do with a path each template branch keeps its own (its itos registry), which conflicts whenever the root's copy changes? Recommended: git's merge decides, a conflict the person resolves as today, with no new manifest key. Or: a manifest key listing paths each branch keeps its own, merged keeping the branch's side."
