@@ -1694,3 +1694,23 @@ items:
     status: done
     depends_on: []
     kind: bug
+  - id: bug-11
+    title: "No release ships bug-8's .git refusal, and no scenario holds it: an answer can make a template's name one Windows writes as .git"
+    phase: 1
+    owner: donvargax
+    status: todo
+    depends_on: []
+    kind: bug
+    why: >
+      No release ships bug-8's fix: the newest release with binaries is v0.30.0, and CI cuts a
+      release only for a feat, a fix or a breaking change, while everything since is docs, tests and
+      a chore. bug-8's .git refusal is also held by no scenario, as bug-8 believed none could reach
+      it once git refuses a .git spelling in a template's tree. But new reads the tree with clone
+      --bare, ls-tree and cat-file, with no checkout, and builds each name by replacing literals. So
+      a template holding .acme-widget./hooks/post-commit (which git adds on every platform) and the
+      answer name=git render .git./hooks/post-commit. Windows drops the trailing period, so it
+      writes .git/hooks, git init keeps the hook, and new's own git commit runs it. v0.30.0 writes
+      it, then fails at git add (exit 70). HEAD refuses it before writing (exit 2). ID-NEW-67 holds
+      that refusal, @wip in features/new.feature, and its fix commit cuts v0.30.2. The fix changes
+      no product code, unless the scenario finds a gap. Security work: the person runs it from their
+      own session, as bug-8 and bug-9.
