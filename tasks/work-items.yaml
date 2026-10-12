@@ -1732,3 +1732,17 @@ items:
       --status (q-58, slice-20) selects a read-only report instead of a merge. Either the rule gains
       an exception naming --status, or the report becomes its own command (a breaking change once
       released, rule 40). The person's call.
+  - id: release-breaking-pre-v1
+    title: release-version bumps the minor for a breaking change before v1, never cutting v1.0.0 on its own
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: []
+    kind: idea
+    why: >
+      Found specifying slice-21 (2026-10-11): tools/bin/release-version makes any commit marked
+      breaking (a ! or a BREAKING CHANGE footer) a major, so from v0.32.0 the next release would be
+      v1.0.0. Semver lets a 0.x minor break, and the person treats pre-v1 breaking changes as
+      routine (q-60), so before v1 a breaking change should bump the minor, and v1.0.0 come only
+      when the person cuts it on purpose. Until then a breaking commit here carries no marker, only
+      its Upgrading footer. itos may share the rule: check what it does first.
