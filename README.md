@@ -52,20 +52,20 @@ itos-template update
 itos-template update --to v1.2.0
 ```
 
-`itos-template sync`, in a clone of a template, takes into the branch checked out the upkeep of the
-branch it descends from, a branch at a time down the tree: the root into a stack, a stack into its
-features, a needed feature into the one needing it. It merges the local branch with git's own merge,
-fetching nothing, and leaves the merge staged for you to commit through the template's own gates; a
-conflict is left as `git merge` leaves one, and `git merge --abort` undoes it. Commit, then sync the
-next branch down:
+`itos-template branch sync`, in a clone of a template, takes into the branch checked out the upkeep
+of the branch it descends from, a branch at a time down the tree: the root into a stack, a stack
+into its features, a needed feature into the one needing it. It merges the local branch with git's
+own merge, fetching nothing, and leaves the merge staged for you to commit through the template's
+own gates; a conflict is left as `git merge` leaves one, and `git merge --abort` undoes it. Commit,
+then run it again on the next branch down:
 
 ```sh
-git switch stack/go && itos-template sync
+git switch stack/go && itos-template branch sync
 ```
 
-`itos-template sync --status` writes nothing: it lists every branch with the branches it descends
-from whose commits it lacks, and the branch to sync next, exiting 1 while one lags, so a template's
-CI can hold every branch in step.
+`itos-template branch list` writes nothing: it lists every branch with the branches it descends
+from whose commits it lacks, and the branch to merge into next, exiting 1 while one lags, so a
+template's CI can hold every branch in step.
 
 A template says what it offers in its manifest, `itos-template.yaml` (`docs/manifest.md`).
 `PLAN.md` says what is planned and in what order.

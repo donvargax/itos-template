@@ -45,7 +45,7 @@ var tree = [][2]string{
 	{"python/cli", "stack/python"},
 }
 
-// into are the branches sync can merge into, in the manifest's order.
+// into are the branches branch sync can merge into, in the manifest's order.
 var into = []string{"stack/go", "stack/python", "go/cli", "go/web", "python/cli"}
 
 // acme is a clone of the template in step, every branch local, each
@@ -179,7 +179,7 @@ func TestRunLeavesAConflictAsTheMergeLeftIt(t *testing.T) {
 	}
 }
 
-// sync goes down the tree a branch at a time: a branch above the one
+// branch sync goes down the tree a branch at a time: a branch above the one
 // checked out that lacks its own parents' commits is refused, every one
 // named, and nothing is merged.
 func TestRunRefusesABranchAboveThatLacksItsParentsCommits(t *testing.T) {

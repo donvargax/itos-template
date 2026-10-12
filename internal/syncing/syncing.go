@@ -1,5 +1,5 @@
 // Package syncing is a template's branch taking the upkeep of the branches
-// it descends from (decision 2, features/sync.feature): run in a clone of
+// it descends from (decision 2, features/branch.feature): run in a clone of
 // the template, on a branch the manifest names, it merges into that branch
 // the first branch it descends from whose commits it lacks, with git's own
 // merge, and commits nothing (decision 42): the merge is left in progress and
@@ -7,12 +7,12 @@
 // through the template's own gates, as update leaves its merge (decision
 // 37). No path is special (q-59): git's merge decides each.
 //
-// The branch tree is the manifest's (manifest.Parents), read from the
-// root's local head, the root origin's default branch, as release reads it,
-// never the branch checked out, which is the one being synced. The branches
-// merged are the local ones: nothing is fetched. sync goes down the tree a
-// branch at a time, so a branch above the one checked out that lacks
-// commits of its own parents is refused, naming it, to be synced first.
+// The branch tree is the manifest's (manifest.Parents), read from the root's
+// local head, the root origin's default branch, as release reads it, never
+// the branch checked out, which is the one being synced. The branches merged
+// are the local ones: nothing is fetched. branch sync goes down the tree a
+// branch at a time, so a branch above the one checked out that lacks commits
+// of its own parents is refused, naming it, to be synced first.
 //
 // It reaches the clone only through a port.Clone. It is domain (decision
 // 17): its tests run it against fakes of the port. Its refusals are a
@@ -27,7 +27,7 @@ import (
 	"github.com/donvargax/itos-template/internal/template/port"
 )
 
-// Sync is what a sync found and did: the branch checked out, the branches
+// Sync is what branch sync found and did: the branch checked out, the branches
 // it descends from, the branch merged into it, "" when it lacked none, and
 // the paths the merge staged and those it left conflicted, each sorted.
 type Sync struct {

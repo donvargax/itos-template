@@ -666,7 +666,7 @@ const (
 	Submodule  = fs.ModeIrregular
 )
 
-// Clone is a template's clone held in memory, the checkout sync runs in:
+// Clone is a template's clone held in memory, the checkout branch sync runs in:
 // its local branches, each at a commit; each commit's parents, a history
 // to tell what a branch lacks; each commit's files; and the merge in
 // progress, which Merge really starts. Merge stages each path the merged

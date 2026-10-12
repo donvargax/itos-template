@@ -4,8 +4,8 @@ import "slices"
 
 // The branch tree (docs/manifest.md's "Branches"): the root, the template's
 // default branch, which the manifest does not name; a stack off the root; a
-// feature off its stack, or off each feature it needs. sync merges a branch
-// down the tree, into each branch from the ones it descends from.
+// feature off its stack, or off each feature it needs. branch sync merges a
+// branch down the tree, into each branch from the ones it descends from.
 
 // Branches are the branches the manifest names, root its root branch: the
 // root first, then each stack's, then each feature's, in the manifest's

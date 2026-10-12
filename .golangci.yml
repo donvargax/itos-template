@@ -117,21 +117,24 @@ linters:
         slices:
           files:
             - "**/internal/adopt/**"
+            - "**/internal/branchlist/**"
+            - "**/internal/branchsync/**"
             - "**/internal/check/**"
             - "**/internal/cutrelease/**"
             - "**/internal/newproject/**"
-            - "**/internal/syncbranch/**"
             - "**/internal/update/**"
           deny:
             - pkg: github.com/donvargax/itos-template/internal/adopt$
+              desc: "a slice imports no other slice (decision 17): move what they share into the domain"
+            - pkg: github.com/donvargax/itos-template/internal/branchlist$
+              desc: "a slice imports no other slice (decision 17): move what they share into the domain"
+            - pkg: github.com/donvargax/itos-template/internal/branchsync$
               desc: "a slice imports no other slice (decision 17): move what they share into the domain"
             - pkg: github.com/donvargax/itos-template/internal/check$
               desc: "a slice imports no other slice (decision 17): move what they share into the domain"
             - pkg: github.com/donvargax/itos-template/internal/cutrelease$
               desc: "a slice imports no other slice (decision 17): move what they share into the domain"
             - pkg: github.com/donvargax/itos-template/internal/newproject$
-              desc: "a slice imports no other slice (decision 17): move what they share into the domain"
-            - pkg: github.com/donvargax/itos-template/internal/syncbranch$
               desc: "a slice imports no other slice (decision 17): move what they share into the domain"
             - pkg: github.com/donvargax/itos-template/internal/update$
               desc: "a slice imports no other slice (decision 17): move what they share into the domain"
@@ -162,13 +165,15 @@ linters:
               desc: "the domain asks through a port (decision 17): use internal/template/port"
             - pkg: github.com/donvargax/itos-template/internal/adopt$
               desc: "the domain imports no slice (decision 17)"
+            - pkg: github.com/donvargax/itos-template/internal/branchlist$
+              desc: "the domain imports no slice (decision 17)"
+            - pkg: github.com/donvargax/itos-template/internal/branchsync$
+              desc: "the domain imports no slice (decision 17)"
             - pkg: github.com/donvargax/itos-template/internal/check$
               desc: "the domain imports no slice (decision 17)"
             - pkg: github.com/donvargax/itos-template/internal/cutrelease$
               desc: "the domain imports no slice (decision 17)"
             - pkg: github.com/donvargax/itos-template/internal/newproject$
-              desc: "the domain imports no slice (decision 17)"
-            - pkg: github.com/donvargax/itos-template/internal/syncbranch$
               desc: "the domain imports no slice (decision 17)"
             - pkg: github.com/donvargax/itos-template/internal/update$
               desc: "the domain imports no slice (decision 17)"
@@ -296,10 +301,11 @@ linters:
             - "!**/cmd/**"
             - "!**/internal/cli/**"
             - "!**/internal/adopt/**"
+            - "!**/internal/branchlist/**"
+            - "!**/internal/branchsync/**"
             - "!**/internal/check/**"
             - "!**/internal/cutrelease/**"
             - "!**/internal/newproject/**"
-            - "!**/internal/syncbranch/**"
             - "!**/internal/update/**"
           deny:
             - pkg: github.com/alecthomas/kong

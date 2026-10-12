@@ -24,3 +24,7 @@ Staged, a branch at a time: sync merges into the checked-out template branch the
 ### Consequences
 
 A template's merges keep passing through its own gates with whatever message and footers its rules ask, as update's do (decision 37), since each branch of a template can hold its own itos config (decision 32) whose commit rules sync cannot know. The person walks the tree down, a branch at a time, so sync refuses a branch whose parent itself lags. sync uses git merge --no-commit --no-ff through git's command line, as decision 38 uses git's own merge. Paths each branch keeps its own get no special treatment (q-59): a conflict the person resolves. sync --status reports the whole tree (q-58).
+
+## More Information
+
+slice-21 (q-60) moved both commands into the noun group branch, as docs/CLI.md rule 18 asks: the merge is branch sync and the report, once sync --status, is branch list. The old sync exits 2 naming them (rule 41).

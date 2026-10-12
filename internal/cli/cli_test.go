@@ -103,15 +103,15 @@ func TestEachKindNoScenarioReadsHasItsCodeRuleAndSentence(t *testing.T) {
 		{&releasing.Refused{Tag: "go/cli/v1.0.0", Err: failed}, 1, "tag-refused", "git refused the tag go/cli/v1.0.0 (fatal: no), and release deleted the tags it made before it, so it made none; fix what git says, then release again"},
 		{&releasing.Refused{Tag: "go/cli/v1.0.0", Err: failed, Left: []string{"stack/go/v1.0.0", "main/v1.0.0"}}, 1, "tag-refused", "git refused the tag go/cli/v1.0.0 (fatal: no), and release could not delete stack/go/v1.0.0, main/v1.0.0, which it made before it; delete each with git tag -d, fix what git says, then release again"},
 		{&releasing.Unsynced{Branch: "go/cli", How: releasing.Unpublished}, 1, "branch-unpublished", "the template's branch go/cli is not on origin: a release tags only the heads others can fetch, so every branch the manifest lists must be at origin's head of it; push it to origin, then release"},
-		// sync's refusals no scenario makes: a fixture's clone always has a
+		// branch sync's and branch list's refusals no scenario makes: a fixture's clone always has a
 		// working tree, a commit and an origin.
-		{&syncing.NoWorkTree{}, 3, "git-work-tree-missing", "this is a bare git repository, or a .git folder, with no working tree to merge into; run sync in a checkout of the template, a clone of its repository"},
-		{&syncing.NoCommit{Top: "/acme"}, 1, "git-commit-missing", "the repository at /acme has no commit, so no branch of the template to sync; clone the template, or commit its root first"},
-		{&syncing.NoOrigin{}, 1, "origin-missing", "the template's repository has no remote origin: sync reads the root, the template's default branch, from origin's HEAD; add the remote the template is fetched from as origin (git remote add origin <url>), fetch it, then sync"},
-		// sync --status's problems, whose words the scenarios read only for
-		// a branch missing locally, by its name.
-		{&syncing.Lagging{Branch: "stack/go", Lacks: []string{"main"}}, 1, "branch-behind", "the template's branch stack/go lacks commits of main, which it descends from; check it out with git switch stack/go and run itos-template sync, once every branch above it is in step"},
-		{&syncing.Missing{Branch: "go/cli"}, 1, "branch-missing", "the template's branch go/cli is not a local branch here, so what it lacks is unknown: sync --status reads only local branches, fetching nothing; make it from origin's with git branch --track go/cli origin/go/cli, then run sync --status again"},
+		{&syncing.NoWorkTree{}, 3, "git-work-tree-missing", "this is a bare git repository, or a .git folder, with no working tree to merge into; run it in a checkout of the template, a clone of its repository"},
+		{&syncing.NoCommit{Top: "/acme"}, 1, "git-commit-missing", "the repository at /acme has no commit, so no branch of the template; clone the template, or commit its root first"},
+		{&syncing.NoOrigin{}, 1, "origin-missing", "the template's repository has no remote origin: itos-template branch reads the root, the template's default branch, from origin's HEAD; add the remote the template is fetched from as origin (git remote add origin <url>), fetch it, then run the command again"},
+		// branch list's problems, whose words the scenarios read only for a
+		// branch missing locally, by its name.
+		{&syncing.Lagging{Branch: "stack/go", Lacks: []string{"main"}}, 1, "branch-behind", "the template's branch stack/go lacks commits of main, which it descends from; check it out with git switch stack/go and run itos-template branch sync, once every branch above it is in step"},
+		{&syncing.Missing{Branch: "go/cli"}, 1, "branch-missing", "the template's branch go/cli is not a local branch here, so what it lacks is unknown: branch list reads only local branches, fetching nothing; make it from origin's with git branch --track go/cli origin/go/cli, then run branch list again"},
 		// An error no switch classifies: a defect.
 		{fmt.Errorf("cannot write the report: %w", cause), 70, "internal", "cannot write the report: cause"},
 	}

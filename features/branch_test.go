@@ -1,9 +1,9 @@
-// The steps of sync.feature: a template's clone, every branch local or only
-// its default one, a branch given a commit so another lacks it, a branch
-// checked out or a new one made; and what sync leaves: the merge git has in
-// progress, read from git (MERGE_HEAD and the index's unmerged entries),
-// never from what sync says, and its --json object, and --status's, parsed,
-// never searched.
+// The steps of branch.feature: a template's clone, every branch local or
+// only its default one, a branch given a commit so another lacks it, a
+// branch checked out or a new one made; and what branch sync leaves: the
+// merge git has in progress, read from git (MERGE_HEAD and the index's
+// unmerged entries), never from what branch sync says, and its --json
+// object, and branch list's, parsed, never searched.
 // The clones, the snapshots, the staged paths and the conflict markers are
 // the steps release.feature, adopt.feature and update.feature take them
 // with.
@@ -21,7 +21,7 @@ import (
 	"github.com/cucumber/godog"
 )
 
-func (w *world) syncSteps(sc *godog.ScenarioContext) {
+func (w *world) branchSteps(sc *godog.ScenarioContext) {
 	sc.Step(`^in "([^"]*)" the branch "([^"]*)" gains a commit setting "([^"]*)" to "([^"]*)"$`, w.branchGainsCommit)
 	sc.Step(`^in "([^"]*)" the branch "([^"]*)" is checked out$`, w.branchCheckedOut)
 	sc.Step(`^in "([^"]*)" a new branch "([^"]*)" is checked out$`, func(dir, branch string) error {
@@ -35,14 +35,14 @@ func (w *world) syncSteps(sc *godog.ScenarioContext) {
 		return w.mergeInProgress(dir, branch, quotedList(list))
 	})
 	sc.Step(`^in "([^"]*)" no merge is in progress$`, w.noMergeInProgress)
-	sc.Step(`^its sync JSON is ok, branch "([^"]*)", merged "([^"]*)", staged (".*") and no conflict$`, w.syncJSONMerged)
-	sc.Step(`^its sync JSON is not ok, the problem "([^"]*)", conflicts (".*")$`, w.syncJSONConflicted)
-	sc.Step(`^its sync status JSON lists (".*"), none lacking a branch$`, w.statusJSONInStep)
-	sc.Step(`^its sync status JSON says "([^"]*)" lacks "([^"]*)"$`, func(branch, lacks string) error {
-		return w.statusJSONLacks(branch, []string{lacks})
+	sc.Step(`^its branch sync JSON is ok, branch "([^"]*)", merged "([^"]*)", staged (".*") and no conflict$`, w.syncJSONMerged)
+	sc.Step(`^its branch sync JSON is not ok, the problem "([^"]*)", conflicts (".*")$`, w.syncJSONConflicted)
+	sc.Step(`^its branch list JSON lists (".*"), none lacking a branch$`, w.listJSONInStep)
+	sc.Step(`^its branch list JSON says "([^"]*)" lacks "([^"]*)"$`, func(branch, lacks string) error {
+		return w.listJSONLacks(branch, []string{lacks})
 	})
-	sc.Step(`^its sync status JSON says "([^"]*)" lacks nothing$`, func(branch string) error {
-		return w.statusJSONLacks(branch, nil)
+	sc.Step(`^its branch list JSON says "([^"]*)" lacks nothing$`, func(branch string) error {
+		return w.listJSONLacks(branch, nil)
 	})
 }
 
@@ -139,7 +139,7 @@ func (w *world) noMergeInProgress(dir string) error {
 	return nil
 }
 
-// syncObject is sync's --json object, as a script reads it.
+// syncObject is branch sync's --json object, as a script reads it.
 type syncObject struct {
 	Schema    int         `json:"schema"`
 	OK        *bool       `json:"ok"`
@@ -152,7 +152,7 @@ type syncObject struct {
 	} `json:"problems"`
 }
 
-// syncPath is a path of the sync object's staged or conflicts.
+// syncPath is a path of the branch sync object's staged or conflicts.
 type syncPath struct {
 	Path string `json:"path"`
 }
@@ -166,24 +166,24 @@ func pathsOf(list []syncPath) []string {
 	return paths
 }
 
-// syncJSON is standard output read as one sync object, every key a script
+// syncJSON is standard output read as one branch sync object, every key a script
 // reads of it there, of schema 1.
 func (w *world) syncJSON() (*syncObject, error) {
 	var o syncObject
 	dec := json.NewDecoder(strings.NewReader(w.stdout))
 	if err := dec.Decode(&o); err != nil {
-		return nil, fmt.Errorf("standard output is no sync object: %v\n%s", err, w.report())
+		return nil, fmt.Errorf("standard output is no branch sync object: %v\n%s", err, w.report())
 	}
 	if dec.More() {
 		return nil, fmt.Errorf("standard output holds more than one JSON value\n%s", w.report())
 	}
 	if o.Schema != 1 || o.OK == nil || o.Staged == nil || o.Conflicts == nil || o.Problems == nil {
-		return nil, fmt.Errorf("the sync object is not of schema 1 with ok, staged, conflicts and problems\n%s", w.report())
+		return nil, fmt.Errorf("the branch sync object is not of schema 1 with ok, staged, conflicts and problems\n%s", w.report())
 	}
 	return &o, nil
 }
 
-// syncJSONMerged is whether sync's object is ok, its branch and the branch
+// syncJSONMerged is whether branch sync's object is ok, its branch and the branch
 // it merged as given, the paths it staged exactly those listed, in any
 // order, and no conflict or problem.
 func (w *world) syncJSONMerged(branch, merged, list string) error {
@@ -195,20 +195,20 @@ func (w *world) syncJSONMerged(branch, merged, list string) error {
 	want := slices.Sorted(slices.Values(quotedList(list)))
 	switch {
 	case !*o.OK:
-		return fmt.Errorf("the sync object is not ok\n%s", w.report())
+		return fmt.Errorf("the branch sync object is not ok\n%s", w.report())
 	case o.Branch == nil || *o.Branch != branch:
-		return fmt.Errorf("the sync object's branch is not %q\n%s", branch, w.report())
+		return fmt.Errorf("the branch sync object's branch is not %q\n%s", branch, w.report())
 	case o.Merged == nil || *o.Merged != merged:
-		return fmt.Errorf("the sync object's merged is not %q\n%s", merged, w.report())
+		return fmt.Errorf("the branch sync object's merged is not %q\n%s", merged, w.report())
 	case !slices.Equal(staged, want):
-		return fmt.Errorf("the sync object stages %q, not %q\n%s", staged, want, w.report())
+		return fmt.Errorf("the branch sync object stages %q, not %q\n%s", staged, want, w.report())
 	case len(*o.Conflicts) > 0 || len(*o.Problems) > 0:
-		return fmt.Errorf("the sync object names a conflict or a problem\n%s", w.report())
+		return fmt.Errorf("the branch sync object names a conflict or a problem\n%s", w.report())
 	}
 	return nil
 }
 
-// syncJSONConflicted is whether sync's object is not ok, a problem of it
+// syncJSONConflicted is whether branch sync's object is not ok, a problem of it
 // the rule given, and its conflicts exactly the paths listed, in that
 // order.
 func (w *world) syncJSONConflicted(rule, list string) error {
@@ -222,17 +222,17 @@ func (w *world) syncJSONConflicted(rule, list string) error {
 	}
 	switch {
 	case *o.OK:
-		return fmt.Errorf("the sync object is ok\n%s", w.report())
+		return fmt.Errorf("the branch sync object is ok\n%s", w.report())
 	case !slices.Contains(rules, rule):
-		return fmt.Errorf("the sync object's problems are %q, none %q\n%s", rules, rule, w.report())
+		return fmt.Errorf("the branch sync object's problems are %q, none %q\n%s", rules, rule, w.report())
 	case !slices.Equal(pathsOf(*o.Conflicts), quotedList(list)):
-		return fmt.Errorf("the sync object's conflicts are %q, not %q\n%s", pathsOf(*o.Conflicts), quotedList(list), w.report())
+		return fmt.Errorf("the branch sync object's conflicts are %q, not %q\n%s", pathsOf(*o.Conflicts), quotedList(list), w.report())
 	}
 	return nil
 }
 
-// statusObject is sync --status's --json object, as a script reads it.
-type statusObject struct {
+// listObject is branch list's --json object, as a script reads it.
+type listObject struct {
 	Schema   int   `json:"schema"`
 	OK       *bool `json:"ok"`
 	Branches *[]struct {
@@ -246,33 +246,33 @@ type statusObject struct {
 	} `json:"problems"`
 }
 
-// statusJSON is standard output read as one sync --status object, every
+// listJSON is standard output read as one branch list object, every
 // key a script reads of it there, each branch's too, of schema 1.
-func (w *world) statusJSON() (*statusObject, error) {
-	var o statusObject
+func (w *world) listJSON() (*listObject, error) {
+	var o listObject
 	dec := json.NewDecoder(strings.NewReader(w.stdout))
 	if err := dec.Decode(&o); err != nil {
-		return nil, fmt.Errorf("standard output is no sync status object: %v\n%s", err, w.report())
+		return nil, fmt.Errorf("standard output is no branch list object: %v\n%s", err, w.report())
 	}
 	if dec.More() {
 		return nil, fmt.Errorf("standard output holds more than one JSON value\n%s", w.report())
 	}
 	if o.Schema != 1 || o.OK == nil || o.Branches == nil || o.Problems == nil {
-		return nil, fmt.Errorf("the sync status object is not of schema 1 with ok, branches and problems\n%s", w.report())
+		return nil, fmt.Errorf("the branch list object is not of schema 1 with ok, branches and problems\n%s", w.report())
 	}
 	for _, b := range *o.Branches {
 		if b.Branch == nil || b.From == nil || b.Lacks == nil || b.Missing == nil {
-			return nil, fmt.Errorf("a branch of the sync status object lacks branch, from, lacks or missing\n%s", w.report())
+			return nil, fmt.Errorf("a branch of the branch list object lacks branch, from, lacks or missing\n%s", w.report())
 		}
 	}
 	return &o, nil
 }
 
-// statusJSONInStep is whether sync --status's object is ok, with no
+// listJSONInStep is whether branch list's object is ok, with no
 // problem, and lists exactly the branches listed, in any order, none
 // lacking a branch it descends from or missing.
-func (w *world) statusJSONInStep(list string) error {
-	o, err := w.statusJSON()
+func (w *world) listJSONInStep(list string) error {
+	o, err := w.listJSON()
 	if err != nil {
 		return err
 	}
@@ -280,24 +280,24 @@ func (w *world) statusJSONInStep(list string) error {
 	for _, b := range *o.Branches {
 		branches = append(branches, *b.Branch)
 		if len(*b.Lacks) > 0 || *b.Missing {
-			return fmt.Errorf("the sync status object says %s lacks %q or is missing\n%s", *b.Branch, *b.Lacks, w.report())
+			return fmt.Errorf("the branch list object says %s lacks %q or is missing\n%s", *b.Branch, *b.Lacks, w.report())
 		}
 	}
 	want := slices.Sorted(slices.Values(quotedList(list)))
 	switch {
 	case !*o.OK || len(*o.Problems) > 0:
-		return fmt.Errorf("the sync status object is not ok, or names a problem\n%s", w.report())
+		return fmt.Errorf("the branch list object is not ok, or names a problem\n%s", w.report())
 	case !slices.Equal(slices.Sorted(slices.Values(branches)), want):
-		return fmt.Errorf("the sync status object lists %q, not %q\n%s", branches, want, w.report())
+		return fmt.Errorf("the branch list object lists %q, not %q\n%s", branches, want, w.report())
 	}
 	return nil
 }
 
-// statusJSONLacks is whether sync --status's object lists the branch
+// listJSONLacks is whether branch list's object lists the branch
 // branch, local, lacking exactly the branches lacks names, and is not ok
 // when it lacks any.
-func (w *world) statusJSONLacks(branch string, lacks []string) error {
-	o, err := w.statusJSON()
+func (w *world) listJSONLacks(branch string, lacks []string) error {
+	o, err := w.listJSON()
 	if err != nil {
 		return err
 	}
@@ -307,13 +307,13 @@ func (w *world) statusJSONLacks(branch string, lacks []string) error {
 		}
 		switch {
 		case *b.Missing:
-			return fmt.Errorf("the sync status object says %s is missing\n%s", branch, w.report())
+			return fmt.Errorf("the branch list object says %s is missing\n%s", branch, w.report())
 		case !slices.Equal(*b.Lacks, lacks) && (len(*b.Lacks) > 0 || len(lacks) > 0):
-			return fmt.Errorf("the sync status object says %s lacks %q, not %q\n%s", branch, *b.Lacks, lacks, w.report())
+			return fmt.Errorf("the branch list object says %s lacks %q, not %q\n%s", branch, *b.Lacks, lacks, w.report())
 		case len(lacks) > 0 && *o.OK:
-			return fmt.Errorf("the sync status object is ok while %s lacks %q\n%s", branch, lacks, w.report())
+			return fmt.Errorf("the branch list object is ok while %s lacks %q\n%s", branch, lacks, w.report())
 		}
 		return nil
 	}
-	return fmt.Errorf("the sync status object lists no branch %s\n%s", branch, w.report())
+	return fmt.Errorf("the branch list object lists no branch %s\n%s", branch, w.report())
 }

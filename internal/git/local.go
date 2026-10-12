@@ -6,16 +6,16 @@ import (
 	"github.com/donvargax/itos-template/internal/template/port"
 )
 
-// Local is a template's clone, the port.Clone sync runs in: read at its top
-// as a Worktree reads one, its local branches beside origin's default
-// branch, and merged into with git merge itself, through its command line,
-// as decision 38 has update merge with git's own merge (decision 42). The
-// merge is git merge --no-commit --no-ff, so git leaves it in progress,
-// MERGE_HEAD naming the branch merged, even where a fast-forward was
-// possible, staged or conflicted as it leaves any merge, by its own rules
-// and the person's config (core.autocrlf, merge.conflictStyle, rerere) on
-// every system. No ref moves: HEAD, the branches and every commit stay as
-// they are.
+// Local is a template's clone, the port.Clone branch sync and branch list
+// run in: read at its top as a Worktree reads one, its local branches beside
+// origin's default branch, and merged into with git merge itself, through
+// its command line, as decision 38 has update merge with git's own merge
+// (decision 42). The merge is git merge --no-commit --no-ff, so git leaves
+// it in progress, MERGE_HEAD naming the branch merged, even where a
+// fast-forward was possible, staged or conflicted as it leaves any merge, by
+// its own rules and the person's config (core.autocrlf, merge.conflictStyle,
+// rerere) on every system. No ref moves: HEAD, the branches and every commit
+// stay as they are.
 type Local struct {
 	*Worktree
 }

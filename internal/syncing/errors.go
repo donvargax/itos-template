@@ -33,12 +33,12 @@ type NoDefaultBranch struct{}
 // out, that the clone holds no local branch of.
 type NotLocal struct{ Branch string }
 
-// Detached is a HEAD that names no branch, Branches those sync can merge
-// into, in the manifest's order.
+// Detached is a HEAD that names no branch, Branches those branch sync can
+// merge into, in the manifest's order.
 type Detached struct{ Branches []string }
 
 // Unnamed is the branch checked out, Branch, which the manifest does not
-// name, Branches those sync can merge into, in the manifest's order.
+// name, Branches those branch sync can merge into, in the manifest's order.
 type Unnamed struct {
 	Branch   string
 	Branches []string
@@ -58,7 +58,7 @@ type Lagging struct {
 	Lacks  []string
 }
 
-// Missing is a branch the manifest names that sync --status found no local
+// Missing is a branch the manifest names that branch list found no local
 // branch of.
 type Missing struct{ Branch string }
 

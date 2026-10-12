@@ -137,8 +137,8 @@ func TestStatusNamesABranchMissingLocally(t *testing.T) {
 	}
 }
 
-// The next branch to sync is the first, in the manifest's order, that sync
-// would merge into rather than refuse: every branch above it local and in
+// The next branch to sync is the first, in the manifest's order, that branch
+// sync would merge into rather than refuse: every branch above it local and in
 // step.
 func TestNextIsTheFirstLaggingBranchWithEveryBranchAboveInStep(t *testing.T) {
 	for _, tc := range []struct {

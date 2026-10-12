@@ -330,44 +330,44 @@ func syncingProblem(err syncing.Error) (code int, problems []Problem) {
 	code, problems = CodeInternal, internal(err)
 	switch e := err.(type) {
 	case *syncing.NotRepository:
-		code, problems = CodeEnvironment, fixed("git-repository-missing", "run sync in a clone of the template",
-			"sync merges a template's branches in its git repository, and git finds none here (%s)", e.Why)
+		code, problems = CodeEnvironment, fixed("git-repository-missing", "run it in a clone of the template",
+			"itos-template branch reads a template's branches in its git repository, and git finds none here (%s)", e.Why)
 	case *syncing.NoWorkTree:
-		code, problems = CodeEnvironment, fixed("git-work-tree-missing", "run sync in a checkout of the template, a clone of its repository",
+		code, problems = CodeEnvironment, fixed("git-work-tree-missing", "run it in a checkout of the template, a clone of its repository",
 			"this is a bare git repository, or a .git folder, with no working tree to merge into")
 	case *syncing.NoCommit:
 		code, problems = CodeRefused, fixed("git-commit-missing", "clone the template, or commit its root first",
-			"the repository at %s has no commit, so no branch of the template to sync", e.Top)
+			"the repository at %s has no commit, so no branch of the template", e.Top)
 	case *syncing.NoOrigin:
-		code, problems = CodeRefused, fixed("origin-missing", "add the remote the template is fetched from as origin (git remote add origin <url>), fetch it, then sync",
-			"the template's repository has no remote origin: sync reads the root, the template's default branch, from origin's HEAD")
+		code, problems = CodeRefused, fixed("origin-missing", "add the remote the template is fetched from as origin (git remote add origin <url>), fetch it, then run the command again",
+			"the template's repository has no remote origin: itos-template branch reads the root, the template's default branch, from origin's HEAD")
 	case *syncing.NoDefaultBranch:
-		code, problems = CodeUsage, fixed("default-branch-missing", "point origin's HEAD at the template's default branch, or record it here with git remote set-head origin <branch>, then sync",
-			"origin names no default branch, neither as git clone recorded it nor when asked: sync reads the root, the template's default branch, from origin, whatever branch is checked out")
+		code, problems = CodeUsage, fixed("default-branch-missing", "point origin's HEAD at the template's default branch, or record it here with git remote set-head origin <branch>, then run the command again",
+			"origin names no default branch, neither as git clone recorded it nor when asked: itos-template branch reads the root, the template's default branch, from origin, whatever branch is checked out")
 	case *syncing.NotLocal:
-		code, problems = CodeRefused, fixed("branch-missing", "make it from origin's with git branch --track "+e.Branch+" origin/"+e.Branch+", then sync",
-			"the template's branch %s is not a local branch here: sync reads the root and every branch above the one checked out, and merges only local branches, fetching nothing", e.Branch)
+		code, problems = CodeRefused, fixed("branch-missing", "make it from origin's with git branch --track "+e.Branch+" origin/"+e.Branch+", then run the command again",
+			"the template's branch %s is not a local branch here: itos-template branch reads the root, and branch sync every branch above the one checked out, local branches only, fetching nothing", e.Branch)
 	case *syncing.Detached:
-		code, problems = CodeUsage, fixed("branch-detached", "check one of them out with git switch <branch>, then sync",
-			"HEAD names no branch: sync merges into the template's branch checked out, one of %s", strings.Join(e.Branches, ", "))
+		code, problems = CodeUsage, fixed("branch-detached", "check one of them out with git switch <branch>, then run branch sync again",
+			"HEAD names no branch: branch sync merges into the template's branch checked out, one of %s", strings.Join(e.Branches, ", "))
 	case *syncing.Unnamed:
-		code, problems = CodeUsage, fixed("branch-unknown", "check one of them out with git switch <branch>, then sync",
-			"the template's manifest names no branch %s: sync merges into a branch it names, one of %s", e.Branch, strings.Join(e.Branches, ", "))
+		code, problems = CodeUsage, fixed("branch-unknown", "check one of them out with git switch <branch>, then run branch sync again",
+			"the template's manifest names no branch %s: branch sync merges into a branch it names, one of %s", e.Branch, strings.Join(e.Branches, ", "))
 	case *syncing.Behind:
-		code, problems = CodeRefused, fixed("branch-behind", "check "+e.Branch+" out and sync it first, commit its merge, then sync this branch again",
-			"the template's branch %s lacks commits of %s, which it descends from: sync goes down the tree a branch at a time", e.Branch, strings.Join(e.Lacks, " and "))
+		code, problems = CodeRefused, fixed("branch-behind", "check "+e.Branch+" out and run branch sync on it first, commit its merge, then run branch sync on this branch again",
+			"the template's branch %s lacks commits of %s, which it descends from: branch sync goes down the tree a branch at a time", e.Branch, strings.Join(e.Lacks, " and "))
 	case *syncing.Lagging:
-		code, problems = CodeRefused, fixed("branch-behind", "check it out with git switch "+e.Branch+" and run itos-template sync, once every branch above it is in step",
+		code, problems = CodeRefused, fixed("branch-behind", "check it out with git switch "+e.Branch+" and run itos-template branch sync, once every branch above it is in step",
 			"the template's branch %s lacks commits of %s, which it descends from", e.Branch, strings.Join(e.Lacks, " and "))
 	case *syncing.Missing:
-		code, problems = CodeRefused, fixed("branch-missing", "make it from origin's with git branch --track "+e.Branch+" origin/"+e.Branch+", then run sync --status again",
-			"the template's branch %s is not a local branch here, so what it lacks is unknown: sync --status reads only local branches, fetching nothing", e.Branch)
+		code, problems = CodeRefused, fixed("branch-missing", "make it from origin's with git branch --track "+e.Branch+" origin/"+e.Branch+", then run branch list again",
+			"the template's branch %s is not a local branch here, so what it lacks is unknown: branch list reads only local branches, fetching nothing", e.Branch)
 	case *syncing.Merging:
-		code, problems = CodeRefused, fixed("merge-in-progress", "commit the merge, or undo it with git merge --abort, then sync",
-			"a merge is in progress here already: sync starts a merge only where none is")
+		code, problems = CodeRefused, fixed("merge-in-progress", "commit the merge, or undo it with git merge --abort, then run branch sync again",
+			"a merge is in progress here already: branch sync starts a merge only where none is")
 	case *syncing.Dirty:
-		code, problems = CodeRefused, fixed("working-tree-dirty", "commit or stash the changes, or remove the untracked files, then sync",
-			"the clone's index and working tree are not clean (%s): sync merges only into a clean checkout, so git merge --abort undoes it whole", strings.Join(e.Paths, ", "))
+		code, problems = CodeRefused, fixed("working-tree-dirty", "commit or stash the changes, or remove the untracked files, then run branch sync again",
+			"the clone's index and working tree are not clean (%s): branch sync merges only into a clean checkout, so git merge --abort undoes it whole", strings.Join(e.Paths, ", "))
 	case *syncing.Conflicted:
 		code, problems = CodeRefused, fixed("merge-conflict", "resolve each, stage it with git add and commit the merge; or undo the whole merge with git merge --abort",
 			"merging %s into %s left conflicts in %s, each marked in its file and unmerged in the index as git merge leaves one, the rest of the merge staged",

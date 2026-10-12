@@ -6,10 +6,10 @@ import (
 	"github.com/donvargax/itos-template/internal/template/port"
 )
 
-// sync --status (q-58) is where the whole tree stands, read and never
+// branch list (q-58) is where the whole tree stands, read and never
 // written: every branch the manifest names, with the branches it descends
 // from whose commits it lacks, so a template's author, or its CI, sees which
-// branches wait for a sync. It reads the local branches alone, as the merge
+// branches wait for branch sync. It reads the local branches alone, as the merge
 // does, and nothing of the checkout but where its repository is, so it
 // reports from any checkout: a detached HEAD, an unclean one, one with a
 // merge in progress.
@@ -89,7 +89,7 @@ func Status(c port.Clone) (*Tree, error) {
 
 // Next is the branch to sync next: the first, in the manifest's order,
 // that lacks commits of a branch it descends from while every branch above
-// it is local and lacks none, so sync merges into it rather than refuse it;
+// it is local and lacks none, so branch sync merges into it rather than refuse it;
 // "" when there is none.
 func (t *Tree) Next() string {
 	byName := map[string]Standing{}

@@ -265,11 +265,11 @@ type Tagger interface {
 	Untag(name string) error
 }
 
-// Clone is a template's clone, the checkout sync runs in (decisions 2 and
-// 42): its local branches read beside the branch origin's HEAD names, and
-// one of them merged into the branch checked out with git's own merge,
-// left uncommitted. Nothing else of it is changed: HEAD, every ref and
-// every commit are left as they are.
+// Clone is a template's clone, the checkout branch sync and branch list run
+// in (decisions 2 and 42): its local branches read beside the branch
+// origin's HEAD names, and one of them merged into the branch checked out
+// with git's own merge, left uncommitted. Nothing else of it is changed:
+// HEAD, every ref and every commit are left as they are.
 type Clone interface {
 	// Look says what the folder the clone was opened in is, as a Checkout's
 	// Look says it.

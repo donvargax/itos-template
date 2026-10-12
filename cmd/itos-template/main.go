@@ -9,8 +9,8 @@
 //
 // main only assembles: each command is a slice (decisions 16 and 17), its
 // kong struct and its handler in a package of its own (newproject, adopt,
-// update, check, cutrelease, syncbranch),
-// and main parses the command line, runs the one it names through the UI
+// update, check, cutrelease, and branchsync and branchlist in the group
+// branch), and main parses the command line, runs the one it names through the UI
 // the slices share (internal/cli) and exits with the code the slice
 // returns. A usage error, which kong finds before any slice runs, is the
 // one failure main reports itself, through that UI; internal/cli's Flags
@@ -27,12 +27,13 @@ import (
 	"github.com/alecthomas/kong"
 
 	"github.com/donvargax/itos-template/internal/adopt"
+	"github.com/donvargax/itos-template/internal/branchlist"
+	"github.com/donvargax/itos-template/internal/branchsync"
 	"github.com/donvargax/itos-template/internal/check"
 	"github.com/donvargax/itos-template/internal/cli"
 	"github.com/donvargax/itos-template/internal/cutrelease"
 	"github.com/donvargax/itos-template/internal/newproject"
 	"github.com/donvargax/itos-template/internal/prompt"
-	"github.com/donvargax/itos-template/internal/syncbranch"
 	"github.com/donvargax/itos-template/internal/update"
 	"github.com/donvargax/itos-template/internal/version"
 )
@@ -48,11 +49,33 @@ type commandLine struct {
 	Update     update.CLI     `cmd:"" help:"Bring a made or adopted project to a newer template release, by a 3-way merge left staged."`
 	Check      check.CLI      `cmd:"" help:"Render every combination a template allows and run its checks."`
 	Release    cutrelease.CLI `cmd:"" help:"Tag every branch of a template with one version once check passes over them."`
-	Sync       syncbranch.CLI `cmd:"" help:"Merge into a template's branch the branch it descends from, left staged."`
+	Branch     branch         `cmd:"" help:"Keep a template's branches in step: merge into one the branch it descends from, or list where each stands."`
 	Completion cli.Completion `cmd:"" help:"Print a shell completion script."`
 	Complete   struct{}       `cmd:"" name:"__complete" hidden:""`
+	// docs/CLI.md, rule 41: sync and sync --status, before branch sync and
+	// branch list, exit 2 naming them.
+	Sync cli.Moved `cmd:"" hidden:"" passthrough:""`
 	// docs/CLI.md, rule 11: version beside --version, printing the same.
 	Version struct{} `cmd:"" help:"Print the version and the commit it was built from."`
+}
+
+// branch is the group of a template's branches, a noun holding its verbs
+// (docs/CLI.md, rules 3 and 4, q-60): alone it runs none (rule 7), kong
+// naming its subcommands (rule 13).
+type branch struct {
+	Sync branchsync.CLI `cmd:"" help:"Merge into a template's branch the branch it descends from, left staged."`
+	List branchlist.CLI `cmd:"" help:"List every branch of a template with the branches it descends from whose commits it lacks, writing nothing."`
+}
+
+// Help is branch's detail in its --help (docs/CLI.md, rules 10 and 14).
+func (branch) Help() string {
+	return `A template's optional parts are its branches: the root, a stack off it, a feature off its stack or off the features it needs (docs/manifest.md's "Branches"). branch sync merges into the branch checked out the branch it descends from, left staged; branch list says where every branch stands, writing nothing. branch alone runs neither: it exits 2 naming them.
+
+Examples:
+  itos-template branch list
+  itos-template branch sync
+
+Report issues at https://github.com/donvargax/itos-template/issues.`
 }
 
 func main() {
@@ -89,7 +112,7 @@ func run(args []string, in io.Reader, stdout, stderr io.Writer, terminal bool) i
 		return ui.Usage(err, wantsJSON(args))
 	}
 	// kong refuses a command line that names no command, so there is one.
-	switch command, _, _ := strings.Cut(ctx.Command(), " "); command {
+	switch command := commandOf(ctx); command {
 	case "new":
 		return c.New.Run(ui)
 	case "adopt":
@@ -100,8 +123,15 @@ func run(args []string, in io.Reader, stdout, stderr io.Writer, terminal bool) i
 		return c.Check.Run(ui)
 	case "release":
 		return c.Release.Run(ui)
+	case "branch sync":
+		return c.Branch.Sync.Run(ui)
+	case "branch list":
+		return c.Branch.List.Run(ui)
 	case "sync":
-		return c.Sync.Run(ui)
+		if c.Sync.Gives("--status") {
+			return c.Sync.Run(ui, "sync --status", "branch list", wantsJSON(args))
+		}
+		return c.Sync.Run(ui, "sync", "branch sync", wantsJSON(args))
 	case "completion":
 		return c.Completion.Run(ui)
 	case "version":
@@ -111,6 +141,19 @@ func run(args []string, in io.Reader, stdout, stderr io.Writer, terminal bool) i
 	}
 	// A command kong took that has no case here: a bug (rule 31).
 	return ui.Fail(fmt.Errorf("no case runs the command %q", ctx.Command()), wantsJSON(args))
+}
+
+// commandOf is the command ctx names, its group's name before it, without
+// its arguments: "branch sync" of itos-template branch sync, "completion" of
+// itos-template completion bash.
+func commandOf(ctx *kong.Context) string {
+	var names []string
+	for _, word := range strings.Fields(ctx.Command()) {
+		if !strings.HasPrefix(word, "<") {
+			names = append(names, word)
+		}
+	}
+	return strings.Join(names, " ")
 }
 
 // wantsJSON is whether args ask for --json before any --, as a command line

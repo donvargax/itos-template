@@ -6,7 +6,8 @@ import (
 	"testing"
 )
 
-// A git that fails where sync's scenarios run a working one: none can make
+// A git that fails where branch sync's scenarios run a working
+// one: none can make
 // git fail reading HEAD, merging or listing what a merge staged, each an
 // internal error (exit 70).
 func TestLocalGivesGitsFailure(t *testing.T) {
