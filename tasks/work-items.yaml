@@ -1715,3 +1715,15 @@ items:
       The person's call (q below, 2026-10-11): a report beside sync's merge, so a template's author,
       or its CI, sees which branches wait for a sync, writing nothing. Specified in
       features/sync.feature.
+  - id: p1-sync-other-operations
+    title: sync refuses a rebase, cherry-pick or revert in progress as its own refusal
+    phase: 1
+    owner: null
+    status: todo
+    depends_on: [slice-19]
+    kind: idea
+    why: >
+      sync checks only for a merge in progress (MERGE_HEAD) before it merges. A rebase, cherry-pick
+      or revert left in progress makes git merge refuse the merge itself, which sync reads as git's
+      failure and exits 70 with git's line, where it should refuse with exit 1 naming the operation
+      and how to finish or abort it, as it does a merge in progress. Found building slice-19.
