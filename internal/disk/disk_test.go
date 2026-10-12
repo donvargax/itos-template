@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
 
 	"github.com/donvargax/itos-template/internal/template/port"
@@ -88,6 +89,39 @@ func TestWriteRefusesToWriteThroughASymbolicLinkParent(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(outside, "escaped.txt")); !errors.Is(err, fs.ErrNotExist) {
 		t.Errorf("a file was written outside the folder, through the link: %v", err)
+	}
+}
+
+// Write creates a file with O_EXCL, so it refuses an entry already at the
+// file's own path rather than write over or through it; render.Plan refuses
+// the names that would make two, so this runs under no scenario (bug-9).
+func TestWriteRefusesToWriteOverAnEntryAtAFilesOwnPath(t *testing.T) {
+	if runtime.GOOS == "windows" {
+		t.Skip("symbolic links need a privilege on windows")
+	}
+	root := t.TempDir()
+	dir := filepath.Join(root, "made")
+	outside := filepath.Join(root, "outside.txt")
+	err := Disk{}.Write(dir, []port.File{
+		{Path: "x", Mode: fs.ModeSymlink | 0o777, Data: []byte(outside)},
+		{Path: "x", Mode: 0o644, Data: []byte("escaped")},
+	})
+	var occupied *Occupied
+	if !errors.As(err, &occupied) || occupied.Path != "x" {
+		t.Fatalf("Write = %v, not an Occupied naming the file", err)
+	}
+	if _, err := os.Stat(outside); !errors.Is(err, fs.ErrNotExist) {
+		t.Errorf("a file was written through the link, to %s", outside)
+	}
+}
+
+// A file the system will not open for a reason other than one already there
+// is an Unwritable; a name too long for the system is one on every platform.
+func TestWriteSaysWhenItCannotOpenAFile(t *testing.T) {
+	err := Disk{}.Write(t.TempDir(), []port.File{{Path: strings.Repeat("a", 300), Mode: 0o644}})
+	var unwritable *Unwritable
+	if !errors.As(err, &unwritable) {
+		t.Fatalf("Write = %v, not an Unwritable", err)
 	}
 }
 

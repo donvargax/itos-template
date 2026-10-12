@@ -50,12 +50,14 @@ func (Disk) Look(folder string) (port.Contents, error) {
 }
 
 // Write writes files into folder, making it and every folder a file needs.
-// It never writes through a symbolic link: if a parent folder of a file is
-// one, the write would land where the link points, outside folder, so Write
-// refuses it (a *Through). render.Plan already refuses names that clash once
-// case is ignored, so this is a second layer behind it (decision 41, bug-8):
-// a link a render wrote can match a later file's parent by case on a disk
-// that folds it, and the file would escape though its name passed.
+// It never writes through a symbolic link in a parent folder (a *Through) nor
+// over or through a file or link already at a file's own path (a *Occupied):
+// each file is created with O_EXCL, which fails rather than follow a link
+// there. new writes into an empty folder, so an entry it meets is one the
+// render itself made; render.Plan refuses the names that would make two, so
+// these are a second layer behind it (decision 41, bug-8 and bug-9), and on a
+// disk that folds case or the Unicode marks HFS+ ignores the create and the
+// parent check fail as the disk itself tells the names apart.
 func (Disk) Write(folder string, files []port.File) error {
 	if err := os.MkdirAll(folder, 0o755); err != nil {
 		return &Unmakeable{Folder: folder, Err: err}
@@ -74,7 +76,15 @@ func (Disk) Write(folder string, files []port.File) error {
 			}
 			continue
 		}
-		if err := os.WriteFile(to, f.Data, f.Mode.Perm()); err != nil {
+		file, err := os.OpenFile(to, os.O_WRONLY|os.O_CREATE|os.O_EXCL, f.Mode.Perm())
+		if errors.Is(err, fs.ErrExist) {
+			return &Occupied{Folder: folder, Path: f.Path}
+		}
+		if err == nil {
+			_, err = file.Write(f.Data)
+			err = errors.Join(err, file.Close())
+		}
+		if err != nil {
 			return &Unwritable{Folder: folder, Err: err}
 		}
 	}
@@ -162,16 +172,28 @@ type Through struct {
 	Path   string
 }
 
+// Occupied is a file Path that something is already at in Folder, which Write
+// would write over or through: new writes into an empty folder, so an entry
+// at a render's path is a file or link O_EXCL refused to follow.
+type Occupied struct {
+	Folder string
+	Path   string
+}
+
 func (*Unreadable) diskError() {}
 func (*Unmakeable) diskError() {}
 func (*Unwritable) diskError() {}
 func (*Through) diskError()    {}
+func (*Occupied) diskError()   {}
 
 func (e *Unreadable) Error() string { return fmt.Sprintf("reading %s: %v", e.Folder, e.Err) }
 func (e *Unmakeable) Error() string { return fmt.Sprintf("making %s: %v", e.Folder, e.Err) }
 func (e *Unwritable) Error() string { return fmt.Sprintf("writing in %s: %v", e.Folder, e.Err) }
 func (e *Through) Error() string {
 	return fmt.Sprintf("writing %s in %s: its parent %s is a symbolic link", e.Path, e.Folder, e.Link)
+}
+func (e *Occupied) Error() string {
+	return fmt.Sprintf("writing %s in %s: something is already there", e.Path, e.Folder)
 }
 
 func (e *Unreadable) Unwrap() error { return e.Err }

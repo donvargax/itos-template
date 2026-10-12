@@ -77,6 +77,7 @@ func TestEachKindNoScenarioReadsHasItsCodeRuleAndSentence(t *testing.T) {
 		// render.Plan refuses the names that would let this happen, so no
 		// scenario reaches disk's second layer against a symbolic link parent.
 		{&disk.Through{Folder: "made", Link: "run", Path: "run/x"}, 1, "unsafe-symlink", "the template renders run/x into made through a symbolic link at run, which would write outside the project: leave the link out of the template, or decline it"},
+		{&disk.Occupied{Folder: "made", Path: "run"}, 1, "unsafe-symlink", "the template renders run into made, where something is already there, which new would write over or through: new writes into an empty folder, so leave the clashing file or link out of the template"},
 		{&tempdir.Unmakeable{Err: cause}, 3, "temporary-folder", "cannot make a temporary folder: cause"},
 		// A project's working tree fails to read or write where the system
 		// refuses, as the disk does.

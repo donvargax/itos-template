@@ -30,3 +30,5 @@ require (
 )
 
 tool golang.org/x/vuln/cmd/govulncheck
+
+retract v0.30.1

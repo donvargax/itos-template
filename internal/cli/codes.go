@@ -183,6 +183,8 @@ func diskProblem(err disk.Error) (code int, problems []Problem) {
 		}
 	case *disk.Through:
 		code, problems = CodeRefused, one("unsafe-symlink", "the template renders %s into %s through a symbolic link at %s, which would write outside the project: leave the link out of the template, or decline it", e.Path, e.Folder, e.Link)
+	case *disk.Occupied:
+		code, problems = CodeRefused, one("unsafe-symlink", "the template renders %s into %s, where something is already there, which new would write over or through: new writes into an empty folder, so leave the clashing file or link out of the template", e.Path, e.Folder)
 	}
 	return code, problems
 }
