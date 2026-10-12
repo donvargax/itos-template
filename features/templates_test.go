@@ -11,7 +11,9 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"maps"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"slices"
 	"strconv"
@@ -129,39 +131,118 @@ func (w *world) templateWithFileLine(name, branch, file, line string) error {
 
 // templateWithBranchFiles is the fixture template name with one more commit
 // on its branch branch, adding each file of files, its path (with /) and
-// its contents; what names the files in the template's key. The root
-// branch is checked out again after, so it stays the template's default
-// branch.
+// its contents; what names the files in the template's key. The commit is
+// built from git's objects, never from a checkout, so a file reaches the
+// branch even where the disk cannot hold its name: windows drops a trailing
+// period or space from a name, and git there refuses such a path in its
+// index. The working tree stays on the root branch, the template's default.
 func (w *world) templateWithBranchFiles(name, branch, what string, files [][2]string) error {
 	key := fmt.Sprintf("%s whose branch %s holds %s", name, branch, what)
 	return w.useTemplate(key, func(dir string) error {
 		if err := w.buildTemplate(filepath.Join(w.root, "features", "testdata", name), dir); err != nil {
 			return err
 		}
-		root, err := w.gitOut(dir, "symbolic-ref", "--short", "HEAD")
+		ref := "refs/heads/" + branch
+		parent, err := w.gitOut(dir, "rev-parse", "--verify", ref)
 		if err != nil {
 			return err
 		}
-		if err := w.gitIn(dir, "checkout", "-q", branch); err != nil {
-			return err
-		}
+		blobs := map[string]string{}
 		for _, file := range files {
-			p := filepath.Join(dir, filepath.FromSlash(file[0]))
-			if err := os.MkdirAll(filepath.Dir(p), 0o755); err != nil {
+			blob, err := w.gitInput(dir, file[1], "hash-object", "-w", "--stdin")
+			if err != nil {
 				return err
 			}
-			if err := os.WriteFile(p, []byte(file[1]), 0o644); err != nil {
-				return err
-			}
-			if err := w.gitIn(dir, "add", "--", file[0]); err != nil {
-				return err
-			}
+			blobs[file[0]] = strings.TrimSpace(blob)
 		}
-		if err := w.gitIn(dir, "commit", "-q", "-m", "Add "+what); err != nil {
+		tree, err := w.treeWith(dir, parent+"^{tree}", blobs)
+		if err != nil {
 			return err
 		}
-		return w.gitIn(dir, "checkout", "-q", root)
+		commit, err := w.gitInput(dir, "Add "+what+"\n", "commit-tree", tree, "-p", parent)
+		if err != nil {
+			return err
+		}
+		return w.gitIn(dir, "update-ref", ref, strings.TrimSpace(commit), parent)
 	})
+}
+
+// treeWith writes the tree that is the tree base (any name git reads as a
+// tree, or "" for none) with each file of blobs, its path (with /) below the
+// tree, its blob that one, and returns its name. A file keeps the mode of
+// the one it replaces, so an executable stays one; a new one is not
+// executable. It reads and writes trees with ls-tree and mktree, which take
+// a name as it is, whatever the disk could hold.
+func (w *world) treeWith(dir, base string, blobs map[string]string) (string, error) {
+	type entry struct{ mode, kind, object string }
+	entries := map[string]entry{}
+	if base != "" {
+		list, err := w.gitInput(dir, "", "ls-tree", "-z", base)
+		if err != nil {
+			return "", err
+		}
+		for _, line := range strings.Split(strings.TrimSuffix(list, "\x00"), "\x00") {
+			if line == "" {
+				continue
+			}
+			meta, name, ok := strings.Cut(line, "\t")
+			fields := strings.Fields(meta)
+			if !ok || len(fields) != 3 {
+				return "", fmt.Errorf("git ls-tree %s: %q is not a tree entry", base, line)
+			}
+			entries[name] = entry{fields[0], fields[1], fields[2]}
+		}
+	}
+	below := map[string]map[string]string{}
+	for p, blob := range blobs {
+		first, rest, nested := strings.Cut(p, "/")
+		if !nested {
+			mode := "100644"
+			if old, ok := entries[first]; ok && old.kind == "blob" {
+				mode = old.mode
+			}
+			entries[first] = entry{mode, "blob", blob}
+			continue
+		}
+		if below[first] == nil {
+			below[first] = map[string]string{}
+		}
+		below[first][rest] = blob
+	}
+	for name, files := range below {
+		sub := ""
+		if old, ok := entries[name]; ok && old.kind == "tree" {
+			sub = old.object
+		}
+		tree, err := w.treeWith(dir, sub, files)
+		if err != nil {
+			return "", err
+		}
+		entries[name] = entry{"040000", "tree", tree}
+	}
+	var input strings.Builder
+	for _, name := range slices.Sorted(maps.Keys(entries)) {
+		e := entries[name]
+		fmt.Fprintf(&input, "%s %s %s\t%s\x00", e.mode, e.kind, e.object, name)
+	}
+	tree, err := w.gitInput(dir, input.String(), "mktree", "-z")
+	return strings.TrimSpace(tree), err
+}
+
+// gitInput is git run in the folder dir with input on its standard input,
+// returning its standard output as it is.
+func (w *world) gitInput(dir, input string, args ...string) (string, error) {
+	cmd := exec.Command(gitBin(), args...)
+	cmd.Dir = dir
+	cmd.Env = w.env()
+	cmd.Stdin = strings.NewReader(input)
+	var stderr strings.Builder
+	cmd.Stderr = &stderr
+	out, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("git %s: %v\n%s", strings.Join(args, " "), err, stderr.String())
+	}
+	return string(out), nil
 }
 
 // manifestVariants are the files of testdata/acme-manifests, each acme's
