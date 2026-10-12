@@ -1723,15 +1723,9 @@ items:
     title: "sync and sync --status move into the noun group branch: branch sync and branch list, as docs/CLI.md's command grammar asks"
     phase: 1
     owner: donvargax
-    status: doing
+    status: done
     depends_on: []
     kind: slice
-    why: >
-      Was p1-sync-status-flag-rule-18.
-      docs/CLI.md rule 18 says a flag changes an action and never selects a different one, yet sync
-      --status (q-58, slice-20) selects a read-only report instead of a merge. Either the rule gains
-      an exception naming --status, or the report becomes its own command (a breaking change once
-      released, rule 40). The person's call.
   - id: release-breaking-pre-v1
     title: release-version bumps the minor for a breaking change before v1, never cutting v1.0.0 on its own
     phase: 1
