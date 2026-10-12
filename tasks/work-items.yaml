@@ -1702,7 +1702,7 @@ items:
     title: "No release ships bug-8's .git refusal, and no scenario holds it: an answer can make a template's name one Windows writes as .git"
     phase: 1
     owner: donvargax
-    status: todo
+    status: doing
     depends_on: []
     kind: bug
     why: >
